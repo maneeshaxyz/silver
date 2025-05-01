@@ -1,7 +1,5 @@
 # “GitHub for Everything” Playbook
 
-(Original, [Google Doc](https://docs.google.com/document/d/1rGrhhvyaxCSnhXFvqjVwyIl3adlnLuf2VQWUzl6DGig/edit?tab=t.0#heading=h.gmk1esgburom))
-
 We should aim to use GitHub as the central platform for nearly all aspects of our workflows/processes—from code and CI/CD to planning, documentation, and internal collaboration.
 
 By doing this, we reduce our reliance on a fragmented set of third-party tools and avoid the overhead of maintaining, integrating, and context-switching between multiple systems.
