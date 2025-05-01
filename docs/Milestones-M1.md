@@ -6,7 +6,7 @@ Email 1.0 means the functionality of email products like GMail and OutLook, as o
 
 This is (sort of) what Copper (previous incarnation of Silver) was supposed to be.
 
-...
+---
 
 |  | Description | Details/Comments | Expected Completion |
 | :---: | :---- | :---- | :---- |
