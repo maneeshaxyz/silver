@@ -31,6 +31,7 @@ Canary combines end-to-end encryption (PGP and SecureSend), AI writing assistanc
 Differentiator: Minimalism for mobile
 
 Moat: Mobile-first “flick to archive” simplicity.
+
 Triage simplifies email to a Tinder-like experience: swipe up to archive, down to keep. It’s designed for people who want to get through their inbox on the go without writing full replies. No bells, no whistles—just fast sorting.
 
 ## 5. Shortwave
@@ -80,5 +81,3 @@ Differentiator: Smart features in legacy UX
 Moat: Cross-platform, stable, and familiar.
 
 Newton was killed off, then revived by fan demand. It has features like recap (reminds you of dropped threads), send later, read receipts, and unified inbox across all platforms. It's not groundbreaking, but it’s one of the most polished traditional clients.
-
-
