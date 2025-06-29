@@ -29,6 +29,16 @@ services:
       - 80:80 #optional
     restart: unless-stopped
 
+  sqlite:
+    image: silver/sqlite:latest
+    container_name: sqlite
+    hostname: sqlite.silver
+    ports:
+      - "8191:8191"
+    volumes:
+      - ./sqlite:/db
+    command: ["tail", "-f", "/dev/null"]  # Keeps the container running
+
   # postfix:
   #   build:
   #     context: /services/smtp # Path to smtp Dockerfile
