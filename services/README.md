@@ -1,5 +1,11 @@
-# Services 
 This folder contains all the services required for running your own mail server. 
+
+# Quick Start
+```
+  docker compose up -d
+```
+
+# Services 
 
 Each service is self-contained and meant to be stateless. This allows for nicer separation, better testing and allows for changing services if they don't fit your needs.
 
