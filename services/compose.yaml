@@ -30,22 +30,31 @@ services:
     restart: unless-stopped
 
   sqlite:
-    image: silver/sqlite:latest
+    build:
+      context: ./db
     container_name: sqlite
-    hostname: sqlite.silver
-    ports:
-      - "8191:8191"
+    env_file: ".env"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
     volumes:
-      - ./sqlite:/db
-    command: ["tail", "-f", "/dev/null"]  # Keeps the container running
+      # Persists database files in ./conf/db on the host.
+      # Other services (like Postfix) should also mount this.
+      - ./conf/db:/db
+    # This command just keeps the container running. This service's purpose
+    # is to manage the database volume, which other services will use.
+    command: tail -f /dev/null
+    restart: unless-stopped
 
   # postfix:
   #   build:
   #     context: /services/smtp # Path to smtp Dockerfile
   #   container_name: postfix_mail
   #   volumes:
-  #     - ./postfix_config:/etc/postfix # Postfix config files
-  #     - ./postfix_spool:/var/spool/postfix # Mail queue
+  #     - ./config/postfix/postfix_config:/etc/postfix # Postfix config files
+  #     - ./config/postfix/postfix_spool:/var/spool/postfix # Mail queue
+  # TODO switch to swag certs.
   #     - letsencrypt_certs:/etc/letsencrypt:ro # Mount certs read-only
   #   ports:
   #     - "25:25"
