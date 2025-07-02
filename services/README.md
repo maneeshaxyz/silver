@@ -3,9 +3,11 @@ This folder contains all the services required for running your own mail server.
 
 ## Quick Start
 
-- Ensure your DNS records (A, MX, DKIM, DMARC) are set and valid.
+- Ensure your DNS records (A, MX, SPF, DKIM, DMARC) are set and valid on your nameserver.
 
 - Ensure [git](https://git-scm.com/downloads/linux) and the [Docker Engine](https://docs.docker.com/engine/install/) are installed.
+
+- Add your domain and email into the .env file.
 
 ```
   git clone https://github.com/LSFLK/silver.git
