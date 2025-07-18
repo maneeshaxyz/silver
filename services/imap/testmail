@@ -1,0 +1,7 @@
+From: sender@example.com
+To: testuser@example.com
+Subject: Hello from Docker
+Date: Thu, 18 Jul 2024 12:00:00 +0000
+Message-ID: <testmsg@docker.local>
+
+This is a test email inside Docker Dovecot Maildir.
