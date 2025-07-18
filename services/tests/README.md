@@ -14,7 +14,7 @@ This directory contains a set of scripts designed to build, run, and test our lo
 
 ```bash
 cd services/tests
-chmod +x ./tests/*.sh
+find . -type f -name "*.sh" -exec chmod +x {} \;
 ./scripts/init.sh
 ```
 

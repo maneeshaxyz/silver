@@ -12,7 +12,7 @@ This directory contains a set of scripts designed to build, run, and test our lo
 To run the complete test sequence, ensure the scripts are executable and run them from the smtp directory:
 
 ```bash
-cd services/smtp
+cd services/tests
 chmod +x ./scripts/*.sh
 ./scripts/init.sh
 ```

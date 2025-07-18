@@ -13,7 +13,7 @@ docker build -t smtp-server .
 
 echo "--- Running new container... ---"
 docker run \
-    --env-file conf/config.env \
+    --env-file ../../smtp/conf/config.env \
     -d \
     --rm \
     --name $CONTAINER_NAME \
