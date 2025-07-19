@@ -151,5 +151,3 @@ docker exec dovecot-test chown testuser:testuser /home/testuser/Maildir/new/*
 - Add an SMTP server (e.g., Postfix) to send and receive mail.
 - Configure automatic mail delivery.
 - Use a webmail client for browser-based access.
-
-Feel free to reach out if you need help with these or any other customizations! -->
