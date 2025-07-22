@@ -1,24 +1,17 @@
-FROM debian:bookworm-slim
+FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        postfix \
-        ca-certificates \
-        bash && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
- 
-VOLUME ["/var/spool/postfix", "/etc/postfix"]
+# Install required packages
+RUN apt update && \
+    apt install -y postfix mailutils iputils-ping && \
+    apt clean
 
-EXPOSE 25
-EXPOSE 587
+# Copy configuration script from conf folder
+COPY conf/entrypoint.sh /entrypoint.sh
 
-COPY --chmod=0755 conf/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+# Give execution permission to the entrypoint script
+RUN chmod +x /entrypoint.sh
 
-RUN useradd -m testuser && \
-    echo "testuser:testpassword" | chpasswd
-
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["postfix", "start-fg"]
+# Start Postfix service and run the entrypoint script
+CMD ["/entrypoint.sh"]
