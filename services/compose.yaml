@@ -22,7 +22,7 @@ services:
       #- EXTRA_DOMAINS= #optional
       - STAGING=true #optional
       #- DISABLE_F2B= #optional
-      #- SWAG_AUTORELOAD=true
+      - SWAG_AUTORELOAD=true
       #- SWAG_AUTORELOAD_WATCHLIST= #optional
     volumes:
       - ./conf/swag/config:/config
@@ -47,13 +47,13 @@ services:
   #   depends_on:
   #     - swag
   #   restart: unless-stopped
-    
+
   postfix:
     container_name: "postfix-smtp"
     env_file:
-      - "smtp/conf/config.env"
+      - ".env"
     build:
-      context: smtp/ 
+      context: smtp/
     depends_on:
       swag:
           condition: service_healthy
@@ -61,6 +61,7 @@ services:
     volumes:
       - ./conf/swag/config/etc/:/le-ssl:ro
       - ./conf/postfix/spool:/var/spool/postfix
+      - ./smtp/conf/master.cf:/etc/postfix/master.cf
     ports:
       - "25:25"
       - "587:587"
@@ -71,7 +72,7 @@ services:
 #         - ".env"
 #     networks:
 #       - mail_network
-#     build: 
+#     build:
 #       context: imap/
 #     depends_on:
 #       swag:
@@ -85,7 +86,7 @@ services:
 #       - "143:143"
 #       - "993:993"
 #     restart: unless-stopped
-    
+
 # volumes:
 #  ./conf/swag/conf:
   #mail_data:
