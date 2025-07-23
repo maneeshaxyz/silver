@@ -26,13 +26,10 @@ echo "$MAIL_DOMAIN" > /etc/mailname
 
 # Start postfix
 service postfix start
-sleep 2
 
-# Send test email
-echo "$EMAIL_BODY" | mail -s "$EMAIL_SUBJECT" "$EMAIL_TO"
+# Wait for Postfix to start
+echo "Waiting for Postfix to start..."
+sleep 5
 
-# Show mail queue
-postqueue -p
-
-# Keep container running for 5 minutes
-sleep 300
+# Run the email script
+/sendmail.sh
