@@ -1,8 +1,8 @@
 services:
   swag:
     image: lscr.io/linuxserver/swag:latest
-    # networks:
-    #   - mail_network
+    networks:
+      - mail_network
     container_name: swag
     env_file: ".env"
     cap_add:
@@ -60,12 +60,14 @@ services:
           restart: true
     volumes:
       - ./conf/swag/config/etc/:/le-ssl:ro
-      - ./conf/postfix/spool:/var/spool/postfix
       - ./smtp/conf/master.cf:/etc/postfix/master.cf
+      - postfix_spool:/var/spool/postfix
     ports:
       - "25:25"
       - "587:587"
     restart: unless-stopped
+    networks:
+    - mail_network
 
   dovecot:
     env_file:
@@ -80,15 +82,17 @@ services:
       - ./conf/swag/config/etc/:/le-ssl:ro
       - ./imap/conf/dovecot.conf:/etc/dovecot/dovecot.conf
       - ./imap/conf/users.conf:/etc/dovecot/users.conf
+      - postfix_spool:/var/spool/postfix
     ports:
       - "143:143"
       - "993:993"
     restart: unless-stopped
+    networks:
+    - mail_network
 
-# volumes:
-#  ./conf/swag/conf:
-  #mail_data:
+volumes:
+  postfix_spool: 
 
-# networks:
-#   mail_network:
-#     driver: bridge
+networks:
+  mail_network:
+    driver: bridge
