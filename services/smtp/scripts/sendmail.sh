@@ -1,42 +1,28 @@
 #!/bin/bash
 
-# script to send mail to our postfix service. [Needs swaks on system]
-
-# --- init ---
-CONTAINER_NAME="smtp-test"
-SPOOL_FILE="/var/mail/testuser"
-RECIPIENT="testuser@localhost"
-SENDER="admin@host.com"
-
-UNIQUE_ID=$(date +%s)-$(uuidgen | cut -c-8)
-SUBJECT="Test-ID: $UNIQUE_ID"
-
-# --- Start test ---
-echo "Starting test with unique ID: $UNIQUE_ID"
-
-echo "-> Sending test email to the container..."
-swaks --to "$RECIPIENT" \
-      --from "$SENDER" \
-      --server 127.0.0.1:2525 \
-      --header "Subject: $SUBJECT" \
-      --body "This is a test message."
-
-# Check if swaks command itself failed, swaks will usually give a helpful error msg.
-if [ $? -ne 0 ]; then
-    echo "Test FAILED: swaks command failed to execute."
+# Ensure required variables are set
+if [[ -z "$EMAIL_TO" ]]; then
+    echo "Missing required email parameters (EMAIL_TO)"
     exit 1
 fi
 
-# Give the mail server a moment to process and write the email.
-sleep 2
+# Send email using mail command
+echo "$EMAIL_BODY" | mail -s "$EMAIL_SUBJECT" "$EMAIL_TO"
 
-# --- Test Verification ---
-echo "-> Verifying email receipt inside the container..."
+# Show mail queue
+postqueue -p
 
-if docker exec "$CONTAINER_NAME" grep -q "$UNIQUE_ID" "$SPOOL_FILE"; then
-    echo "Test PASSED ✅: Email successfully received."
-    exit 0
+# Sleep for 20s to allow email processing
+sleep 20
+
+# Check if the email queue is empty
+if postqueue -p | grep -q 'Mail queue is empty'; then
+    echo "Mail queue is empty."
+    echo "Email sent successfully to $EMAIL_TO"
 else
-    echo "Test FAILED ❌: Email with ID $UNIQUE_ID not found in $SPOOL_FILE."
-    exit 1
+    echo "Mail queue is not empty. There are pending emails."
+    postqueue -p
 fi
+
+# Keep the script running for a while to allow email processing
+sleep 300
