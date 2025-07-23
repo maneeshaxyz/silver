@@ -2,22 +2,32 @@
 
 # Builds and runs a docker container [requires docker daemon running]
 
-CONTAINER_NAME="smtp-test"
+CONTAINER_NAME="smtp-server-container"
 
-echo "--- Stopping and removing old container... ---"
-docker stop $CONTAINER_NAME || true
-docker rm $CONTAINER_NAME || true
+# Check if the container is already available
+if docker ps -a --format '{{.Names}}' | grep -q "$CONTAINER_NAME"; then
+    echo "--- Container '$CONTAINER_NAME' already exists. Removing it... ---"
+    docker rm -f "$CONTAINER_NAME"
+# Check if the container is running
+elif docker ps --format '{{.Names}}' | grep -q "$CONTAINER_NAME"; then
+    echo "--- Container '$CONTAINER_NAME' is already running. Stopping it... ---"
+    docker stop "$CONTAINER_NAME"
+    docker rm -f "$CONTAINER_NAME"
+fi 
 
+# Building the Docker image from the Dockerfile
 echo "--- Building new Docker image... ---"
 docker build -t smtp-server .
 
 echo "--- Running new container... ---"
 docker run \
-    --env-file conf/config.env \
+    --env-file conf/.env.conf \
     -d \
-    --rm \
+    -p 25:25 \
+    -p 587:587 \
     --name $CONTAINER_NAME \
-    -p 127.0.0.1:2525:25 \
-    smtp-server:latest
+    --hostname "$(grep MAIL_DOMAIN conf/.env.conf | cut -d '=' -f2 | tr -d '\r')" \
+    smtp-server
+echo "--- Waiting for container to start... ---"
 
 echo "--- Done. Container '$CONTAINER_NAME' is running. ---"
