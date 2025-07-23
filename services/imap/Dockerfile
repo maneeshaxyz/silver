@@ -21,9 +21,8 @@ COPY conf/users.conf /etc/dovecot/users.conf
 EXPOSE 110 143 
 
 # Copy the entrypoint script
-COPY --chmod=0755 ./conf/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+#COPY --chmod=0755 ./conf/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+#ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 # Command to run Dovecot in the foreground
 CMD ["dovecot", "-F"]

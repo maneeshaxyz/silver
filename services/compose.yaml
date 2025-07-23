@@ -67,25 +67,23 @@ services:
       - "587:587"
     restart: unless-stopped
 
-#   dovecot:
-#     env_file:
-#         - ".env"
-#     networks:
-#       - mail_network
-#     build:
-#       context: imap/
-#     depends_on:
-#       swag:
-#         condition: service_healthy
-#     container_name: dovecot-imap
-#     volumes:
-#       # CORRECTED: Mount the entire letsencrypt directory
-#       - ./conf/swag/conf/etc/letsencrypt:/etc/letsencrypt:ro
-#       - mail_data:/var/mail
-#     ports:
-#       - "143:143"
-#       - "993:993"
-#     restart: unless-stopped
+  dovecot:
+    env_file:
+        - ".env"
+    build:
+      context: imap/
+    depends_on:
+      swag:
+        condition: service_healthy
+    container_name: dovecot-imap
+    volumes:
+      - ./conf/swag/config/etc/:/le-ssl:ro
+      - ./imap/conf/dovecot.conf:/etc/dovecot/dovecot.conf
+      - ./imap/conf/users.conf:/etc/dovecot/users.conf
+    ports:
+      - "143:143"
+      - "993:993"
+    restart: unless-stopped
 
 # volumes:
 #  ./conf/swag/conf:
