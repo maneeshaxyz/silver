@@ -15,6 +15,17 @@ postconf -e "mydomain = $MAIL_DOMAIN"
 postconf -e "mynetworks = 127.0.0.0/8"
 postconf -e "relayhost = $RELAYHOST"
 
+# Canonical address mapping
+postconf -e "recipient_canonical_maps = hash:/etc/postfix/recipient_canonical"
+
+# Create recipient canonical file dynamically
+cat <<EOF > /etc/postfix/recipient_canonical
+$EMAIL_TO    $EMAIL_MAPPING
+EOF
+
+# Ensure the recipient canonical file is readable by Postfix
+chmod 644 /etc/postfix/recipient_canonical
+
 # Fix for DNS resolution in Postfix chroot
 mkdir -p /var/spool/postfix/etc
 cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/
@@ -30,6 +41,9 @@ service postfix start
 # Wait for Postfix to start
 echo "Waiting for Postfix to start..."
 sleep 5
+
+# Create db file for recipient canonical mapping
+postmap /etc/postfix/recipient_canonical
 
 # Run the email script
 /sendmail.sh
