@@ -10,7 +10,8 @@ This directory contains a set of scripts designed to build, run, and test our lo
 
 ```bash
 # Email configuration
-EMAIL_TO="recipient@example.com"
+EMAIL_TO="recipient"
+EMAIL_MAPPING="recipient@example.com"
 EMAIL_SUBJECT="Test Email"
 EMAIL_BODY="This is a test email sent from the local SMTP server."
 
