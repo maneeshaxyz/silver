@@ -4,8 +4,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install required packages
 RUN apt update && \
-    apt install -y postfix mailutils iputils-ping && \
+    apt install -y postfix mailutils iputils-ping \
+                   libsasl2-2 sasl2-bin libsasl2-modules && \
     apt clean
+
+# Create postfix SASL config
+RUN mkdir -p /etc/sasl2
+
+# Copy SASL configuration file
+COPY conf/smtpd.conf /etc/sasl2/smtpd.conf
 
 # Copy configuration script from conf folder
 COPY conf/entrypoint.sh /entrypoint.sh
