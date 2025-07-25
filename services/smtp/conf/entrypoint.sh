@@ -5,6 +5,20 @@ MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
 MAIL_HOSTNAME=${MAIL_HOSTNAME:-$MAIL_DOMAIN}
 RELAYHOST=${RELAYHOST:-}
 
+# Start saslauthd in the background
+mkdir -p /var/run/saslauthd
+rm -f /var/run/saslauthd/mux
+saslauthd -a pam -n 5 -m /var/run/saslauthd
+sleep 2
+saslauthd -a pam -n 5 -m /var/run/saslauthd  # start again to be safe
+
+# Create symlink expected by Postfix
+mkdir -p /var/spool/postfix/var/run
+ln -s /var/run/saslauthd /var/spool/postfix/var/run/saslauthd
+
+# Add postfix to sasl group (needed for socket access)
+adduser postfix sasl
+
 # Configure Postfix
 postconf -e "myhostname = $MAIL_HOSTNAME"
 postconf -e "myorigin = /etc/mailname"
@@ -14,6 +28,11 @@ postconf -e "inet_protocols = all"
 postconf -e "mydomain = $MAIL_DOMAIN"
 postconf -e "mynetworks = 127.0.0.0/8"
 postconf -e "relayhost = $RELAYHOST"
+postconf -e "smtpd_sasl_type = cyrus"
+postconf -e "smtpd_sasl_path = smtpd"
+postconf -e "smtpd_sasl_auth_enable = yes"
+postconf -e "smtpd_sasl_security_options = noanonymous"
+postconf -e "broken_sasl_auth_clients = yes"
 
 # Canonical address mapping
 postconf -e "recipient_canonical_maps = hash:/etc/postfix/recipient_canonical"
