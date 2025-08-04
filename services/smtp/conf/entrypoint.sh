@@ -34,6 +34,14 @@ postconf -e "smtpd_sasl_auth_enable = yes"
 postconf -e "smtpd_sasl_security_options = noanonymous"
 postconf -e "broken_sasl_auth_clients = yes"
 
+# Enable TLS for ports 25 and 587
+postconf -e "smtpd_tls_cert_file = /etc/letsencrypt/live/$MAIL_DOMAIN/fullchain.pem"
+postconf -e "smtpd_tls_key_file = /etc/letsencrypt/live/$MAIL_DOMAIN/privkey.pem"
+postconf -e "smtpd_use_tls = yes"
+postconf -e "smtpd_tls_security_level = may"
+postconf -e "smtpd_tls_CAfile = /etc/ssl/certs/ca-certificates.crt"
+
+
 # Canonical address mapping
 postconf -e "recipient_canonical_maps = hash:/etc/postfix/recipient_canonical"
 
@@ -64,5 +72,7 @@ sleep 5
 # Create db file for recipient canonical mapping
 postmap /etc/postfix/recipient_canonical
 
+sleep 1000000
+
 # Run the email script
-/sendmail.sh
+# /sendmail.sh

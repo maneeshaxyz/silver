@@ -25,6 +25,9 @@ docker run \
     -d \
     -p 25:25 \
     -p 587:587 \
+    -p 80:80 \
+    -v /etc/letsencrypt/live/$MAIL_DOMAIN:/etc/letsencrypt/live/$MAIL_DOMAIN:ro \
+    -v /etc/letsencrypt/archive/$MAIL_DOMAIN:/etc/letsencrypt/archive/$MAIL_DOMAIN:ro \
     --name $CONTAINER_NAME \
     --hostname "$(grep MAIL_DOMAIN conf/.env.conf | cut -d '=' -f2 | tr -d '\r')" \
     smtp-server
