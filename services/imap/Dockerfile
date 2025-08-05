@@ -17,8 +17,10 @@ RUN apt-get update && \
 COPY conf/dovecot.conf /etc/dovecot/dovecot.conf
 COPY conf/users.conf /etc/dovecot/users.conf
 
+RUN groupadd -g 12345 postfix && useradd -u 12345 -g postfix -s /usr/sbin/nologin postfix
+
 # Expose IMAP, IMAPS ports
-EXPOSE 110 143 
+EXPOSE 143 993 
 
 # Copy the entrypoint script
 #COPY --chmod=0755 ./conf/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
