@@ -3,5 +3,5 @@
 # Init file for our tests.
 
 # Test email from local network
-./scripts/buildnrun.sh
+./scripts/buildrun.sh
 echo "---------------"
