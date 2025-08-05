@@ -12,13 +12,16 @@ RUN apt-get update && \
         procps \
         bash \
     && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    groupadd -g 5000 vmail && \
+    useradd -u 5000 -g vmail -s /usr/sbin/nologin vmail && \
+    groupadd -g 12345 postfix && \
+    useradd -u 12345 -g postfix -s /usr/sbin/nologin postfix
 
 COPY conf/dovecot.conf /etc/dovecot/dovecot.conf
 COPY conf/users.conf /etc/dovecot/users.conf
 
-RUN groupadd -g 12345 postfix && useradd -u 12345 -g postfix -s /usr/sbin/nologin postfix
+
 
 # Expose IMAP, IMAPS ports
 EXPOSE 143 993 
