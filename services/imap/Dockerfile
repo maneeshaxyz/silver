@@ -23,9 +23,8 @@ RUN groupadd -g 12345 postfix && useradd -u 12345 -g postfix -s /usr/sbin/nologi
 # Expose IMAP, IMAPS ports
 EXPOSE 143 993 
 
-# Copy the entrypoint script
-#COPY --chmod=0755 ./conf/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-#ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+COPY --chmod=0755 ./conf/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 # Command to run Dovecot in the foreground
 CMD ["dovecot", "-F"]
