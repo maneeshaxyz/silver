@@ -2,3 +2,4 @@ services/conf/
 services/test.env
 *.env
 *.env.*
+*.pem
