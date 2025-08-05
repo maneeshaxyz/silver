@@ -28,9 +28,10 @@ docker run \
     -p 80:80 \
     -v $(pwd)/cert:/etc/letsencrypt/live/aravindahwk.org:ro \
     -v $(pwd)/cert:/etc/letsencrypt/archive/aravindahwk.org:ro \
+    -v postfix-sasl:/var/spool/postfix/private \
     --name $CONTAINER_NAME \
     --hostname "$(grep MAIL_DOMAIN conf/.env.conf | cut -d '=' -f2 | tr -d '\r')" \
+    --network mail-network \
     smtp-server
-echo "--- Waiting for container to start... ---"
 
 echo "--- Done. Container '$CONTAINER_NAME' is running. ---"
