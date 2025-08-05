@@ -50,7 +50,7 @@ services:
     volumes:
       - ./conf/swag/config/etc/:/le-ssl:ro
       - ./smtp/conf/master.cf:/etc/postfix/master.cf
-      - postfix_spool:/var/spool/postfix
+      - ./conf/postfix/spool:/var/spool/postfix 
     ports:
       - "25:25"
       - "587:587"
@@ -71,16 +71,13 @@ services:
       - ./conf/swag/config/etc/:/le-ssl:ro
       - ./imap/conf/dovecot.conf:/etc/dovecot/dovecot.conf
       - ./imap/conf/users.conf:/etc/dovecot/users.conf
-      - postfix_spool:/var/spool/postfix
+      - ./conf/postfix/spool:/var/spool/postfix 
     ports:
       - "143:143"
       - "993:993"
     restart: unless-stopped
     networks:
     - mail_network
-
-volumes:
-  postfix_spool: 
 
 networks:
   mail_network:
