@@ -41,6 +41,15 @@ postconf -e "smtpd_use_tls = yes"
 postconf -e "smtpd_tls_security_level = may"
 postconf -e "smtpd_tls_CAfile = /etc/ssl/certs/ca-certificates.crt"
 
+# Configure Submission (587) in master.cf
+echo "Enabling submission service..."
+postconf -M submission/inet="submission inet n - y - - smtpd"
+postconf -P submission/inet/syslog_name="postfix/submission"
+postconf -P submission/inet/smtpd_tls_security_level="encrypt"
+postconf -P submission/inet/smtpd_sasl_auth_enable="yes"
+postconf -P submission/inet/smtpd_tls_auth_only="yes"
+postconf -P submission/inet/smtpd_relay_restrictions="permit_sasl_authenticated,reject"
+
 
 # Canonical address mapping
 postconf -e "recipient_canonical_maps = hash:/etc/postfix/recipient_canonical"
