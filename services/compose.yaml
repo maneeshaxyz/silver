@@ -69,7 +69,7 @@ services:
     container_name: dovecot-imap
     volumes:
       - ./conf/swag/config/etc/:/le-ssl:ro
-       - ./imap/conf/dovecot.conf:/etc/dovecot/dovecot.conf
+      - ./imap/conf/dovecot.conf:/etc/dovecot/dovecot.conf
       - ./imap/conf/users.conf:/etc/dovecot/users.conf
       - ./conf/postfix/spool:/var/spool/postfix 
     ports:
