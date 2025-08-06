@@ -36,6 +36,14 @@ postconf -P submission/inet/smtpd_sasl_auth_enable="yes"
 postconf -P submission/inet/smtpd_tls_auth_only="yes"
 postconf -P submission/inet/smtpd_relay_restrictions="permit_sasl_authenticated,reject"
 
+# DKIM configuration
+postconf -e "milter_protocol = 6"
+postconf -e "milter_default_action = accept"
+postconf -e "smtpd_milters = inet:opendkim-server:8891"
+postconf -e "non_smtpd_milters = inet:opendkim-server:8891"
+
+# Optional: Add milter to submission port specifically
+postconf -P submission/inet/smtpd_milters="inet:opendkim-server:8891"
 
 # Canonical address mapping
 postconf -e "recipient_canonical_maps = hash:/etc/postfix/recipient_canonical"
