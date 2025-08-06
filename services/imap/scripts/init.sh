@@ -1,5 +1,5 @@
 #!/bin/bash
 
 # Initialization script for IMAP service
-../scripts/buildrun.sh
+./scripts/buildrun.sh
 echo "---------------"
