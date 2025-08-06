@@ -18,9 +18,6 @@ RUN apt-get update && \
     groupadd -g 12345 postfix && \
     useradd -u 12345 -g postfix -s /usr/sbin/nologin postfix
 
-COPY conf/dovecot.conf /etc/dovecot/dovecot.conf
-COPY conf/users.conf /etc/dovecot/users.conf
-
 # Expose IMAP, IMAPS ports
 EXPOSE 143 993 
 
