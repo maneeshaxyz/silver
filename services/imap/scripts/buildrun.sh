@@ -3,6 +3,7 @@
 # Create network and volume
 docker network create mail-network 2>/dev/null || true
 docker volume create postfix-sasl 2>/dev/null || true
+docker volume create dkim-keys 2>/dev/null || true
 
 CONTAINER_NAME="imap-server-container"
 
