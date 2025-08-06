@@ -70,7 +70,7 @@ services:
     volumes:
       - ./conf/swag/config/etc/:/le-ssl:ro
       - ./imap/conf/dovecot.conf:/etc/dovecot/dovecot.conf
-      - ./imap/conf/users.conf:/etc/dovecot/users.conf
+      - ./imap/conf/users:/etc/dovecot/users
       - ./conf/postfix/spool:/var/spool/postfix 
     ports:
       - "143:143"
