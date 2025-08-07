@@ -5,7 +5,7 @@ docker network create mail-network 2>/dev/null || true
 docker volume create postfix-sasl 2>/dev/null || true
 docker volume create dkim-keys 2>/dev/null || true
 
-CONTAINER_NAME="imap-server-container"
+CONTAINER_NAME="dovecot-server"
 
 # Check if the container is already available
 if docker ps -a --format '{{.Names}}' | grep -q "$CONTAINER_NAME"; then
