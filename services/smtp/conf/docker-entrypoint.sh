@@ -7,6 +7,7 @@ echo "INFO: Initializing Postfix configuration..."
 # postfix config 
 postconf -e "myhostname = ${MYHOSTNAME}"
 postconf -e "mydestination = ${MYDESTINATION}"
+postconf -e "myorigin = ${URL}"
 postconf -e "inet_interfaces = ${INET_INTERFACES}"
 # TLS
 postconf -e "smtpd_tls_security_level = may" #implicit TLS, for explicit set to encrypt
