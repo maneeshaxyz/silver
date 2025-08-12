@@ -13,7 +13,7 @@ postconf -e "inet_interfaces = ${INET_INTERFACES}"
 postconf -e "smtpd_tls_security_level = may" #implicit TLS, for explicit set to encrypt
 postconf -e "smtp_tls_loglevel = 1" 
 postconf -e "smtpd_tls_cert_file = /le-ssl/letsencrypt/live/${URL}/fullchain.pem"
-postconf -e "smtpd_tls_key_file = /le-ssl/letsencrypt/live/{URL}/privkey.pem"
+postconf -e "smtpd_tls_key_file = /le-ssl/letsencrypt/live/${URL}/privkey.pem"
 # SASL - This will break smtp tests for a bit until auth is sorted. Comment out to see passing results
 postconf -e "smtpd_sasl_auth_enable = yes"
 postconf -e "smtpd_sasl_security_options = noanonymous"
