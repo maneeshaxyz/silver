@@ -5,6 +5,7 @@ set -e
 echo "INFO: Initializing Postfix configuration..."
 
 # postfix config 
+postconf -e "maillog_file = /dev/stdout"
 postconf -e "myhostname = ${MYHOSTNAME}"
 postconf -e "mydestination = ${MYDESTINATION}"
 postconf -e "myorigin = ${URL}"
