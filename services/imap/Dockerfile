@@ -18,21 +18,13 @@ RUN mkdir -p /var/mail/vmail && \
     chown -R vmail:vmail /var/mail/vmail && \
     chmod -R 755 /var/mail/vmail
 
-# Create test user mailbox structure
-RUN mkdir -p /var/mail/vmail/testuser/{cur,new,tmp} && \
-    chown -R vmail:vmail /var/mail/vmail/testuser && \
-    chmod -R 700 /var/mail/vmail/testuser
+# Copy your Dovecot password file into container
+COPY users /etc/dovecot/users
+RUN chown dovecot:dovecot /etc/dovecot/users && \
+    chmod 600 /etc/dovecot/users
 
 # Copy custom Dovecot config
 COPY dovecot.conf /etc/dovecot/dovecot.conf
-
-# Copy sample mail to the correct location
-COPY testmail /var/mail/vmail/testuser/cur/1711031200.M001234.localhost
-
-# Set correct ownership and permissions
-RUN chown -R vmail:vmail /var/mail/vmail && \
-    chmod -R 755 /var/mail/vmail && \
-    chmod -R 700 /var/mail/vmail/testuser
 
 # Expose IMAP port
 EXPOSE 143
