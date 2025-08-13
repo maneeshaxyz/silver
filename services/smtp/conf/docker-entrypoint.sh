@@ -23,6 +23,10 @@ postconf -e "smtpd_sasl_path = private/auth"
 postconf -e "smtpd_relay_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination"
 postconf -e "broken_sasl_auth_clients = yes"
 
+#copy DNS files.
+cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/
+
+
 echo "INFO: Running 'postfix check'..."
 postfix check
 
