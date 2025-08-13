@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dovecot and mail utilities
 RUN apt-get update && \
-    apt-get install -y dovecot-core dovecot-imapd mailutils && \
+    apt-get install -y dovecot-core dovecot-imapd dovecot-lmtpd mailutils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

@@ -29,6 +29,7 @@ docker run \
     -v $(pwd)/cert:/etc/letsencrypt/live/aravindahwk.org:ro \
     -v $(pwd)/cert:/etc/letsencrypt/archive/aravindahwk.org:ro \
     -v postfix-sasl:/var/spool/postfix/private \
+    -v maildata:/var/mail/vmail \
     --name $CONTAINER_NAME \
     --hostname "$(grep MAIL_DOMAIN conf/.env.conf | cut -d '=' -f2 | tr -d '\r')" \
     --network mail-network \
