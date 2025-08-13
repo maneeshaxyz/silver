@@ -25,10 +25,11 @@ postconf -e "smtpd_relay_restrictions = permit_mynetworks, permit_sasl_authentic
 postconf -e "broken_sasl_auth_clients = yes"
 
 #copy DNS files.
-# cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/
-# cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/
-# chmod 1777 -R /var/spool/postfix/etc
-# chmod o+r /etc/resolv.conf
+mkdir -p /var/spool/postfix/etc/
+cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/
+cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/
+#chmod 1777 -R /var/spool/postfix/etc
+#chmod o+r /etc/resolv.conf
 
 echo "INFO: Running 'postfix check'..."
 postfix check
