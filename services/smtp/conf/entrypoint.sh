@@ -9,15 +9,18 @@ echo "=== Configuring Postfix with minimal receiving support ==="
 # Create /etc/mailname ASAP (before any postmap)
 echo "$MAIL_DOMAIN" > /etc/mailname
 
-# Basic config (your working sending config)
+# Basic config - CRITICAL FIX: Remove your domain from mydestination
 postconf -e "myhostname = $MAIL_HOSTNAME"
 postconf -e "myorigin = /etc/mailname"
-postconf -e "mydestination = $MAIL_DOMAIN, localhost.localdomain, localhost"
+postconf -e "mydestination = localhost.localdomain, localhost"  # Keep this as is - good!
 postconf -e "inet_interfaces = all"
 postconf -e "inet_protocols = ipv4"
 postconf -e "mydomain = $MAIL_DOMAIN"
 postconf -e "mynetworks = 127.0.0.0/8"
 postconf -e "relayhost = $RELAYHOST"
+
+# Logging to stdout (for Docker)
+postconf -e "maillog_file = /var/log/mail.log"
 
 # SASL & TLS (keep as in working config)
 postconf -e "smtpd_sasl_type = dovecot"
@@ -54,40 +57,48 @@ EOF
 chmod 644 /etc/postfix/recipient_canonical
 postmap /etc/postfix/recipient_canonical
 
-# --- Minimal receiving setup starts here ---
+# --- FIXED: Minimal receiving setup starts here ---
 
 mkdir -p /etc/postfix
 
+# CRITICAL: Ensure the domain file contains your domain
 cat > /etc/postfix/virtual_domains << EOF
-$MAIL_DOMAIN
+$MAIL_DOMAIN OK
 EOF
 
 cat > /etc/postfix/virtual_mailbox << EOF
-aravinda@$MAIL_DOMAIN    aravinda/
-testuser@$MAIL_DOMAIN    testuser/
-admin@$MAIL_DOMAIN       admin/
-postmaster@$MAIL_DOMAIN  postmaster/
+aravinda@$MAIL_DOMAIN aravinda/
+testuser@$MAIL_DOMAIN testuser/
+admin@$MAIL_DOMAIN admin/
+postmaster@$MAIL_DOMAIN postmaster/
 EOF
 
 cat > /etc/postfix/virtual_aliases << EOF
-testuser@$MAIL_DOMAIN   testuser@$MAIL_DOMAIN
-info@$MAIL_DOMAIN       aravinda@$MAIL_DOMAIN
-support@$MAIL_DOMAIN    aravinda@$MAIL_DOMAIN
+info@$MAIL_DOMAIN aravinda@$MAIL_DOMAIN
+support@$MAIL_DOMAIN aravinda@$MAIL_DOMAIN
 postmaster@$MAIL_DOMAIN aravinda@$MAIL_DOMAIN
-admin@$MAIL_DOMAIN      aravinda@$MAIL_DOMAIN
+admin@$MAIL_DOMAIN aravinda@$MAIL_DOMAIN
 EOF
 
+# Generate the hash maps
 postmap /etc/postfix/virtual_domains
 postmap /etc/postfix/virtual_mailbox
 postmap /etc/postfix/virtual_aliases
 
+# CRITICAL: Configure virtual domain handling properly
 postconf -e "virtual_mailbox_domains = hash:/etc/postfix/virtual_domains"
 postconf -e "virtual_mailbox_maps = hash:/etc/postfix/virtual_mailbox"
 postconf -e "virtual_alias_maps = hash:/etc/postfix/virtual_aliases"
 
+# CRITICAL: Set the virtual transport to use Dovecot LMTP
 postconf -e "virtual_transport = lmtp:unix:private/dovecot-lmtp"
 
-# Create vmail user/group and maildirs minimally for delivery
+# Virtual mailbox settings
+postconf -e "virtual_minimum_uid = 5000"
+postconf -e "virtual_uid_maps = static:5000"
+postconf -e "virtual_gid_maps = static:8"
+
+# FIXED: Create vmail user/group correctly
 if ! getent group mail >/dev/null; then
     groupadd -g 8 mail
 fi
@@ -105,18 +116,34 @@ for user in aravinda admin postmaster testuser; do
     chmod -R 755 /var/mail/vmail/$user
 done
 
-# Fix for DNS resolution in postfix chroot (optional)
+# Fix for DNS resolution in postfix chroot
 mkdir -p /var/spool/postfix/etc
 cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/
-chmod 1777 -R /var/spool/postfix/etc
-chmod o+r /etc/resolv.conf
+chmod 644 /var/spool/postfix/etc/*
+
+# DEBUGGING: Let's verify our configuration before starting
+echo "=== Configuration verification ==="
+echo "Virtual domains file content:"
+cat /etc/postfix/virtual_domains
+echo "Virtual mailbox file content:"
+cat /etc/postfix/virtual_mailbox
 
 echo "Starting postfix..."
 service postfix start
 
 sleep 5
 
+# DEBUGGING: Check if postfix loaded the config correctly
+echo "=== Postfix configuration check ==="
+postconf virtual_mailbox_domains
+postconf virtual_transport
+postconf mydestination
+
 postfix check || echo "Postfix config errors!"
+
+echo "=== Testing local domain recognition ==="
+postmap -q "$MAIL_DOMAIN" hash:/etc/postfix/virtual_domains
+postmap -q "testuser@$MAIL_DOMAIN" hash:/etc/postfix/virtual_mailbox
 
 echo "=== Minimal Postfix configured with receiving and sending ==="
 
