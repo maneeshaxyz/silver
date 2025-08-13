@@ -7,4 +7,4 @@ git stash pop
 
 sleep 3 
 echo "------- re run --------"
-./stopnrun.sh
+./scripts/stopnrun.sh
