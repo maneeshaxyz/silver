@@ -8,6 +8,7 @@ echo "INFO: Initializing Postfix configuration..."
 postconf -e "maillog_file = /dev/stdout"
 postconf -e "myhostname = ${MYHOSTNAME}"
 postconf -e "mydestination = ${MYDESTINATION}"
+postconf -e "mydomain = ${URL}"
 postconf -e "myorigin = ${URL}"
 postconf -e "inet_interfaces = ${INET_INTERFACES}"
 # TLS
