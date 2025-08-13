@@ -1,0 +1,3 @@
+testuser:{PLAIN}testpass
+alice:{PLAIN}alicepass
+bob:{PLAIN}bobpass
