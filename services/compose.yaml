@@ -54,6 +54,9 @@ services:
     ports:
       - "25:25"
       - "587:587"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     restart: unless-stopped
     networks:
     - mail_network
