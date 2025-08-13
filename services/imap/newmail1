@@ -1,7 +1,0 @@
-From: sender2@example.com
-To: testuser@example.com
-Subject: Second test email
-Date: Fri, 19 Jul 2024 12:00:00 +0000
-Message-ID: <testmsg2@docker.local>
-
-This is a second test email added manually.
