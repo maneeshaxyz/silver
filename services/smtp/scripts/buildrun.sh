@@ -29,7 +29,6 @@ docker run \
     -d \
     -p 25:25 \
     -p 587:587 \
-    -p 80:80 \
     -v $(pwd)/cert:/etc/letsencrypt/live/$MAIL_DOMAIN:ro \
     -v $(pwd)/cert:/etc/letsencrypt/archive/$MAIL_DOMAIN:ro \
     -v postfix-sasl:/var/spool/postfix/private \
