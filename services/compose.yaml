@@ -38,13 +38,19 @@ services:
       timeout: 10s
 
   opendkim:
-        volumes:
-            - /opendkim/keys:/etc/opendkim/dkimkeys
-        working_dir: /tmp
-        entrypoint:
-            - opendkim-genkey
-        image: instrumentisto/opendkim:latest
-        command: --subdomains --domain=${URL} --selector=default
+    container_name: "opendkim"
+    build:
+      context: opendkim/
+    env_file:
+      - ".env"
+    ports:
+    - "8891:8891"
+    volumes:
+    - ./opendkim/conf/opendkim.conf:/etc/opendkim/conf.d/10-custom.conf:ro
+    - ./opendkim/keys:/etc/dkimkeys:rw
+    restart: unless-stopped
+    networks:
+      - mail-network
 
   postfix:
     container_name: "postfix-smtp"
