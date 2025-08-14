@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 DKIM_KEY_DIR="/etc/opendkim/keys"
 DKIM_SELECTOR="mail"
 
