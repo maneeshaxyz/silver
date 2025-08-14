@@ -18,11 +18,14 @@ COPY conf/KeyTable /etc/opendkim/KeyTable
 COPY conf/SigningTable /etc/opendkim/SigningTable
 COPY conf/entrypoint.sh /entrypoint.sh
 
+# Give execution permissions to the entrypoint script
 RUN chmod +x /entrypoint.sh
 
 # Set proper permissions
 RUN chown -R opendkim:opendkim /etc/opendkim /var/run/opendkim
 
+# Expose the OpenDKIM port
 EXPOSE 8891
 
+# Run the entrypoint script
 CMD ["/entrypoint.sh"]
