@@ -6,13 +6,13 @@ RELAYHOST=${RELAYHOST:-}
 
 echo "=== Configuring Postfix with minimal receiving support ==="
 
-# Create /etc/mailname ASAP (before any postmap)
+# Use the mail domain as in the mailname file
 echo "$MAIL_DOMAIN" > /etc/mailname
 
-# Basic config - CRITICAL FIX: Remove your domain from mydestination
+# Basic configuration
 postconf -e "myhostname = $MAIL_HOSTNAME"
 postconf -e "myorigin = /etc/mailname"
-postconf -e "mydestination = localhost.localdomain, localhost"  # Keep this as is - good!
+postconf -e "mydestination = localhost.localdomain, localhost"
 postconf -e "inet_interfaces = all"
 postconf -e "inet_protocols = ipv4"
 postconf -e "mydomain = $MAIL_DOMAIN"
@@ -22,13 +22,14 @@ postconf -e "relayhost = $RELAYHOST"
 # Logging to stdout (for Docker)
 postconf -e "maillog_file = /var/log/mail.log"
 
-# SASL & TLS (keep as in working config)
+# SASL authentication
 postconf -e "smtpd_sasl_type = dovecot"
 postconf -e "smtpd_sasl_path = private/auth"
 postconf -e "smtpd_sasl_auth_enable = yes"
 postconf -e "smtpd_sasl_security_options = noanonymous"
 postconf -e "broken_sasl_auth_clients = yes"
 
+# TLS configuration
 postconf -e "smtpd_tls_cert_file = /etc/letsencrypt/live/$MAIL_DOMAIN/fullchain.pem"
 postconf -e "smtpd_tls_key_file = /etc/letsencrypt/live/$MAIL_DOMAIN/privkey.pem"
 postconf -e "smtpd_use_tls = yes"
@@ -43,29 +44,29 @@ postconf -P submission/inet/smtpd_sasl_auth_enable="yes"
 postconf -P submission/inet/smtpd_tls_auth_only="yes"
 postconf -P submission/inet/smtpd_relay_restrictions="permit_sasl_authenticated,reject"
 
-# DKIM
+# DKIM configuration
 postconf -e "milter_protocol = 6"
 postconf -e "milter_default_action = accept"
 postconf -e "smtpd_milters = inet:opendkim-server:8891"
 postconf -e "non_smtpd_milters = inet:opendkim-server:8891"
 postconf -P submission/inet/smtpd_milters="inet:opendkim-server:8891"
 
-# Canonical mapping (keep as is)
+# Canonical mapping for recipient addresses
 cat <<EOF > /etc/postfix/recipient_canonical
 $EMAIL_TO    $EMAIL_MAPPING
 EOF
 chmod 644 /etc/postfix/recipient_canonical
 postmap /etc/postfix/recipient_canonical
 
-# --- FIXED: Minimal receiving setup starts here ---
 
 mkdir -p /etc/postfix
 
-# CRITICAL: Ensure the domain file contains your domain
+# Define virtual domains, mailboxes, and aliases
 cat > /etc/postfix/virtual_domains << EOF
 $MAIL_DOMAIN OK
 EOF
 
+# Create virtual mailbox file 
 cat > /etc/postfix/virtual_mailbox << EOF
 aravinda@$MAIL_DOMAIN aravinda/
 testuser@$MAIL_DOMAIN testuser/
@@ -73,6 +74,7 @@ admin@$MAIL_DOMAIN admin/
 postmaster@$MAIL_DOMAIN postmaster/
 EOF
 
+# Create virtual aliases file
 cat > /etc/postfix/virtual_aliases << EOF
 info@$MAIL_DOMAIN aravinda@$MAIL_DOMAIN
 support@$MAIL_DOMAIN aravinda@$MAIL_DOMAIN
@@ -85,12 +87,12 @@ postmap /etc/postfix/virtual_domains
 postmap /etc/postfix/virtual_mailbox
 postmap /etc/postfix/virtual_aliases
 
-# CRITICAL: Configure virtual domain handling properly
+# Configure virtual domain handling properly
 postconf -e "virtual_mailbox_domains = hash:/etc/postfix/virtual_domains"
 postconf -e "virtual_mailbox_maps = hash:/etc/postfix/virtual_mailbox"
 postconf -e "virtual_alias_maps = hash:/etc/postfix/virtual_aliases"
 
-# CRITICAL: Set the virtual transport to use Dovecot LMTP
+# Set the virtual transport to use Dovecot LMTP
 postconf -e "virtual_transport = lmtp:unix:private/dovecot-lmtp"
 
 # Virtual mailbox settings
@@ -98,7 +100,7 @@ postconf -e "virtual_minimum_uid = 5000"
 postconf -e "virtual_uid_maps = static:5000"
 postconf -e "virtual_gid_maps = static:8"
 
-# FIXED: Create vmail user/group correctly
+# Create vmail user/group correctly
 if ! getent group mail >/dev/null; then
     groupadd -g 8 mail
 fi
@@ -121,7 +123,7 @@ mkdir -p /var/spool/postfix/etc
 cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/
 chmod 644 /var/spool/postfix/etc/*
 
-# DEBUGGING: Let's verify our configuration before starting
+# Verify our configuration before starting
 echo "=== Configuration verification ==="
 echo "Virtual domains file content:"
 cat /etc/postfix/virtual_domains
@@ -133,7 +135,7 @@ service postfix start
 
 sleep 5
 
-# DEBUGGING: Check if postfix loaded the config correctly
+# Check if postfix loaded the config correctly
 echo "=== Postfix configuration check ==="
 postconf virtual_mailbox_domains
 postconf virtual_transport
