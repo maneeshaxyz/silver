@@ -6,6 +6,11 @@ docker volume create maildata 2>/dev/null || true
 docker volume create postfix-sasl 2>/dev/null || true
 docker volume create dkim-keys 2>/dev/null || true
 
+# Load environment variables from file so MAIL_DOMAIN is available here
+set -a
+source conf/.env.conf
+set +a
+
 CONTAINER_NAME="dovecot-server"
 
 # Remove container if it exists
@@ -32,6 +37,8 @@ docker run \
     -p 143:143 \
     -v maildata:/var/mail/vmail \
     -v postfix-sasl:/var/spool/postfix/private \
+    -v $(pwd)/cert:/etc/letsencrypt/live/$MAIL_DOMAIN:ro \
+    -v $(pwd)/cert:/etc/letsencrypt/archive/$MAIL_DOMAIN:ro \
     --name dovecot-server \
     --network mail-network \
     dovecot-server
