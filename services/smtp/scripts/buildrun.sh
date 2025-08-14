@@ -1,8 +1,12 @@
 #!/bin/bash
 
 # Builds and runs a docker container [requires docker daemon running]
-
 CONTAINER_NAME="smtp-server-container"
+
+# Load environment variables from file so MAIL_DOMAIN is available here
+set -a
+source conf/.env.conf
+set +a
 
 # Check if the container is already available
 if docker ps -a --format '{{.Names}}' | grep -q "$CONTAINER_NAME"; then
@@ -26,12 +30,12 @@ docker run \
     -p 25:25 \
     -p 587:587 \
     -p 80:80 \
-    -v $(pwd)/cert:/etc/letsencrypt/live/aravindahwk.org:ro \
-    -v $(pwd)/cert:/etc/letsencrypt/archive/aravindahwk.org:ro \
+    -v $(pwd)/cert:/etc/letsencrypt/live/$MAIL_DOMAIN:ro \
+    -v $(pwd)/cert:/etc/letsencrypt/archive/$MAIL_DOMAIN:ro \
     -v postfix-sasl:/var/spool/postfix/private \
     -v maildata:/var/mail/vmail \
     --name $CONTAINER_NAME \
-    --hostname "$(grep MAIL_DOMAIN conf/.env.conf | cut -d '=' -f2 | tr -d '\r')" \
+    --hostname "$MAIL_DOMAIN" \
     --network mail-network \
     smtp-server
 
