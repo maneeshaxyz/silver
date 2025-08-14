@@ -46,11 +46,11 @@ if [ ! -f /etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.private ]; then
 fi
 
 # Update configuration files with dynamic domain
-sed -i "s/aravindahwk.org/$MAIL_DOMAIN/g" /etc/opendkim/TrustedHosts
-sed -i "s/aravindahwk.org/$MAIL_DOMAIN/g" /etc/opendkim/KeyTable
-sed -i "s/aravindahwk.org/$MAIL_DOMAIN/g" /etc/opendkim/SigningTable
-sed -i "s/mail/$DKIM_SELECTOR/g" /etc/opendkim/KeyTable
-sed -i "s/mail/$DKIM_SELECTOR/g" /etc/opendkim/SigningTable
+sed -i "s/$MAIL_DOMAIN/$MAIL_DOMAIN/g" /etc/opendkim/TrustedHosts
+sed -i "s/$MAIL_DOMAIN/$MAIL_DOMAIN/g" /etc/opendkim/KeyTable
+sed -i "s/$MAIL_DOMAIN/$MAIL_DOMAIN/g" /etc/opendkim/SigningTable
+sed -i "s/$DKIM_SELECTOR/$DKIM_SELECTOR/g" /etc/opendkim/KeyTable
+sed -i "s/$DKIM_SELECTOR/$DKIM_SELECTOR/g" /etc/opendkim/SigningTable
 
 # Start OpenDKIM
 echo "Starting OpenDKIM..."

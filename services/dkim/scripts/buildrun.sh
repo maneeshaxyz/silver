@@ -33,4 +33,4 @@ sleep 10
 
 # Show DKIM public key for DNS setup
 echo "=== DKIM DNS Record ==="
-docker exec opendkim-server cat /etc/opendkim/keys/*/mail.txt 2>/dev/null || echo "DKIM keys not ready yet. Check logs with: docker logs opendkim-server"
+docker exec opendkim-server cat /etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.txt 2>/dev/null || echo "DKIM keys not ready yet. Check logs with: docker logs opendkim-server"
