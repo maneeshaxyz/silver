@@ -38,16 +38,13 @@ services:
       timeout: 10s
 
   opendkim:
-    image: instrumentisto/opendkim
-    container_name: opendkim
-    restart: unless-stopped
-    networks:
-      - mail_network
-    volumes:
-      - ./opendkim/conf/keys:/etc/opendkim/keys:ro
-    environment:
-      - OPENDKIM_DOMAINS=${DOMAIN}=default
-      - OPENDKIM_INTERNALHOSTS=172.18.0.0/16
+        volumes:
+            - /opendkim/keys:/etc/opendkim/dkimkeys
+        working_dir: /tmp
+        entrypoint:
+            - opendkim-genkey
+        image: instrumentisto/opendkim:latest
+        command: --subdomains --domain=${URL} --selector=default
 
   postfix:
     container_name: "postfix-smtp"
@@ -66,9 +63,6 @@ services:
     ports:
       - "25:25"
       - "587:587"
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
     restart: unless-stopped
     networks:
     - mail_network
