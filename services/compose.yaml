@@ -37,6 +37,18 @@ services:
       start_period: 20s
       timeout: 10s
 
+  opendkim:
+    image: instrumentisto/opendkim
+    container_name: opendkim
+    restart: unless-stopped
+    networks:
+      - mail_network
+    volumes:
+      - ./opendkim/conf/keys:/etc/opendkim/keys:ro
+    environment:
+      - OPENDKIM_DOMAINS=${DOMAIN}=default
+      - OPENDKIM_INTERNALHOSTS=172.18.0.0/16
+
   postfix:
     container_name: "postfix-smtp"
     env_file:
