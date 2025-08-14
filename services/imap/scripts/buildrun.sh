@@ -2,7 +2,7 @@
 
 # Create network and volumes
 docker network create mail-network 2>/dev/null || true
-docker volume create maildata 2>/dev/null || true    # Shared mail storage
+docker volume create maildata 2>/dev/null || true
 docker volume create postfix-sasl 2>/dev/null || true
 docker volume create dkim-keys 2>/dev/null || true
 

@@ -18,7 +18,7 @@ RUN mkdir -p /var/mail/vmail && \
     chown -R vmail:vmail /var/mail/vmail && \
     chmod -R 755 /var/mail/vmail
 
-# Copy your Dovecot password file into container
+# Copy Dovecot password file into container
 COPY users /etc/dovecot/users
 RUN chown dovecot:dovecot /etc/dovecot/users && \
     chmod 600 /etc/dovecot/users
