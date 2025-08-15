@@ -56,7 +56,6 @@ services:
     container_name: "postfix-smtp"
     env_file:
       - ".env"
-    user: "2000:2000"
     build:
       context: smtp/
     depends_on:
@@ -80,7 +79,6 @@ services:
       context: imap/
     env_file:
         - ".env"
-    user: "5000:5000"
     depends_on:
       swag:
         condition: service_healthy
