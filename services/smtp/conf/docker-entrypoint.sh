@@ -24,6 +24,13 @@ postconf -e "smtpd_sasl_path = private/auth"
 postconf -e "smtpd_relay_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination"
 postconf -e "broken_sasl_auth_clients = yes"
 
+#milter settings
+postconf -e "milter_default_action = accept"
+postconf -e "milter_protocol = 6"
+#opendkim
+postconf -e "smtpd_milters = inet:opendkim:8891"
+postconf -e "non_smtpd_milters = inet:opendkim:8891"
+
 #copy DNS files.
 mkdir -p /var/spool/postfix/etc/
 cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/

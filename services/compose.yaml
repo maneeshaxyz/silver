@@ -50,7 +50,7 @@ services:
     - ./opendkim/keys:/etc/dkimkeys:rw
     restart: unless-stopped
     networks:
-      - mail-network
+      - mail_network
 
   postfix:
     container_name: "postfix-smtp"
