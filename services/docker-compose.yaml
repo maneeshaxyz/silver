@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  smtp-server:
+    build:
+      context: ./smtp  # folder containing Dockerfile for SMTP
+    container_name: smtp-server-container
+    hostname: ${MAIL_DOMAIN}
+    env_file:
+      - smtp/conf/.env.conf
+    ports:
+      - "25:25"
+      - "587:587"
+    volumes:
+      - maildata:/var/mail/vmail
+      - postfix-sasl:/var/spool/postfix/private
+      - ./smtp/cert:/etc/letsencrypt/live/${MAIL_DOMAIN}:ro
+      - ./smtp/cert:/etc/letsencrypt/archive/${MAIL_DOMAIN}:ro
+    networks:
+      - mail-network
+    depends_on:
+      - opendkim-server
+      - dovecot-server
+
+  dovecot-server:
+    build:
+      context: ./imap  # folder containing Dockerfile for Dovecot
+    container_name: dovecot-server
+    env_file:
+      - imap/conf/.env.conf
+    ports:
+      - "143:143"  # IMAP
+    volumes:
+      - maildata:/var/mail/vmail
+      - postfix-sasl:/var/spool/postfix/private
+      - ./imap/cert:/etc/letsencrypt/live/${MAIL_DOMAIN}:ro
+      - ./imap/cert:/etc/letsencrypt/archive/${MAIL_DOMAIN}:ro
+    networks:
+      - mail-network
+
+  opendkim-server:
+    build:
+      context: ./dkim  # folder containing Dockerfile for OpenDKIM
+    container_name: opendkim-server
+    env_file:
+      - dkim/conf/.env.conf
+    volumes:
+      - dkim-keys:/etc/opendkim/keys
+    networks:
+      - mail-network
+
+volumes:
+  maildata:
+  postfix-sasl:
+  dkim-keys:
+
+networks:
+  mail-network:
