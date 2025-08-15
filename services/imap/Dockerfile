@@ -8,6 +8,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         dovecot-core \
         dovecot-imapd \
+        dovecot-lmtpd \
         ca-certificates \
         procps \
         bash \
