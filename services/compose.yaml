@@ -56,6 +56,7 @@ services:
     container_name: "postfix-smtp"
     env_file:
       - ".env"
+    user: "2000:2000"
     build:
       context: smtp/
     depends_on:
@@ -74,14 +75,15 @@ services:
     - mail_network
 
   dovecot:
-    env_file:
-        - ".env"
+    container_name: dovecot-imap
     build:
       context: imap/
+    env_file:
+        - ".env"
+    user: "5000:5000"
     depends_on:
       swag:
         condition: service_healthy
-    container_name: dovecot-imap
     volumes:
       - ./conf/swag/config/etc/:/le-ssl:ro
       - ./imap/conf/dovecot.conf:/etc/dovecot/dovecot.conf

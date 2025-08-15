@@ -13,11 +13,12 @@ RUN apt-get update && \
         procps \
         bash \
     && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    groupadd -g 5000 vmail && \
-    useradd -u 5000 -g vmail -s /usr/sbin/nologin vmail && \
-    groupadd -g 12345 postfix && \
-    useradd -u 12345 -g postfix -s /usr/sbin/nologin postfix
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
+
+RUN groupadd -g 5000 dovecot && \
+    useradd -u 5000 -g dovecot -s /usr/sbin/nologin dovecot && \
+    groupadd -g 2000 postfix && \
+    useradd -u 2000 -g postfix -s /usr/sbin/nologin postfix
 
 # Expose IMAP, IMAPS ports
 EXPOSE 143 993 
