@@ -1,8 +1,13 @@
-services/conf/
-services/test.env
+# Ignore environment files
 *.env
 *.env.*
+services/conf/.env.conf
+services/test.env
+services/.env
+# Ignore certificate files
 *.pem
+
+# Ignore DKIM configuration files
 services/dkim/conf/KeyTable
 services/dkim/conf/SigningTable
 services/dkim/conf/TrustedHosts
