@@ -5,6 +5,7 @@ set -e
 # This directory is shared from the Postfix container.
 chown dovecot:postfix /var/spool/postfix/private
 chmod 770 /var/spool/postfix/private
+chown vmail:vmail /var/mail
 
 echo "Starting Dovecot..."
 exec "$@"
