@@ -39,6 +39,10 @@ services:
 
   opendkim:
     container_name: "opendkim"
+    depends_on:
+    swag:
+        condition: service_healthy
+        restart: true
     build:
       context: opendkim/
     env_file:

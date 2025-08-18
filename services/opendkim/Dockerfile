@@ -1,5 +1,7 @@
 FROM debian:bookworm-slim
 
+EXPOSE 8891
+
 RUN apt-get update -y && apt-get install -y \
 opendkim \
 opendkim-tools \
@@ -7,8 +9,6 @@ openssl \
 && apt-get clean \
 && rm -rf  /var/lib/apt/lists/* \
 && mkdir -p /etc/opendkim/conf
-
-EXPOSE 8891/tcp
 
 COPY ./conf/docker-entrypoint.sh /usr/local/bin
 
