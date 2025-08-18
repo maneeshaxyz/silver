@@ -40,7 +40,7 @@ services:
   opendkim:
     container_name: "opendkim"
     depends_on:
-    swag:
+      swag:
         condition: service_healthy
         restart: true
     build:
