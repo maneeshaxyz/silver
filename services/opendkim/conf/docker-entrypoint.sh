@@ -1,15 +1,18 @@
 #!/bin/bash
-
 DKIM_KEY_DIR="/etc/opendkim/keys"
 DKIM_SELECTOR="mail"
 
+sed -i "s/#Domain.*/Domain $MYHOSTNAME/" /etc/opendkim.conf
+sed -i "s/#Selector.*/Selector $DKIM_SELECTOR/" /etc/opendkim.conf
+sed -i "s|#KeyFile.*|KeyFile $DKIM_KEY_DIR/$MYHOSTNAME/$DKIM_SELECTOR.private|" /etc/opendkim.conf
+
 # Generate DKIM keys if they don't exist
-if [ ! -f "$DKIM_KEY_DIR/$URL/$DKIM_SELECTOR.private" ]; then
-    echo "Generating DKIM keys for $URL..."
-    mkdir -p "$DKIM_KEY_DIR/$URL"
-    opendkim-genkey -t -s $DKIM_SELECTOR -d $URL -D "$DKIM_KEY_DIR/$URL"
-    chown opendkim:opendkim "$DKIM_KEY_DIR/$URL"/*
-    chmod 600 "$DKIM_KEY_DIR/$URL/$DKIM_SELECTOR.private"
+if [ ! -f "$DKIM_KEY_DIR/$MYHOSTNAME/$DKIM_SELECTOR.private" ]; then
+    echo "Generating DKIM keys for $MYHOSTNAME..."
+    mkdir -p "$DKIM_KEY_DIR/$MYHOSTNAME"
+    opendkim-genkey -t -s $DKIM_SELECTOR -d $MYHOSTNAME -D "$DKIM_KEY_DIR/$MYHOSTNAME"
+    chown opendkim:opendkim "$DKIM_KEY_DIR/$MYHOSTNAME"/*
+    chmod 600 "$DKIM_KEY_DIR/$MYHOSTNAME/$DKIM_SELECTOR.private"
 fi
 
 exec opendkim -f

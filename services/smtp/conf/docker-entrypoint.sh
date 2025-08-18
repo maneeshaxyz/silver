@@ -11,6 +11,8 @@ postconf -e "mydestination = ${MYDESTINATION}"
 postconf -e "mydomain = ${URL}"
 postconf -e "myorigin = ${URL}"
 postconf -e "inet_interfaces = ${INET_INTERFACES}"
+postconf -e "smtp_helo_name = ${MYHOSTNAME}"
+
 # TLS
 postconf -e "smtpd_tls_security_level = may" #implicit TLS, for explicit set to encrypt
 postconf -e "smtp_tls_loglevel = 1" 
