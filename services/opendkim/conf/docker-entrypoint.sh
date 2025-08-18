@@ -12,9 +12,9 @@ if [ ! -f "$DKIM_KEY_DIR/$MYHOSTNAME/$DKIM_SELECTOR.private" ]; then
 
     sleep 2
 
-    sed -i "s/#Domain.*/Domain $MYHOSTNAME/" /etc/opendkim.conf
-    sed -i "s/#Selector.*/Selector $DKIM_SELECTOR/" /etc/opendkim.conf
-    sed -i "s|#KeyFile.*|KeyFile $DKIM_KEY_DIR/$MYHOSTNAME/$DKIM_SELECTOR.private|" /etc/opendkim.conf
+    # sed -i "s/#Domain.*/Domain $MYHOSTNAME/" /etc/opendkim.conf
+    # sed -i "s/#Selector.*/Selector $DKIM_SELECTOR/" /etc/opendkim.conf
+    # sed -i "s|#KeyFile.*|KeyFile $DKIM_KEY_DIR/$MYHOSTNAME/$DKIM_SELECTOR.private|" /etc/opendkim.conf
 fi
 
 exec opendkim -f
