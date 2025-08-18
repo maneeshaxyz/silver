@@ -46,7 +46,7 @@ services:
     ports:
     - "8891:8891"
     volumes:
-    - ./opendkim/conf/opendkim.conf:/etc/opendkim/conf.d/10-custom.conf:ro
+    - ./opendkim/conf/opendkim.conf:/etc/opendkim.conf:ro
     - ./opendkim/keys:/etc/dkimkeys:rw
     restart: unless-stopped
     networks:
