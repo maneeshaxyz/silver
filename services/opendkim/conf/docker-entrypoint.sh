@@ -1,3 +1,3 @@
 #! /bin/bash
 
-opendkim opendkim-genkey -D /etc/dkimkeys -d ${MYHOSTNAME} -s 2025
+opendkim-genkey -D /etc/dkimkeys -d ${MYHOSTNAME} -s 2025
