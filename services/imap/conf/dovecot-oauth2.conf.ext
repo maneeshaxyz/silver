@@ -6,3 +6,7 @@ client_id = _TEdWdx3lS9PG8kg90u8rIhYK_Qa
 client_secret = FUSEG_0rDTbQussFfzU17YorO_P7bnMqSsJW1eNf3kEa
 
 username_attribute = username
+
+grant_url = https://api.asgardeo.io/t/maneeshadev/oauth2/token
+
+use_grant_password = yes
