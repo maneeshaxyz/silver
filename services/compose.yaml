@@ -89,6 +89,7 @@ services:
     volumes:
       - ./conf/swag/config/etc/:/le-ssl:ro
       - ./imap/conf/dovecot.conf:/etc/dovecot/dovecot.conf
+      - ./imap/conf/dovecot-oauth2.conf.ext:/etc/dovecot/dovecot-oauth2.conf.ext
       - ./imap/conf/users:/etc/dovecot/users
       - ./conf/postfix/spool:/var/spool/postfix 
     ports:
