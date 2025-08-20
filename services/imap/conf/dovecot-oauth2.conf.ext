@@ -2,7 +2,7 @@
 
 introspection_url = https://kopfaf.free.beeceptor.com/introspect
 
-client_id = _TEdWdx3lS9PG8kg90u8rIhYK_Qa
-client_secret = FUSEG_0rDTbQussFfzU17YorO_P7bnMqSsJW1eNf3kEa
+client_id = 
+client_secret = 
 
 username_attribute = username
