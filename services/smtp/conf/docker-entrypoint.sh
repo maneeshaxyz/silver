@@ -43,10 +43,14 @@ cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/
 #chmod 1777 -R /var/spool/postfix/etc
 #chmod o+r /etc/resolv.conf
 
-echo "INFO: Running 'postfix check'..."
-postfix check
+# Issue a reload command to make all daemons re-read the config
+echo "Reloading Postfix configuration..."
+postfix reload
+
+# Stop the backgrounded Postfix so we can start it in the foreground
+postfix stop
 
 echo "INFO: 'postfix check' completed successfully."
 
 echo "INFO: Starting Postfix service..."
-exec "$@"
+exec postfix start-fg
