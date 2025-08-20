@@ -11,3 +11,6 @@ services/.env
 services/dkim/conf/KeyTable
 services/dkim/conf/SigningTable
 services/dkim/conf/TrustedHosts
+
+# Ignore PEM file for OAuth2
+services/imap/PEM
