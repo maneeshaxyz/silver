@@ -51,9 +51,6 @@ services:
     - "8891:8891"
     volumes:
     - ./opendkim/conf/opendkim.conf:/etc/opendkim.conf
-    - .opendkim/conf/KeyTable:etc/opendkim/KeyTable
-    - .opendkim/conf/SigningTable:etc/opendkim/SigningTable
-    - .opendkim/conf/TrustedHosts:etc/opendkim/TrustedHosts
     - ./opendkim/keys:/etc/opendkim/keys:rw
     restart: unless-stopped
     networks:
