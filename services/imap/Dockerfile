@@ -26,6 +26,15 @@ RUN chown dovecot:dovecot /etc/dovecot/users && \
 # Copy custom Dovecot config
 COPY dovecot.conf /etc/dovecot/dovecot.conf
 
+# Copy additional configuration files
+COPY auth-oauth2.conf.ext /etc/dovecot/dovecot-oauth2.conf.ext
+
+COPY PEM /etc/dovecot/keys/default/RS256/IyhtbRCtE0AGD1ek3lBH9Nvigw0epc8PrzSDUduVZbU=
+
+RUN chown -R dovecot:dovecot /etc/dovecot/keys && \
+    find /etc/dovecot/keys -type d -exec chmod 750 {} \; && \
+    find /etc/dovecot/keys -type f -exec chmod 640 {} \;
+
 # Expose IMAP port
 EXPOSE 143
 
