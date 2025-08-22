@@ -49,6 +49,14 @@ services:
     networks:
       - mail-network
 
+  thunder-server:
+    image: ghcr.io/asgardeo/thunder:latest
+    container_name: thunder-server
+    ports:
+      - "8090:8090"
+    networks:
+      - mail-network
+
 volumes:
   maildata:
   postfix-sasl:
