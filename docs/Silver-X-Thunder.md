@@ -71,8 +71,8 @@ https://localhost:8090/flow/execute \
  "applicationId": "f8e7046a-7968-4769-9b70-9552b3b98c38",
  "flowType": "AUTHENTICATION",
  "inputs": {
-   "username": "Aravinda",
-   "password": "123456aA"
+   "username": "testuser",
+   "password": "testuser123"
  }
 }'
 ```
