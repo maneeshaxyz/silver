@@ -10,9 +10,17 @@ This folder contains all the services required for running your own mail server.
 - Add your domain and email into the .env file.
 
 ```
-  git clone https://github.com/LSFLK/silver.git
+  git clone https://github.com/Aravinda-HWK/silver
   cd silver/services
-  docker compose up -d
+  docker compose up -d --build
+```
+
+#### For creating appplication and user in Thunder server
+
+- Run the following command 
+```bash
+chmod +x ./thunder/scripts/init.sh
+./thunder/scripts/init.sh
 ```
 
 ## Info
@@ -34,8 +42,8 @@ services
 │       │   ...
 │       │   ...
 │   ...
-  compose.yaml
-  services.md
+  docker-compose.yaml
+  README.md
 
 ```
 
@@ -43,8 +51,8 @@ services
 ## Software
 - Postfix - handles sending and receiving mail (MTA)
 - Dovecot - handles the storing of mails (MDA)
-- Rspamd -  spam filtering system 
-- Sqlite -  database for handling users and system data.
+- Thunder - Identity Provider(WSO2)
+- Rspamd -  spam filtering system
 
 
 
