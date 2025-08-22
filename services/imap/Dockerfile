@@ -5,10 +5,18 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dovecot and mail utilities
 RUN apt-get update && \
-    apt-get install -y dovecot-core dovecot-imapd dovecot-lmtpd mailutils && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
+    apt-get install -y \
+        dovecot-core \
+        dovecot-imapd \
+        dovecot-lmtpd \
+        mailutils \
+        dovecot-auth-lua \
+        lua5.3 \
+        lua-socket \
+        lua-sec \
+        lua-dkjson \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    
 # Create vmail user and group for virtual mailboxes
 RUN groupadd -g 5000 vmail && \
     useradd -u 5000 -g vmail -s /bin/false -d /var/mail/vmail -M vmail
@@ -28,6 +36,8 @@ COPY dovecot.conf /etc/dovecot/dovecot.conf
 
 # Copy additional configuration files
 COPY auth-oauth2.conf.ext /etc/dovecot/dovecot-oauth2.conf.ext
+
+COPY auth_api.lua /etc/dovecot/auth.lua
 
 COPY PEM /etc/dovecot/keys/default/RS256/IyhtbRCtE0AGD1ek3lBH9Nvigw0epc8PrzSDUduVZbU=
 
