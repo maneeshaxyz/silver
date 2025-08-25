@@ -11,7 +11,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      - URL=${URL} 
+      - URL=${URL}
       - VALIDATION=http
       #- SUBDOMAINS=www, #optional
       #- CERTPROVIDER= # optional, default is Lets Encrypt
@@ -31,11 +31,35 @@ services:
       - 443:443
       - 80:80
     healthcheck:
-      test: ["CMD-SHELL", "test -f /config/etc/letsencrypt/live/${URL}/privkey.pem"]
+      test: [ "CMD-SHELL", "test -f /config/etc/letsencrypt/live/${URL}/privkey.pem" ]
       interval: 10s
       retries: 5
       start_period: 20s
       timeout: 10s
+
+  # MILTERS
+  rspamd:
+    container_name: rspamd
+    build:
+      context: spam/
+    ports:
+      - "11332:11332"
+      - "11334:11334"
+    volumes:
+      - ./rspamd/conf/data:/var/lib/rspamd
+      - ./rspamd/conf/local.d:/etc/rspamd/local.d
+    # depends_on:
+    #   - valkey
+    networks:
+      - mail_network
+
+  # valkey:
+  #   container_name: valkey
+  #   image: valkey:8.1.3-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - ./valkey/data:/data
 
   opendkim:
     container_name: "opendkim"
@@ -48,14 +72,15 @@ services:
     env_file:
       - ".env"
     ports:
-    - "8891:8891"
+      - "8891:8891"
     volumes:
-    - ./opendkim/conf/opendkim.conf:/etc/opendkim.conf
-    - ./opendkim/keys:/etc/opendkim/keys:rw
+      - ./opendkim/conf/opendkim.conf:/etc/opendkim.conf
+      - ./opendkim/keys:/etc/opendkim/keys:rw
     restart: unless-stopped
     networks:
       - mail_network
 
+  # MAIL SERVER COMPONENTS
   postfix:
     container_name: "postfix-smtp"
     env_file:
@@ -64,25 +89,25 @@ services:
       context: smtp/
     depends_on:
       swag:
-          condition: service_healthy
-          restart: true
+        condition: service_healthy
+        restart: true
     volumes:
       - ./conf/swag/config/etc/:/le-ssl:ro
       - ./smtp/conf/master.cf:/etc/postfix/master.cf
-      - ./conf/postfix/spool:/var/spool/postfix 
+      - ./conf/postfix/spool:/var/spool/postfix
     ports:
       - "25:25"
       - "587:587"
     restart: unless-stopped
     networks:
-    - mail_network
+      - mail_network
 
   dovecot:
     container_name: dovecot-imap
     build:
       context: imap/
     env_file:
-        - ".env"
+      - ".env"
     depends_on:
       swag:
         condition: service_healthy
@@ -91,14 +116,15 @@ services:
       - ./imap/conf/dovecot.conf:/etc/dovecot/dovecot.conf
       - ./imap/conf/dovecot-oauth2.conf.ext:/etc/dovecot/dovecot-oauth2.conf.ext
       - ./imap/conf/users:/etc/dovecot/users
-      - ./conf/postfix/spool:/var/spool/postfix 
+      - ./conf/postfix/spool:/var/spool/postfix
     ports:
       - "143:143"
       - "993:993"
     restart: unless-stopped
     networks:
-    - mail_network
+      - mail_network
 
+# NETWORK & MOUNTS
 networks:
   mail_network:
     driver: bridge
