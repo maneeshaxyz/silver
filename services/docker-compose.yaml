@@ -21,6 +21,7 @@ services:
     depends_on:
       - opendkim-server
       - dovecot-server
+      - rspamd-server
 
   dovecot-server:
     build:
@@ -49,6 +50,19 @@ services:
     networks:
       - mail-network
 
+  rspamd-server:
+    image: rspamd/rspamd:latest
+    container_name: rspamd-server
+    hostname: rspamd
+    ports:
+      - "11332:11332"   # milter interface for postfix
+      - "11334:11334"   # web UI / controller
+    volumes:
+      - rspamd_data:/var/lib/rspamd
+      - ./spam/conf:/etc/rspamd/local.d
+    networks:
+      - mail-network
+
   thunder-server:
     image: ghcr.io/asgardeo/thunder:latest
     container_name: thunder-server
@@ -61,6 +75,7 @@ volumes:
   maildata:
   postfix-sasl:
   dkim-keys:
+  rspamd_data:
 
 networks:
   mail-network:

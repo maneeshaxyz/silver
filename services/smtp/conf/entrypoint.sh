@@ -47,9 +47,9 @@ postconf -P submission/inet/smtpd_relay_restrictions="permit_sasl_authenticated,
 # DKIM configuration
 postconf -e "milter_protocol = 6"
 postconf -e "milter_default_action = accept"
-postconf -e "smtpd_milters = inet:opendkim-server:8891"
-postconf -e "non_smtpd_milters = inet:opendkim-server:8891"
-postconf -P submission/inet/smtpd_milters="inet:opendkim-server:8891"
+postconf -e "smtpd_milters = inet:rspamd-server:11332,inet:opendkim-server:8891"
+postconf -e "non_smtpd_milters = inet:rspamd-server:11332,inet:opendkim-server:8891"
+postconf -P "submission/inet/smtpd_milters=inet:rspamd-server:11332,inet:opendkim-server:8891"
 
 # Canonical mapping for recipient addresses
 cat <<EOF > /etc/postfix/recipient_canonical
