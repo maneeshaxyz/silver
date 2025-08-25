@@ -11,6 +11,4 @@ EXPOSE 11332 11334
 RUN mkdir -p /var/run/rspamd && \
     chown -R _rspamd:_rspamd /var/run/rspamd /var/lib/rspamd
 
-USER usr-rspamd
-
 CMD ["rspamd", "-f", "-u", "_rspamd", "-g", "_rspamd"]
