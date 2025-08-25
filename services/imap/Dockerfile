@@ -26,18 +26,13 @@ RUN mkdir -p /var/mail/vmail && \
     chown -R vmail:vmail /var/mail/vmail && \
     chmod -R 755 /var/mail/vmail
 
-# Copy Dovecot password file into container
-COPY users /etc/dovecot/users
-RUN chown dovecot:dovecot /etc/dovecot/users && \
-    chmod 600 /etc/dovecot/users
-
 # Copy custom Dovecot config
-COPY dovecot.conf /etc/dovecot/dovecot.conf
+COPY conf/dovecot.conf /etc/dovecot/dovecot.conf
 
 # Copy additional configuration files
-COPY auth-oauth2.conf.ext /etc/dovecot/dovecot-oauth2.conf.ext
+COPY conf/auth-oauth2.conf.ext /etc/dovecot/dovecot-oauth2.conf.ext
 
-COPY auth_api.lua /etc/dovecot/auth.lua
+COPY conf/auth_api.lua /etc/dovecot/auth.lua
 
 COPY PEM /etc/dovecot/keys/default/RS256/IyhtbRCtE0AGD1ek3lBH9Nvigw0epc8PrzSDUduVZbU=
 
