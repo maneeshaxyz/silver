@@ -12,3 +12,4 @@ RUN mkdir -p /var/run/rspamd && \
     chown -R _rspamd:_rspamd /var/run/rspamd /var/lib/rspamd
 
 CMD ["rspamd", "-f", "-u", "_rspamd", "-g", "_rspamd"]
+

@@ -48,11 +48,6 @@ services:
     volumes:
       - ./rspamd/conf/data:/var/lib/rspamd
       - ./rspamd/conf/local.d:/etc/rspamd/local.d
-    healthcheck:
-      test: ["CMD", "rspamc", "-h", "localhost:11332", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
     # depends_on:
     #   - valkey
     networks:
@@ -96,8 +91,6 @@ services:
       swag:
         condition: service_healthy
         restart: true
-      rspamd:
-        condition: service_healthy
     volumes:
       - ./conf/swag/config/etc/:/le-ssl:ro
       - ./smtp/conf/master.cf:/etc/postfix/master.cf
