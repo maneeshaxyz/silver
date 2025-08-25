@@ -39,19 +39,25 @@ services:
 
   # MILTERS
   rspamd:
+    image: rspamd/rspamd:latest
     container_name: rspamd
-    build:
-      context: spam/
     ports:
-      - "11332:11332"
-      - "11334:11334"
+      - "11332:11332"  # Proxy worker
+      - "11334:11334"  # Web interface
     volumes:
-      - ./rspamd/conf/data:/var/lib/rspamd
-      - ./rspamd/conf/local.d:/etc/rspamd/local.d
-    # depends_on:
-    #   - valkey
-    networks:
-      - mail_network
+      - /spam/conf/local.d:/etc/rspamd/local.d
+      - /spam/conf/data:/var/lib/rspamd
+      - /spam/conf/logs:/var/log/rspamd
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: rspamd-redis
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
 
   # valkey:
   #   container_name: valkey
@@ -128,3 +134,6 @@ services:
 networks:
   mail_network:
     driver: bridge
+
+volumes:
+    redis-data:
