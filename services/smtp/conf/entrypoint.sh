@@ -51,6 +51,14 @@ postconf -e "smtpd_milters = inet:rspamd-server:11332,inet:opendkim-server:8891"
 postconf -e "non_smtpd_milters = inet:rspamd-server:11332,inet:opendkim-server:8891"
 postconf -P "submission/inet/smtpd_milters=inet:rspamd-server:11332,inet:opendkim-server:8891"
 
+# Adding throttling to prevent abuse
+postconf -e "smtpd_client_connection_rate_limit = 10"
+postconf -e "smtpd_client_message_rate_limit = 100"
+postconf -e "smtpd_client_recipient_rate_limit = 200"
+postconf -e "smtpd_recipient_limit = 50"
+postconf -e "anvil_rate_time_unit = 60s"
+postconf -e "smtpd_client_connection_count_limit = 20"
+
 # Canonical mapping for recipient addresses
 cat <<EOF > /etc/postfix/recipient_canonical
 $EMAIL_TO    $EMAIL_MAPPING
@@ -108,12 +116,19 @@ if ! id "vmail" &>/dev/null; then
     useradd -r -u 5000 -g 8 -d /var/mail/vmail -s /sbin/nologin -c "Virtual Mail User" vmail
 fi
 
-mkdir -p /var/mail/vmail/{aravinda,admin,postmaster,testuser}
-chown -R vmail:mail /var/mail/vmail
-chmod -R 755 /var/mail/vmail
-
 for user in aravinda admin postmaster testuser; do
+    # Main INBOX maildir
     mkdir -p /var/mail/vmail/$user/{new,cur,tmp}
+
+    # Spam folder maildir
+    mkdir -p /var/mail/vmail/$user/.Spam/{new,cur,tmp}
+
+    # Drafts, Sent, Trash (optional, helps Thunderbird auto-detect)
+    mkdir -p /var/mail/vmail/$user/.Drafts/{new,cur,tmp}
+    mkdir -p /var/mail/vmail/$user/.Sent/{new,cur,tmp}
+    mkdir -p /var/mail/vmail/$user/.Trash/{new,cur,tmp}
+
+    # Set permissions
     chown -R vmail:mail /var/mail/vmail/$user
     chmod -R 755 /var/mail/vmail/$user
 done
