@@ -63,6 +63,17 @@ services:
     networks:
       - mail-network
 
+  clamav-server:
+    image: mkodockx/docker-clamav:alpine
+    container_name: clamav-server
+    ports:
+      - "3310:3310"   # TCP socket for scanning
+    networks:
+      - mail-network
+    restart: always
+    depends_on:
+      - rspamd-server
+
   thunder-server:
     image: ghcr.io/asgardeo/thunder:latest
     container_name: thunder-server
