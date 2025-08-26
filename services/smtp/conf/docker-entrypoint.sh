@@ -32,7 +32,7 @@ postconf -e "virtual_transport = lmtp:unix:private/dovecot-lmtp"
 #milter settings
 postconf -e "milter_default_action = accept"
 postconf -e "milter_protocol = 6"
-#opendkim
+#milters
 postconf -e "smtpd_milters = inet:rspamd:11332 inet:opendkim:8891"
 postconf -e "non_smtpd_milters = inet:rspamd:11332 inet:opendkim:8891"
 
