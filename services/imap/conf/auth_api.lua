@@ -60,7 +60,7 @@ function auth_passdb_lookup(req)
 
     local user = req.username
     if not user:find("@") then
-        user = user .. "@gmail.com"
+        user = user .. "@${MAIL_DOMAIN}"
     end
 
     local success, err = api_authenticate(user, req.password, req)
