@@ -3,7 +3,7 @@ version: "3.9"
 services:
   smtp-server:
     build:
-      context: ./smtp  # folder containing Dockerfile for SMTP
+      context: ./smtp
     container_name: smtp-server-container
     hostname: ${MAIL_DOMAIN}
     env_file:
@@ -25,12 +25,12 @@ services:
 
   dovecot-server:
     build:
-      context: ./imap  # folder containing Dockerfile for Dovecot
+      context: ./imap
     container_name: dovecot-server
     env_file:
       - imap/conf/.env.conf
     ports:
-      - "143:143"  # IMAP
+      - "143:143"
     volumes:
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
@@ -41,7 +41,7 @@ services:
 
   opendkim-server:
     build:
-      context: ./dkim  # folder containing Dockerfile for OpenDKIM
+      context: ./dkim
     container_name: opendkim-server
     env_file:
       - dkim/conf/.env.conf
@@ -55,19 +55,20 @@ services:
     container_name: rspamd-server
     hostname: rspamd
     ports:
-      - "11332:11332"   # milter interface for postfix
-      - "11334:11334"   # web UI / controller
+      - "11332:11332"
+      - "11334:11334"
     volumes:
       - rspamd_data:/var/lib/rspamd
       - ./spam/conf:/etc/rspamd/local.d
+      - clamsock:/var/run/clamav  # shared socket volume
     networks:
       - mail-network
 
   clamav-server:
     image: mkodockx/docker-clamav:alpine
     container_name: clamav-server
-    ports:
-      - "3310:3310"   # TCP socket for scanning
+    volumes:
+      - clamsock:/var/run/clamav  # shared socket volume
     networks:
       - mail-network
     restart: always
@@ -87,6 +88,7 @@ volumes:
   postfix-sasl:
   dkim-keys:
   rspamd_data:
+  clamsock:   # new volume for ClamAV socket
 
 networks:
   mail-network:
