@@ -51,6 +51,8 @@ services:
     depends_on:
       - redis
     restart: unless-stopped
+    networks:
+      - mail_network
 
   redis:
     image: redis:alpine
@@ -58,6 +60,8 @@ services:
     volumes:
       - redis-data:/data
     restart: unless-stopped
+    networks:
+      - mail_network
 
   # valkey:
   #   container_name: valkey
