@@ -1,1 +1,1 @@
-password = $2$o6maw4uxo1dm7aroi4f3qwpn6xni85pq$1571witaja3oo6deihc5wbsq7rr38mwrgb5iqjtm8h9dmawwgtry
+password = "$2$o6maw4uxo1dm7aroi4f3qwpn6xni85pq$1571witaja3oo6deihc5wbsq7rr38mwrgb5iqjtm8h9dmawwgtry";
