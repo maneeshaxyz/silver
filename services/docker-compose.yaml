@@ -82,13 +82,28 @@ services:
       - "8090:8090"
     networks:
       - mail-network
+  mariadb:
+    image: mariadb:10.11
+    container_name: mariadb-server
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - mail-network
+
 
 volumes:
   maildata:
   postfix-sasl:
   dkim-keys:
   rspamd_data:
-  clamsock:   # new volume for ClamAV socket
+  clamsock:
+  mariadb_data:
 
 networks:
   mail-network:
