@@ -45,9 +45,9 @@ services:
       - "11332:11332"  # Proxy worker
       - "11334:11334"  # Web interface
     volumes:
-      - /spam/conf/local.d:/etc/rspamd/local.d
-      - /spam/conf/data:/var/lib/rspamd
-      - /spam/conf/logs:/var/log/rspamd
+      - ./spam/conf/local.d:/etc/rspamd/local.d
+      - ./spam/conf/data:/var/lib/rspamd
+      - ./spam/conf/logs:/var/log/rspamd
     depends_on:
       - redis
     restart: unless-stopped
@@ -70,7 +70,7 @@ services:
       - mail_network
     restart: unless-stopped
     volumes:
-      - /clamav/conf/data:/var/lib/clamav
+      - ./antivirus/conf/data:/var/lib/clamav
 
   # valkey:
   #   container_name: valkey
