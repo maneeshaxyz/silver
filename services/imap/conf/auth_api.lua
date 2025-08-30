@@ -74,14 +74,51 @@ function auth_passdb_lookup(req)
     end
 end
 
--- Userdb function
+-- Userdb lookup
 function auth_userdb_lookup(req)
     req:log_debug("auth_userdb_lookup called for user: " .. (req.username or "nil"))
-    if req.username then
-        req:log_debug("auth_userdb_lookup: USERDB_RESULT_OK")
-        return dovecot.auth.USERDB_RESULT_OK, "uid=vmail gid=vmail home=/var/mail/" .. req.username
+
+    if not req.username then
+        req:log_debug("auth_userdb_lookup: USERDB_RESULT_USER_UNKNOWN (empty username)")
+        return dovecot.auth.USERDB_RESULT_USER_UNKNOWN, "no such user"
     end
-    req:log_debug("auth_userdb_lookup: USERDB_RESULT_USER_UNKNOWN")
+
+    -- API endpoint
+    local url = "https://thunder-server:8090/users"
+
+    -- Capture API response
+    local response_body = {}
+    local ok, code, headers, status = https.request{
+        url = url,
+        method = "GET",
+        sink = ltn12.sink.table(response_body)
+    }
+
+    if not ok then
+        req:log_debug("auth_userdb_lookup: API request failed: " .. tostring(code))
+        return dovecot.auth.USERDB_RESULT_USER_UNKNOWN, "API error"
+    end
+
+    local body = table.concat(response_body)
+    local data, pos, err = json.decode(body, 1, nil)
+
+    if err then
+        req:log_debug("auth_userdb_lookup: JSON decode error: " .. err)
+        return dovecot.auth.USERDB_RESULT_USER_UNKNOWN, "invalid JSON"
+    end
+
+    -- Loop over users and find match
+    if data and data.users then
+        for _, user in ipairs(data.users) do
+            if user.attributes and user.attributes.username == req.username then
+                req:log_debug("auth_userdb_lookup: USERDB_RESULT_OK (found user " .. req.username .. ")")
+                return dovecot.auth.USERDB_RESULT_OK,
+                       "uid=vmail gid=mail home=/var/mail/" .. req.username
+            end
+        end
+    end
+
+    req:log_debug("auth_userdb_lookup: USERDB_RESULT_USER_UNKNOWN (user not found)")
     return dovecot.auth.USERDB_RESULT_USER_UNKNOWN, "no such user"
 end
 
