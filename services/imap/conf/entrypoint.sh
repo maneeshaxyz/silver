@@ -1,4 +1,16 @@
-# Dovecot configuration for LMTP service
+#!/bin/bash
+set -e
+
+# Load environment variables from grandparent .env
+if [ -f /etc/dovecot/../../.env ]; then
+    echo "Loading environment variables from ../../.env"
+    export $(grep -v '^#' /etc/dovecot/../../.env | xargs)
+fi
+
+MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
+
+# Generate Dovecot configuration dynamically
+cat > /etc/dovecot/dovecot.conf <<EOF
 service lmtp {
   unix_listener /var/spool/postfix/private/dovecot-lmtp {
     mode = 0600
@@ -7,7 +19,6 @@ service lmtp {
   }
 }
 
-# Enable SASL authentication service for Postfix
 service auth {
   unix_listener /var/spool/postfix/private/auth {
     mode = 0666
@@ -16,44 +27,33 @@ service auth {
   }
 }
 
-# Disable plaintext authentication for security
-# Note: This is a basic configuration; consider using SSL/TLS for secure connections.
 disable_plaintext_auth = no
 
-# Mailbox configuration - using virtual users
 mail_location = maildir:/var/mail/vmail/%n
 mail_uid = 5000
 mail_gid = 8
 
-# Auth mechanism is set to plain
 auth_mechanisms = plain login oauthbearer xoauth2
-
-# Dovecot configuration for IMAP service
 protocols = imap lmtp
 
 ssl = required
+ssl_cert = </etc/letsencrypt/live/${MAIL_DOMAIN}/fullchain.pem
+ssl_key  = </etc/letsencrypt/live/${MAIL_DOMAIN}/privkey.pem
 
-# Point to your Let’s Encrypt certificates
-ssl_cert = </etc/letsencrypt/live/aravindahwk.org/fullchain.pem
-ssl_key = </etc/letsencrypt/live/aravindahwk.org/privkey.pem
-
-# Optional: restrict protocols to modern TLS
 ssl_protocols = !SSLv2 !SSLv3
 ssl_min_protocol = TLSv1.2
 ssl_cipher_list = HIGH:!aNULL:!MD5
 
 passdb {
   driver = lua
-  args = file=/etc/dovecot/auth.lua blocking=yes
+  args = file=/etc/dovecot/auth_api.lua blocking=yes
 }
 
 userdb {
   driver = lua
-  args = file=/etc/dovecot/auth.lua blocking=yes
+  args = file=/etc/dovecot/auth_api.lua blocking=yes
 }
 
-
-# IMAP service configuration
 service imap-login {
   inet_listener imap {
     port = 143
@@ -74,3 +74,8 @@ auth_debug_passwords = yes
 auth_verbose = yes
 auth_verbose_passwords = yes
 mail_debug = yes
+EOF
+
+# Start Dovecot
+echo "Starting Dovecot..."
+exec dovecot -F

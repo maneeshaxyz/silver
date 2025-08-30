@@ -60,7 +60,7 @@ function auth_passdb_lookup(req)
 
     local user = req.username
     if not user:find("@") then
-        user = user .. "@gmail.com"
+        user = user .. "@aravindahwk.org"
     end
 
     local success, err = api_authenticate(user, req.password, req)
@@ -113,7 +113,7 @@ function auth_userdb_lookup(req)
             if user.attributes and user.attributes.username == req.username then
                 req:log_debug("auth_userdb_lookup: USERDB_RESULT_OK (found user " .. req.username .. ")")
                 return dovecot.auth.USERDB_RESULT_OK,
-                       "uid=vmail gid=mail home=/var/mail/" .. req.username
+       "uid=5000 gid=5000 home=/var/mail/vmail/" .. req.username .. " mail=maildir:/var/mail/vmail/" .. req.username
             end
         end
     end

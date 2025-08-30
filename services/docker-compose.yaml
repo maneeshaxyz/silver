@@ -28,7 +28,7 @@ services:
       context: ./imap
     container_name: dovecot-server
     env_file:
-      - imap/conf/.env.conf
+      - .env
     ports:
       - "143:143"
     volumes:
