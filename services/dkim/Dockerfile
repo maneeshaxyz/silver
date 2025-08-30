@@ -19,9 +19,6 @@ RUN mkdir -p /etc/opendkim/keys /var/run/opendkim && \
 
 # Copy configuration files (without embedding secret keys)
 COPY conf/opendkim.conf /etc/opendkim.conf
-COPY conf/TrustedHosts /etc/opendkim/TrustedHosts
-COPY conf/KeyTable /etc/opendkim/KeyTable
-COPY conf/SigningTable /etc/opendkim/SigningTable
 COPY conf/entrypoint.sh /entrypoint.sh
 
 # Secure the entrypoint script

@@ -44,7 +44,7 @@ services:
       context: ./dkim
     container_name: opendkim-server
     env_file:
-      - dkim/conf/.env.conf
+      - .env
     volumes:
       - dkim-keys:/etc/opendkim/keys
     networks:
