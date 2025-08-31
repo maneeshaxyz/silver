@@ -2,6 +2,18 @@
 set -e
 
 # -------------------------------
+# Load .env from grandparent folder
+# -------------------------------
+ENV_FILE="$(dirname "$(dirname "$0")")/.env"
+
+if [ -f "$ENV_FILE" ]; then
+    export $(grep -v '^#' "$ENV_FILE" | xargs)
+fi
+
+# Generate MySQL maps
+/generate-sql-maps.sh
+
+# -------------------------------
 # Environment variables
 # -------------------------------
 MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
