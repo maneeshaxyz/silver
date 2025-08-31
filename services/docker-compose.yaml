@@ -7,7 +7,7 @@ services:
     container_name: smtp-server-container
     hostname: ${MAIL_DOMAIN}
     env_file:
-      - smtp/conf/.env.conf
+      - .env
     ports:
       - "25:25"
       - "587:587"
