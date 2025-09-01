@@ -22,3 +22,6 @@ services/spam/conf/worker-controller.inc
 services/smtp/sql/mysql-virtual-domains.cf
 services/smtp/sql/mysql-virtual-aliases.cf
 services/smtp/sql/mysql-virtual-users.cf
+
+# Ignore certbot logs
+services/letsencrypt/
