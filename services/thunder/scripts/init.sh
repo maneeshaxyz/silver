@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ -f ./thunder/scripts/.env ]; then
+if [ -f .env ]; then
   set -o allexport
-  source ./thunder/scripts/.env
+  source .env
   set +o allexport
   echo "Environment variables loaded from .env file"
 else
