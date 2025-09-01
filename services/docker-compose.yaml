@@ -14,14 +14,14 @@ services:
     volumes:
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
-      - ./smtp/cert:/etc/letsencrypt/live/${MAIL_DOMAIN}:ro
-      - ./smtp/cert:/etc/letsencrypt/archive/${MAIL_DOMAIN}:ro
+      - ./letsencrypt:/etc/letsencrypt:ro
     networks:
       - mail-network
     depends_on:
       - opendkim-server
       - dovecot-server
       - rspamd-server
+      - certbot-server
 
   dovecot-server:
     build:
@@ -34,10 +34,11 @@ services:
     volumes:
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
-      - ./imap/cert:/etc/letsencrypt/live/${MAIL_DOMAIN}:ro
-      - ./imap/cert:/etc/letsencrypt/archive/${MAIL_DOMAIN}:ro
+      - ./letsencrypt:/etc/letsencrypt:ro
     networks:
       - mail-network
+    depends_on:
+      - certbot-server
 
   opendkim-server:
     build:
@@ -95,6 +96,20 @@ services:
       - mariadb_data:/var/lib/mysql
     networks:
       - mail-network
+
+  certbot-server:
+    image: certbot/certbot
+    container_name: certbot-server
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+      - ./letsencrypt/certbot-logs:/var/log/letsencrypt
+    command: certonly --standalone --non-interactive --agree-tos --email admin@${MAIL_DOMAIN} -d ${MAIL_DOMAIN} -d mail.${MAIL_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - mail-network
+
 
 
 volumes:
