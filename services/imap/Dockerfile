@@ -25,10 +25,9 @@ RUN mkdir -p /var/mail/vmail && \
     chown -R vmail:vmail /var/mail/vmail && \
     chmod -R 755 /var/mail/vmail
 
-# Copy configs
-
-COPY conf/entrypoint.sh /entrypoint.sh
-COPY conf/generate_lua.sh /generate_lua.sh
+# Generate configuration files from scripts
+COPY scripts/entrypoint.sh /entrypoint.sh
+COPY scripts/generate_lua.sh /generate_lua.sh
 
 RUN chmod +x /entrypoint.sh /generate_lua.sh
 
