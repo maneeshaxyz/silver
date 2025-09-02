@@ -1,0 +1,27 @@
+# Ignore environment files
+*.env
+*.env.*
+services/conf/.env.conf
+services/test.env
+services/.env
+# Ignore certificate files
+*.pem
+
+# Ignore DKIM configuration files
+services/dkim/conf/KeyTable
+services/dkim/conf/SigningTable
+services/dkim/conf/TrustedHosts
+
+# Ignore PEM file for OAuth2
+services/imap/PEM
+
+# Ignore rspamd configuration files
+services/spam/conf/worker-controller.inc
+
+# Ignore database data
+services/smtp/conf/virtual-domains
+services/smtp/conf/virtual-users
+services/smtp/conf/virtual-aliases
+
+# Ignore certbot logs
+services/letsencrypt/
