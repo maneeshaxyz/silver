@@ -1,3 +1,21 @@
+#!/bin/bash
+set -e
+
+# Load environment variables from grandparent .env
+if [ -f /etc/dovecot/../../.env ]; then
+    echo "Loading environment variables from ../../.env"
+    export $(grep -v '^#' /etc/dovecot/../../.env | xargs)
+fi
+
+MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
+
+# Output Lua file inside container
+OUTPUT="/etc/dovecot/auth_api.lua"
+
+# Make sure the directory exists
+mkdir -p "$(dirname "$OUTPUT")"
+
+cat > "$OUTPUT" <<EOF
 -- Requires LuaSocket and LuaSec
 local https = require("ssl.https")
 local ltn12 = require("ltn12")
@@ -42,11 +60,8 @@ local function api_authenticate(user, password, req)
         return nil, "JSON decode error: " .. err
     end
 
-    -- Check if the response contains an ID
     if resp_json.id then
-        req:log_info("User " .. user .. " authenticated successfully. ID=" .. resp_json.id ..
-                    ", Type=" .. tostring(resp_json.type) ..
-                    ", OrgUnit=" .. tostring(resp_json.organizationUnit))
+        req:log_info("User " .. user .. " authenticated successfully. ID=" .. resp_json.id)
         return true
     else
         req:log_warning("API authentication failed for user: " .. user)
@@ -60,7 +75,7 @@ function auth_passdb_lookup(req)
 
     local user = req.username
     if not user:find("@") then
-        user = user .. "@gmail.com"
+        user = user .. "@$MAIL_DOMAIN"
     end
 
     local success, err = api_authenticate(user, req.password, req)
@@ -74,24 +89,52 @@ function auth_passdb_lookup(req)
     end
 end
 
--- Userdb function
+-- Userdb lookup
 function auth_userdb_lookup(req)
     req:log_debug("auth_userdb_lookup called for user: " .. (req.username or "nil"))
-    if req.username then
-        req:log_debug("auth_userdb_lookup: USERDB_RESULT_OK")
-        return dovecot.auth.USERDB_RESULT_OK, "uid=vmail gid=vmail home=/var/mail/" .. req.username
+
+    if not req.username then
+        return dovecot.auth.USERDB_RESULT_USER_UNKNOWN, "no such user"
     end
-    req:log_debug("auth_userdb_lookup: USERDB_RESULT_USER_UNKNOWN")
+
+    local url = "https://thunder-server:8090/users"
+    local response_body = {}
+
+    local ok, code, headers, status = https.request{
+        url = url,
+        method = "GET",
+        sink = ltn12.sink.table(response_body)
+    }
+
+    if not ok then
+        return dovecot.auth.USERDB_RESULT_USER_UNKNOWN, "API error"
+    end
+
+    local body = table.concat(response_body)
+    local data, pos, err = json.decode(body, 1, nil)
+    if err then
+        return dovecot.auth.USERDB_RESULT_USER_UNKNOWN, "invalid JSON"
+    end
+
+    if data and data.users then
+        for _, user in ipairs(data.users) do
+            if user.attributes and user.attributes.username == req.username then
+                return dovecot.auth.USERDB_RESULT_OK,
+                       "uid=5000 gid=5000 home=/var/mail/vmail/" .. req.username ..
+                       " mail=maildir:/var/mail/vmail/" .. req.username
+            end
+        end
+    end
+
     return dovecot.auth.USERDB_RESULT_USER_UNKNOWN, "no such user"
 end
 
 function auth_userdb_iterate()
-    return {}  -- empty for simplicity
+    return {}  -- empty
 end
 
-function script_init()
-    return 0
-end
+function script_init() return 0 end
+function script_deinit() end
+EOF
 
-function script_deinit()
-end
+echo "Lua auth script generated at $OUTPUT with MAIL_DOMAIN=$MAIL_DOMAIN"

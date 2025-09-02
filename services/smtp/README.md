@@ -31,3 +31,32 @@ cd services/smtp
 chmod +x ./scripts/*.sh
 ./scripts/init.sh
 ```
+
+## Add database data for SMTP server
+- The SMTP server uses a database to manage virtual users, domains, and aliases. You need to add initial data to the database to test the SMTP server functionality. You can use the provided SQL scripts located in the `sql` directory to create the necessary tables and insert initial data.
+- Create the below files in the `sql` directory.
+1. `mysql-virtual-domains.sql`
+```
+user = testuser
+password = $$$$$$$$$$
+hosts = mariadb-server
+dbname = mailserver
+query = SELECT 1 FROM virtual_domains WHERE name='%s'
+```
+2. `mysql-virtual-users.sql`
+```
+user = testuser
+password = $$$$$$$$$$
+hosts = mariadb-server
+dbname = mailserver
+query = SELECT 1 FROM virtual_users WHERE email='%s'
+```
+3. `mysql-virtual-aliases.sql`
+```
+user = testuser
+password = $$$$$$$$$$
+hosts = mariadb-server
+dbname = mailserver
+query = SELECT destination FROM virtual_aliases WHERE source='%s'
+```
+

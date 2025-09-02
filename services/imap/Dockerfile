@@ -1,4 +1,3 @@
-# Dockerfile
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -26,27 +25,20 @@ RUN mkdir -p /var/mail/vmail && \
     chown -R vmail:vmail /var/mail/vmail && \
     chmod -R 755 /var/mail/vmail
 
-# Copy Dovecot password file into container
-COPY users /etc/dovecot/users
-RUN chown dovecot:dovecot /etc/dovecot/users && \
-    chmod 600 /etc/dovecot/users
+# Generate configuration files from scripts
+COPY scripts/entrypoint.sh /entrypoint.sh
+COPY scripts/generate_lua.sh /generate_lua.sh
 
-# Copy custom Dovecot config
-COPY dovecot.conf /etc/dovecot/dovecot.conf
+RUN chmod +x /entrypoint.sh /generate_lua.sh
 
-# Copy additional configuration files
-COPY auth-oauth2.conf.ext /etc/dovecot/dovecot-oauth2.conf.ext
-
-COPY auth_api.lua /etc/dovecot/auth.lua
-
-COPY PEM /etc/dovecot/keys/default/RS256/IyhtbRCtE0AGD1ek3lBH9Nvigw0epc8PrzSDUduVZbU=
-
-RUN chown -R dovecot:dovecot /etc/dovecot/keys && \
+# Ensure Dovecot key directory exists and secure it
+RUN mkdir -p /etc/dovecot/keys && \
+    chown -R dovecot:dovecot /etc/dovecot/keys && \
     find /etc/dovecot/keys -type d -exec chmod 750 {} \; && \
     find /etc/dovecot/keys -type f -exec chmod 640 {} \;
 
-# Expose IMAP port
-EXPOSE 143
+# Expose IMAP ports
+EXPOSE 143 993
 
 # Run Dovecot in foreground
-CMD ["dovecot", "-F"]
+CMD ["/entrypoint.sh"]
