@@ -2,28 +2,28 @@
 
 # This script creates a .env file with a domain name provided by the user.
 
-DOMAIN_NAME=""
+MAIL_DOMAIN=""
 
 # Loop until a non-empty value is provided
-while [ -z "$DOMAIN_NAME" ]; do
+while [ -z "$MAIL_DOMAIN" ]; do
   echo "Please enter the domain name:"
-  read DOMAIN_NAME
-  if [ -z "$DOMAIN_NAME" ]; then
+  read MAIL_DOMAIN
+  if [ -z "$MAIL_DOMAIN" ]; then
     echo "Domain name cannot be empty. Please try again."
   fi
 done
 
 # Exit if not valid
-if ! [[ "$DOMAIN_NAME" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-    echo "Warning: '${DOMAIN_NAME}' does not look like a valid domain name."
+if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+    echo "Warning: '${MAIL_DOMAIN}' does not look like a valid domain name."
     exit 1
 fi
 
 
 # Create or overwrite the .env file
-echo "DOMAIN_NAME=${DOMAIN_NAME}" > .env
+echo "MAIL_DOMAIN=${MAIL_DOMAIN}" > .env
 
-echo ".env file created successfully for ${DOMAIN_NAME}"
+echo ".env file created successfully for ${MAIL_DOMAIN}"
 
 
 echo "Please enter the required information for an admin user"
@@ -68,7 +68,7 @@ APP_CLIENT_SECRET="************"
 # User Configuration
 USER_USERNAME="${USER_USERNAME}"
 USER_PASSWORD="${USER_PASSWORD}"
-USER_EMAIL="${USER_USERNAME}@${DOMAIN_NAME}"
+USER_EMAIL="${USER_USERNAME}@${MAIL_DOMAIN}"
 USER_FIRST_NAME="${USER_FIRST_NAME}"
 USER_LAST_NAME="${USER_LAST_NAME}"
 USER_AGE="${USER_AGE}"
@@ -80,3 +80,10 @@ EOF
 
 echo "Successfully created .env file."
 echo "You can now run the other scripts that depend on this file."
+
+# SMTP FILES
+cat > email_mappings.txt << 'EOF'
+postmaster@${MAIL_DOMAIN}  ${USER_EMAIL}
+EOF
+
+echo "Smtp files created has been created successfully."
