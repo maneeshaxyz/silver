@@ -80,10 +80,15 @@ EOF
 
 echo "Successfully created .env file."
 echo "You can now run the other scripts that depend on this file."
+# Check if the target directory exists and create it if it doesn't.
+TARGET_DIR="../services/smtp/conf"
+if [ ! -d "$TARGET_DIR" ]; then
+    echo "Directory '$TARGET_DIR' does not exist. Creating it now..."
+    mkdir -p "$TARGET_DIR"
+fi
 
-# SMTP FILES
-cat > email_mappings.txt << 'EOF'
-postmaster@${MAIL_DOMAIN}  ${USER_EMAIL}
-EOF
+printf "%s\n%s" \
+    "postmaster@${MAIL_DOMAIN} ${USER_MAIL}" \
+    > ../services/smtp/conf/virtual_aliases
 
 echo "Smtp files created has been created successfully."
