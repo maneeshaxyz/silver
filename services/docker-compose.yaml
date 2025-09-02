@@ -15,6 +15,9 @@ services:
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
       - ./letsencrypt:/etc/letsencrypt:ro
+      - ./smtp/conf/virtual-domains:/etc/postfix/virtual-domains:ro
+      - ./smtp/conf/virtual-users:/etc/postfix/virtual-users:ro
+      - ./smtp/conf/virtual-aliases:/etc/postfix/virtual-aliases:ro
     networks:
       - mail-network
     depends_on:
@@ -83,19 +86,6 @@ services:
       - "8090:8090"
     networks:
       - mail-network
-  mariadb:
-    image: mariadb:10.11
-    container_name: mariadb-server
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    volumes:
-      - mariadb_data:/var/lib/mysql
-    networks:
-      - mail-network
 
   certbot-server:
     image: certbot/certbot
@@ -110,15 +100,12 @@ services:
     networks:
       - mail-network
 
-
-
 volumes:
   maildata:
   postfix-sasl:
   dkim-keys:
   rspamd_data:
   clamsock:
-  mariadb_data:
 
 networks:
   mail-network:

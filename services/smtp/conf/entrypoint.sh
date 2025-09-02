@@ -10,21 +10,12 @@ if [ -f "$ENV_FILE" ]; then
     export $(grep -v '^#' "$ENV_FILE" | xargs)
 fi
 
-# Generate MySQL maps
-/generate-sql-maps.sh
-
 # -------------------------------
 # Environment variables
 # -------------------------------
 MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
 MAIL_HOSTNAME=${MAIL_HOSTNAME:-mail.$MAIL_DOMAIN}
 RELAYHOST=${RELAYHOST:-}
-
-# Database credentials
-DB_HOST=${DB_HOST:-mariadb-server}
-DB_USER=${DB_USER:-mailuser}
-DB_PASS=${DB_PASS:-mailpass}
-DB_NAME=${DB_NAME:-mailserver}
 
 # Path for vmail
 VMAIL_DIR="/var/mail/vmail"
@@ -68,9 +59,14 @@ postconf -e "broken_sasl_auth_clients = yes"
 # -------------------------------
 # MySQL virtual domains/users/aliases
 # -------------------------------
-postconf -e "virtual_mailbox_domains = mysql:/etc/postfix/mysql-virtual-domains.cf"
-postconf -e "virtual_mailbox_maps = mysql:/etc/postfix/mysql-virtual-users.cf"
-postconf -e "virtual_alias_maps = mysql:/etc/postfix/mysql-virtual-aliases.cf"
+postconf -e "virtual_mailbox_domains = hash:/etc/postfix/virtual-domains"
+postconf -e "virtual_mailbox_maps = hash:/etc/postfix/virtual-users"
+postconf -e "virtual_alias_maps = hash:/etc/postfix/virtual-aliases"
+
+# Compile hash maps
+postmap /etc/postfix/virtual-domains || true
+postmap /etc/postfix/virtual-users || true
+postmap /etc/postfix/virtual-aliases || true
 
 # LMTP delivery to Dovecot
 postconf -e "virtual_transport = lmtp:unix:private/dovecot-lmtp"
@@ -111,7 +107,6 @@ postconf -e "smtpd_client_connection_count_limit = 20"
 # vmail user/group and directories
 # -------------------------------
 
-# Ensure vmail user/group exists
 if ! getent group mail >/dev/null; then
     groupadd -g 8 mail
 fi
@@ -122,18 +117,15 @@ fi
 
 mkdir -p "$VMAIL_DIR"
 
-# Fetch all virtual users from database and create maildirs
-mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" -D "$DB_NAME" -sN -e "SELECT email FROM virtual_users;" | while read email; do
-    # Extract local part (before @)
-    local_part=$(echo "$email" | cut -d'@' -f1)
-
-    # Create maildirs
-    mkdir -p "$VMAIL_DIR/$local_part"/{new,cur,tmp}
-
-    # Set ownership and permissions
-    chown -R vmail:mail "$VMAIL_DIR/$local_part"
-    chmod -R 755 "$VMAIL_DIR/$local_part"
-done
+# Create maildirs from virtual-users map
+if [ -f /etc/postfix/virtual-users ]; then
+    cut -f1 /etc/postfix/virtual-users | while read email; do
+        local_part=$(echo "$email" | cut -d'@' -f1)
+        mkdir -p "$VMAIL_DIR/$local_part"/{new,cur,tmp}
+        chown -R vmail:mail "$VMAIL_DIR/$local_part"
+        chmod -R 755 "$VMAIL_DIR/$local_part"
+    done
+fi
 
 echo "=== Maildirs created for all virtual users ==="
 

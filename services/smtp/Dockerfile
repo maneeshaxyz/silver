@@ -12,9 +12,8 @@ RUN apt update && \
 
 # Copy entrypoint file and generating sql maps
 COPY conf/entrypoint.sh /entrypoint.sh
-COPY conf/generate-sql-maps.sh /generate-sql-maps.sh
 
-RUN chmod +x /entrypoint.sh /generate-sql-maps.sh
+RUN chmod +x /entrypoint.sh
 
 
 # Start Postfix service and run the entrypoint script
