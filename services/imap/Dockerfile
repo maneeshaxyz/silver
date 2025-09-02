@@ -26,11 +26,11 @@ RUN mkdir -p /var/mail/vmail && \
     chmod -R 755 /var/mail/vmail
 
 # Copy configs
-COPY conf/auth_api.lua /etc/dovecot/auth_api.lua
 
 COPY conf/entrypoint.sh /entrypoint.sh
+COPY conf/generate_lua.sh /generate_lua.sh
 
-RUN chmod +x /entrypoint.sh
+RUN chmod +x /entrypoint.sh /generate_lua.sh
 
 # Ensure Dovecot key directory exists and secure it
 RUN mkdir -p /etc/dovecot/keys && \

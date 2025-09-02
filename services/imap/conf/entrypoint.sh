@@ -9,6 +9,10 @@ fi
 
 MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
 
+# Generate Lua authentication script
+echo "Generating Lua authentication script..."
+/generate_lua.sh
+
 # Generate Dovecot configuration dynamically
 cat > /etc/dovecot/dovecot.conf <<EOF
 service lmtp {
