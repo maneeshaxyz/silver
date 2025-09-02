@@ -11,7 +11,7 @@ RUN apt update && \
     apt clean
 
 # Copy entrypoint file and generating sql maps
-COPY conf/entrypoint.sh /entrypoint.sh
+COPY scripts/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh
 
