@@ -29,7 +29,7 @@ The Silver project aims to reinvent email and digital communication that is suit
 - Domain with DNS control
 
 ### DNS setup
-You just bought <a>example.com</a> and want to send mail as person@example.com.
+You just bought <a>example.com</a> and want to send email as person@example.com.
 
 You will need to add a few records to your DNS control panel.
 
@@ -64,7 +64,7 @@ chmod +x init.sh
 ./init.sh
 ```
 
-- Enter your domain name and proceed with adding one admin user for your mail server.
+- Enter your domain name and proceed with adding one admin user for your email server.
 
 - Then add the dkim value generated to your DNS records.
 
@@ -74,7 +74,7 @@ chmod +x init.sh
 
 
 > [!Tip]
->  Now you should have a fully functional mail server!
+>  Now you should have a fully functional email server!
 
 ### Adding users
 
@@ -84,7 +84,7 @@ chmod +x init.sh
 ```
 
 ### Testing your setup
-- Now that you have a working mail server, you can test your configuration using the following links/scripts.
+- Now that you have a working email server, you can test your configuration using the following links/scripts.
 
   - [mail-tester](https://www.mail-tester.com/)
   - [mxtoolbox](https://mxtoolbox.com/SuperTool.aspx)
@@ -93,8 +93,8 @@ chmod +x init.sh
 
 Silver is built using opensource software. 
 
-- [Postfix](https://www.postfix.org/) - handles sending and receiving mail.
-- [Dovecot](https://doc.dovecot.org/2.3/) - handles the retrieval of mails.
+- [Postfix](https://www.postfix.org/) - handles sending and receiving email.
+- [Dovecot](https://doc.dovecot.org/2.3/) - handles the retrieval of emails.
 - [Thunder](https://github.com/asgardeo/thunder) - Identity provider and user manager
 - [Rspamd](https://rspamd.com/) - spam filtering system.
 - [ClamAV](https://docs.clamav.net/Introduction.html) -  virus scanning system.
