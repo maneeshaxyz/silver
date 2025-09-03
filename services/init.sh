@@ -1,47 +1,87 @@
 #!/bin/bash
 
-# This script creates a .env file with a domain name provided by the user.
+# ============================================
+#  Silver Mail Setup Wizard
+# ============================================
+
+# Colors
+CYAN="\033[0;36m"
+GREEN="\033[0;32m"
+YELLOW="\033[1;33m"
+RED="\033[0;31m"
+NC="\033[0m" # No Color
+
+# ASCII Banner
+echo -e "${CYAN}"
+cat <<'EOF'
+                                                                                                
+                                                                                                
+   SSSSSSSSSSSSSSS   iiii  lllllll                                                              
+ SS:::::::::::::::S i::::i l:::::l                                                              
+S:::::SSSSSS::::::S  iiii  l:::::l                                                              
+S:::::S     SSSSSSS        l:::::l                                                              
+S:::::S            iiiiiii  l::::lvvvvvvv           vvvvvvv eeeeeeeeeeee    rrrrr   rrrrrrrrr   
+S:::::S            i:::::i  l::::l v:::::v         v:::::vee::::::::::::ee  r::::rrr:::::::::r  
+ S::::SSSS          i::::i  l::::l  v:::::v       v:::::ve::::::eeeee:::::eer:::::::::::::::::r 
+  SS::::::SSSSS     i::::i  l::::l   v:::::v     v:::::ve::::::e     e:::::err::::::rrrrr::::::r
+    SSS::::::::SS   i::::i  l::::l    v:::::v   v:::::v e:::::::eeeee::::::e r:::::r     r:::::r
+       SSSSSS::::S  i::::i  l::::l     v:::::v v:::::v  e:::::::::::::::::e  r:::::r     rrrrrrr
+            S:::::S i::::i  l::::l      v:::::v:::::v   e::::::eeeeeeeeeee   r:::::r            
+            S:::::S i::::i  l::::l       v:::::::::v    e:::::::e            r:::::r            
+SSSSSSS     S:::::Si::::::il::::::l       v:::::::v     e::::::::e           r:::::r            
+S::::::SSSSSS:::::Si::::::il::::::l        v:::::v       e::::::::eeeeeeee   r:::::r            
+S:::::::::::::::SS i::::::il::::::l         v:::v         ee:::::::::::::e   r:::::r            
+ SSSSSSSSSSSSSSS   iiiiiiiillllllll          vvv            eeeeeeeeeeeeee   rrrrrrr            
+                                                                                                 
+EOF
+echo -e "${NC}"
+
+echo ""
+echo -e " 🚀 ${GREEN}Welcome to Silver Mail System Setup${NC}"
+echo "---------------------------------------------" 
 
 MAIL_DOMAIN=""
 
-# Loop until a non-empty value is provided
+# ================================
+# Step 1: Domain Configuration
+# ================================
+echo -e "\n${YELLOW}Step 1/6: Configure domain name${NC}"
 while [ -z "$MAIL_DOMAIN" ]; do
-  echo "Please enter the domain name:"
-  read MAIL_DOMAIN
+  read -p "Please enter the domain name: " MAIL_DOMAIN
   if [ -z "$MAIL_DOMAIN" ]; then
-    echo "Domain name cannot be empty. Please try again."
+    echo -e "${RED}✗ Domain name cannot be empty. Please try again.${NC}"
   fi
 done
 
-# Exit if not valid
 if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-    echo "Warning: '${MAIL_DOMAIN}' does not look like a valid domain name."
+    echo -e "${RED}✗ Warning: '${MAIL_DOMAIN}' does not look like a valid domain name.${NC}"
     exit 1
 fi
 
-
-# Create or overwrite the .env file
 echo "MAIL_DOMAIN=${MAIL_DOMAIN}" > .env
+echo -e "${GREEN}✓ .env file created successfully for ${MAIL_DOMAIN}${NC}"
 
-echo ".env file created successfully for ${MAIL_DOMAIN}"
+# ================================
+# Step 2: Admin User Configuration
+# ================================
+echo -e "\n${YELLOW}Step 2/6: Configure Admin User${NC}"
 
-
-echo "Please enter the required information for an admin user"
-
-# User Configuration
 read -p "Enter username: " USER_USERNAME
 read -s -p "Enter password: " USER_PASSWORD
-echo "" # New line after password prompt
+echo "" # newline
 
 read -p "Enter first name: " USER_FIRST_NAME
 read -p "Enter last name: " USER_LAST_NAME
 read -p "Enter age: " USER_AGE
 read -p "Enter phone number: " USER_PHONE
 
-# Create the .env file
-echo "Creating .env file in the Thunder directory..."
+echo -e "${GREEN}✓ Admin user information collected${NC}"
 
-# The file is being created in the parent directory to match the desired location.
+# ================================
+# Step 3: Writing Thunder .env
+# ================================
+echo -e "\n${YELLOW}Step 3/6: Creating Thunder configuration file${NC}"
+
 cat > ../services/thunder/scripts/.env <<EOF
 # Thunder Server Configuration
 THUNDER_HOST="localhost"
@@ -63,84 +103,88 @@ USER_AGE="${USER_AGE}"
 USER_PHONE="${USER_PHONE}"
 EOF
 
-echo "Successfully created .env file."
-echo "You can now run the other scripts that depend on this file."
+echo -e "${GREEN}✓ Thunder .env file created${NC}"
 
-# Check if the target directory exists and create it if it doesn't.
+# ================================
+# Step 4: SMTP Configuration
+# ================================
+echo -e "\n${YELLOW}Step 4/6: Creating SMTP configuration${NC}"
+
 TARGET_DIR="../services/smtp/conf"
 if [ ! -d "$TARGET_DIR" ]; then
     echo "Directory '$TARGET_DIR' does not exist. Creating it now..."
     mkdir -p "$TARGET_DIR"
 fi
 
-
-# Create virtual-domains file
 echo "${MAIL_DOMAIN} OK" > "$TARGET_DIR/virtual-domains"
-
-# Create virtual-aliases file (map postmaster to admin email)
 echo "postmaster@${MAIL_DOMAIN} ${USER_USERNAME}@${MAIL_DOMAIN}" > "$TARGET_DIR/virtual-aliases"
-
-# Create virtual-users file
 echo -e "${USER_USERNAME}@${MAIL_DOMAIN}\t${MAIL_DOMAIN}/${USER_USERNAME}" > "$TARGET_DIR/virtual-users"
 
-echo "SMTP configuration files created successfully:"
+echo -e "${GREEN}✓ SMTP configuration files created${NC}"
 echo " - $TARGET_DIR/virtual-domains"
 echo " - $TARGET_DIR/virtual-aliases"
 echo " - $TARGET_DIR/virtual-users"
 
-# -------------------------------
-# Add worker-controller.inc to ../services/spam/conf
+# ================================
+# Step 5: Spam Filter Configuration
+# ================================
+echo -e "\n${YELLOW}Step 5/6: Configuring Spam Filter${NC}"
 
 if [ ! -d "../services/spam/conf" ]; then
     mkdir -p "../services/spam/conf"
 fi
 echo "password = \"\$2\$8hn4c88rmafsueo4h3yckiirwkieidb3\$uge4i3ynbba89qpo1gqmqk9gqjy8ysu676z1p8ss5qz5y1773zgb\";" > ../services/spam/conf/worker-controller.inc
-echo "Added worker-controller.inc to ../services/spam/conf"
+echo -e "${GREEN}✓ worker-controller.inc created for spam filter${NC}"
 
-# -------------------------------
-# Run docker compose and wait for services
-echo "Starting Docker services..."
+# ================================
+# Step 6: Docker Setup
+# ================================
+echo -e "\n${YELLOW}Step 6/6: Starting Docker services${NC}"
+
 docker compose up -d --build --force-recreate
-
 if [ $? -ne 0 ]; then
-    echo "Docker compose failed. Please check the logs."
+    echo -e "${RED}✗ Docker compose failed. Please check the logs.${NC}"
     exit 1
 fi
 
-echo "Waiting for all services to become healthy..."
-# Wait until all containers are running
+echo -n "⏳ Waiting for services to become healthy"
 while [ "$(docker compose ps --services --filter "status=running" | wc -l)" -lt "$(docker compose ps --services | wc -l)" ]; do
-    echo "Some services are not yet running. Retrying in 5s..."
+    echo -n "."
     sleep 5
 done
+echo -e " ${GREEN}done${NC}"
 
-echo "All services are up and running."
+sleep 10
 
-sleep 10 # Additional wait time for services to stabilize
-
-# -------------------------------
-# Make Thunder init.sh executable
 chmod +x ../services/thunder/scripts/init.sh
-
-# Run Thunder initialization script
 echo "Running Thunder initialization script..."
 ( cd ../services && ./thunder/scripts/init.sh )
 
-# -------------------------------
-# Force recreate only the SMTP service
 echo "Rebuilding and recreating only the SMTP service..."
 docker compose up -d --build --force-recreate smtp-server
 
 if [ $? -eq 0 ]; then
-    echo "SMTP service has been successfully rebuilt and recreated."
+    echo -e "${GREEN}✓ SMTP service rebuilt and running${NC}"
 else
-    echo "Failed to recreate SMTP service. Please check the logs."
+    echo -e "${RED}✗ Failed to recreate SMTP service. Please check the logs.${NC}"
     exit 1
 fi
 
-printf "%s\n%s" \
-    "postmaster@${MAIL_DOMAIN} ${USER_MAIL}" \
-    > ../services/smtp/conf/virtual_aliases
+# ================================
+# Final Summary
+# ================================
+echo ""
+echo -e "🎉 ${GREEN}Setup Complete!${NC}"
+echo "---------------------------------------------"
+echo " Domain:        ${MAIL_DOMAIN}"
+echo " Admin User:    ${USER_USERNAME}"
+echo " Admin Email:   ${USER_USERNAME}@${MAIL_DOMAIN}"
+echo " Thunder API:   http://localhost:8090"
+echo "---------------------------------------------"
 
-echo "Smtp files created has been created successfully."
 
+# ================================
+# Public DKIM Key Instructions
+# ================================
+chmod +x ./get-dkim.sh
+./get-dkim.sh
