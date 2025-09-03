@@ -9,7 +9,8 @@ The Silver project aims to reinvent email and digital communication that is suit
     - [Prerequisites](#prerequisites)
     - [DNS setup](#dns-setup)
     - [Server Setup](#server-setup)
-      - [Configuration](#configuration)
+    - [Configuration](#configuration)
+    - [Adding users](#adding-users)
     - [Testing your setup](#testing-your-setup)
   - [Contributing](#contributing)
   - [License](#license)
@@ -27,7 +28,7 @@ The Silver project aims to reinvent email and digital communication that is suit
 - Domain with DNS control
 
 ### DNS setup
-You just bought <a>example.com</a> and want to send mail as person@example.com. Your external IP address is your-ip-address. 
+You just bought <a>example.com</a> and want to send mail as person@example.com.
 
 You will need to add a few records to your DNS control panel.
 
@@ -43,7 +44,7 @@ You will need to add a few records to your DNS control panel.
 | PTR   | your-ip-address | mail.example.com |
 
 > [!Tip]
-> PTR records usually are set through your hosting provider.
+> PTR records usually are set through your hosting provider. 
 
 ### Server Setup
 - Ensure you have [git](https://git-scm.com/downloads/linux) and [Docker Engine](https://docs.docker.com/engine/install/) installed
@@ -54,7 +55,7 @@ git clone https://github.com/LSFLK/silver.git
 cd silver/services
 ```
 
-#### Configuration
+### Configuration
 - Give permission to the init.sh file and run it.
 
 ```bash
@@ -68,12 +69,18 @@ chmod +x init.sh
 
 | DNS Record | Name | Value |
 |----------|----------|----------|
-| TXT   | example.com  | "v=DKIM1; h=sha256; k=rsa; your-dkim-here" |
-
+| TXT   | example.com  | "v=DKIM1; h=sha256; k=rsa; your-dkim-value-here" |
 
 
 > [!Tip]
 >  Now you should have a fully functional mail server!
+
+### Adding users
+
+```bash
+# silver/services
+./add-users.sh
+```
 
 ### Testing your setup
 - Now that you have a working mail server, you can test your configuration using the following links/scripts.
