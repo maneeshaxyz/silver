@@ -12,6 +12,7 @@ The Silver project aims to reinvent email and digital communication that is suit
     - [Configuration](#configuration)
     - [Adding users](#adding-users)
     - [Testing your setup](#testing-your-setup)
+  - [Software](#software)
   - [Contributing](#contributing)
   - [License](#license)
   - [Miscellaneous](#miscellaneous)
@@ -48,7 +49,7 @@ You will need to add a few records to your DNS control panel.
 
 ### Server Setup
 - Ensure you have [git](https://git-scm.com/downloads/linux) and [Docker Engine](https://docs.docker.com/engine/install/) installed
--  Clone the repository and navigate to the seervices folder.
+-  Clone the repository and navigate to the services folder.
 
 ```bash
 git clone https://github.com/LSFLK/silver.git
@@ -69,7 +70,7 @@ chmod +x init.sh
 
 | DNS Record | Name | Value |
 |----------|----------|----------|
-| TXT   | example.com  | "v=DKIM1; h=sha256; k=rsa; your-dkim-value-here" |
+| TXT   | mail._domainkey | "v=DKIM1; h=sha256; k=rsa; your-dkim-value-here" |
 
 
 > [!Tip]
@@ -87,6 +88,17 @@ chmod +x init.sh
 
   - [mail-tester](https://www.mail-tester.com/)
   - [mxtoolbox](https://mxtoolbox.com/SuperTool.aspx)
+
+## Software
+
+Silver is built using opensource software. 
+
+- [Postfix](https://www.postfix.org/) - handles sending and receiving mail.
+- [Dovecot](https://doc.dovecot.org/2.3/) - handles the retrieval of mails.
+- [Thunder](https://github.com/asgardeo/thunder) - Identity provider and user manager
+- [Rspamd](https://rspamd.com/) - spam filtering system.
+- [ClamAV](https://docs.clamav.net/Introduction.html) -  virus scanning system.
+
 
 ## Contributing
 
