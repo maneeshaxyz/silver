@@ -66,13 +66,13 @@ EOF
 echo "Successfully created .env file."
 echo "You can now run the other scripts that depend on this file."
 
-
 # Check if the target directory exists and create it if it doesn't.
 TARGET_DIR="../services/smtp/conf"
 if [ ! -d "$TARGET_DIR" ]; then
     echo "Directory '$TARGET_DIR' does not exist. Creating it now..."
     mkdir -p "$TARGET_DIR"
 fi
+
 
 # Create virtual-domains file
 echo "${MAIL_DOMAIN} OK" > "$TARGET_DIR/virtual-domains"
@@ -137,3 +137,10 @@ else
     echo "Failed to recreate SMTP service. Please check the logs."
     exit 1
 fi
+
+printf "%s\n%s" \
+    "postmaster@${MAIL_DOMAIN} ${USER_MAIL}" \
+    > ../services/smtp/conf/virtual_aliases
+
+echo "Smtp files created has been created successfully."
+
