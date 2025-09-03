@@ -1,13 +1,8 @@
 # Silver
-Email 2.0 platform
-## About
-Silver aims to be an email platform that aims to be significantly more productive and user-friendly than current email systems.
-
-The first phase of development, is Email 1.0 or "good old email," is a traditional email service that allows organizations to easily manage, control and scale their email infrastructure to their specific needs.
+The Silver project aims to reinvent email and digital communication that is suitable for government scale deployment. We are looking to make it in two stages: 1.0 to just provide "regular" email and 2.0 to reinvent communication and collaboration.
 
 ## Table of contents
 - [Silver](#silver)
-  - [About](#about)
   - [Table of contents](#table-of-contents)
   - [Documents](#documents)
   - [Getting Started](#getting-started)
@@ -15,8 +10,6 @@ The first phase of development, is Email 1.0 or "good old email," is a tradition
     - [DNS setup](#dns-setup)
     - [Server Setup](#server-setup)
       - [Configuration](#configuration)
-      - [Running](#running)
-    - [Final DNS setup](#final-dns-setup)
     - [Testing your setup](#testing-your-setup)
   - [Contributing](#contributing)
   - [License](#license)
@@ -34,21 +27,27 @@ The first phase of development, is Email 1.0 or "good old email," is a tradition
 - Domain with DNS control
 
 ### DNS setup
-You just bought <a>example.com</a> and want to send mail as person@example.com. You will need to add a few records to your DNS control panel.
+You just bought <a>example.com</a> and want to send mail as person@example.com. Your external IP address is 192.0.2.55. 
 
+You will need to add a few records to your DNS control panel.
 
-| DNS Record | Value | What it does |
+> [!Note]
+> Replace example.com and 192.0.2.55 in the below example with your domain and ip address.
+
+| DNS Record | Name | Value |
 |----------|----------|----------|
-| A   | Your server ip   | resolves the name of your mail server |
-| MX   | mail.example.com   | specifies the mail server responsible for receiving email messages for a domain   |
-| PTR(rDNS)   | mail.example.com   | tells us the name of what hostname the our ip address resolves to |
+| A   | mail  | 192.0.2.55 |
+| MX   |  example.com  | mail.example.com   |
+| TXT   | example.com  | "v=spf1 ip4:192.0.2.55 ~all"|
+| TXT  | example.com  | "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com"  |
+| PTR   | 192.0.2.55 | mail.example.com |
 
 > [!Tip]
 > PTR records usually are set through your hosting provider.
 
 ### Server Setup
 - Ensure you have [git](https://git-scm.com/downloads/linux) and [Docker Engine](https://docs.docker.com/engine/install/) installed
--  Then clone the repo and change the directory to the services folder.
+-  Clone the repository and navigate to the seervices folder.
 
 ```bash
 git clone https://github.com/LSFLK/silver.git
@@ -65,22 +64,14 @@ chmod +x init.sh
 
 - Enter your domain name and proceed with adding one admin user for your mail server.
 
-#### Running
-- Ensure you are in the services folder and run 
+- Then add the dkim value generated to your DNS records.
 
-```bash
-docker compose up -d
-```
-
-### Final DNS setup
-
-- We now need to add our authentication records [SPF,DKIM & DMARC](https://www.cloudflare.com/learning/email-security/dmarc-dkim-spf/) 
-
-| DNS Record | Value | What it does |
+| DNS Record | Name | Value |
 |----------|----------|----------|
-| SPF   | "v=spf1 ip4:<your_server_ip> ~all"  | verifies that your server can send mail for your domain |
-|  DKIM  | Our DKIM key that was generated  | Cryptographic signature to verify message integrity |
-| DMARC  | "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com"   | Policy for handling failed SPF/DKIM checks |
+| TXT   | example.com  | "v=DKIM1; h=sha256; k=rsa; <your-dkim-key>" |
+
+
+> [!Tip]Now you should have a fully functional mail server!
 
 ### Testing your setup
 - Now that you have a working mail server, you can test your configuration using the following links/scripts.
