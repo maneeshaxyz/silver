@@ -27,20 +27,20 @@ The Silver project aims to reinvent email and digital communication that is suit
 - Domain with DNS control
 
 ### DNS setup
-You just bought <a>example.com</a> and want to send mail as person@example.com. Your external IP address is 192.0.2.55. 
+You just bought <a>example.com</a> and want to send mail as person@example.com. Your external IP address is your-ip-address. 
 
 You will need to add a few records to your DNS control panel.
 
 > [!Note]
-> Replace example.com and 192.0.2.55 in the below example with your domain and ip address.
+> Replace example.com and your-ip-address in the below example with your domain and ip address.
 
 | DNS Record | Name | Value |
 |----------|----------|----------|
-| A   | mail  | 192.0.2.55 |
+| A   | mail  | your-ip-address |
 | MX   |  example.com  | mail.example.com   |
-| TXT   | example.com  | "v=spf1 ip4:192.0.2.55 ~all"|
+| TXT   | example.com  | "v=spf1 ip4:your-ip-address ~all"|
 | TXT  | example.com  | "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com"  |
-| PTR   | 192.0.2.55 | mail.example.com |
+| PTR   | your-ip-address | mail.example.com |
 
 > [!Tip]
 > PTR records usually are set through your hosting provider.
@@ -68,10 +68,12 @@ chmod +x init.sh
 
 | DNS Record | Name | Value |
 |----------|----------|----------|
-| TXT   | example.com  | "v=DKIM1; h=sha256; k=rsa; <your-dkim-key>" |
+| TXT   | example.com  | "v=DKIM1; h=sha256; k=rsa; your-dkim-here" |
 
 
-> [!Tip]Now you should have a fully functional mail server!
+
+> [!Tip]
+>  Now you should have a fully functional mail server!
 
 ### Testing your setup
 - Now that you have a working mail server, you can test your configuration using the following links/scripts.
