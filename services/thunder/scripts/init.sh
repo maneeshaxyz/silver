@@ -45,3 +45,26 @@ curl -k -X POST \
       \"mobileNumber\": \"$USER_PHONE\"
     }
   }"
+
+# -------------------------------
+# Append the new user to virtual-users file
+# Path to virtual-users
+VIRTUAL_USERS_FILE="./smtp/conf/virtual-users"
+
+# Ensure directory exists
+mkdir -p "$(dirname "$VIRTUAL_USERS_FILE")"
+
+# Ensure the virtual-users file exists
+mkdir -p "$(dirname "$VIRTUAL_USERS_FILE")"
+touch "$VIRTUAL_USERS_FILE"
+
+# Remove old entry for this user if it exists
+grep -v "^${USER_USERNAME}@${MAIL_DOMAIN}" "$VIRTUAL_USERS_FILE" > "${VIRTUAL_USERS_FILE}.tmp" && mv "${VIRTUAL_USERS_FILE}.tmp" "$VIRTUAL_USERS_FILE"
+
+# Append the new user on a new line
+echo -e "${USER_USERNAME}@${MAIL_DOMAIN}\t${MAIL_DOMAIN}/${USER_USERNAME}" >> "$VIRTUAL_USERS_FILE"
+
+# Ensure file ends with a newline
+sed -i -e '$a\' "$VIRTUAL_USERS_FILE"
+
+echo "Added ${USER_USERNAME}@${MAIL_DOMAIN} to virtual-users file."
