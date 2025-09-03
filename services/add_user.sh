@@ -38,18 +38,6 @@ read -p "Enter last name: " USER_LAST_NAME
 read -p "Enter age: " USER_AGE
 read -p "Enter phone number: " USER_PHONE
 
-# User Address
-echo ""
-echo "Enter the user's address."
-read -p "Street: " USER_ADDRESS_STREET
-read -p "City: " USER_ADDRESS_CITY
-read -p "State: " USER_ADDRESS_STATE
-read -p "Zip code: " USER_ADDRESS_ZIPCODE
-read -p "Country: " USER_ADDRESS_COUNTRY
-
-# Combine address into JSON string
-USER_ADDRESS_JSON="{\"street\":\"${USER_ADDRESS_STREET}\",\"city\":\"${USER_ADDRESS_CITY}\",\"state\":\"${USER_ADDRESS_STATE}\",\"zipCode\":\"${USER_ADDRESS_ZIPCODE}\",\"country\":\"${USER_ADDRESS_COUNTRY}\"}"
-
 # -------------------------------
 # Function to update or add key=value in .env
 update_or_add_env() {
@@ -71,15 +59,14 @@ update_or_add_env "USER_FIRST_NAME" "$USER_FIRST_NAME"
 update_or_add_env "USER_LAST_NAME" "$USER_LAST_NAME"
 update_or_add_env "USER_AGE" "$USER_AGE"
 update_or_add_env "USER_PHONE" "$USER_PHONE"
-update_or_add_env "USER_ADDRESS" "'$USER_ADDRESS_JSON'"
 
 echo "User info updated in Thunder .env file."
 
 # -------------------------------
 # Run Thunder initialization script
-chmod +x ../services/thunder/scripts/init.sh
+chmod +x ../services/thunder/scripts/add_user_init.sh
 echo "Running Thunder initialization script..."
-( cd ../services && ./thunder/scripts/init.sh )
+( cd ../services && ./thunder/scripts/add_user_init.sh )
 
 # -------------------------------
 # Force recreate only the SMTP service

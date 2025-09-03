@@ -38,18 +38,6 @@ read -p "Enter last name: " USER_LAST_NAME
 read -p "Enter age: " USER_AGE
 read -p "Enter phone number: " USER_PHONE
 
-# User Address
-echo ""
-echo "Now, let's enter the user's address."
-read -p "Enter street: " USER_ADDRESS_STREET
-read -p "Enter city: " USER_ADDRESS_CITY
-read -p "Enter state: " USER_ADDRESS_STATE
-read -p "Enter zip code: " USER_ADDRESS_ZIPCODE
-read -p "Enter country: " USER_ADDRESS_COUNTRY
-
-# Combine address into a JSON string
-USER_ADDRESS_JSON="{\"street\":\"${USER_ADDRESS_STREET}\",\"city\":\"${USER_ADDRESS_CITY}\",\"state\":\"${USER_ADDRESS_STATE}\",\"zipCode\":\"${USER_ADDRESS_ZIPCODE}\",\"country\":\"${USER_ADDRESS_COUNTRY}\"}"
-
 # Create the .env file
 echo "Creating .env file in the Thunder directory..."
 
@@ -73,9 +61,6 @@ USER_FIRST_NAME="${USER_FIRST_NAME}"
 USER_LAST_NAME="${USER_LAST_NAME}"
 USER_AGE="${USER_AGE}"
 USER_PHONE="${USER_PHONE}"
-
-# User Address (JSON format)
-USER_ADDRESS='${USER_ADDRESS_JSON}'
 EOF
 
 echo "Successfully created .env file."
@@ -95,11 +80,13 @@ echo "${MAIL_DOMAIN} OK" > "$TARGET_DIR/virtual-domains"
 # Create virtual-aliases file (map postmaster to admin email)
 echo "postmaster@${MAIL_DOMAIN} ${USER_USERNAME}@${MAIL_DOMAIN}" > "$TARGET_DIR/virtual-aliases"
 
+# Create virtual-users file
+echo -e "${USER_USERNAME}@${MAIL_DOMAIN}\t${MAIL_DOMAIN}/${USER_USERNAME}" > "$TARGET_DIR/virtual-users"
+
 echo "SMTP configuration files created successfully:"
 echo " - $TARGET_DIR/virtual-domains"
 echo " - $TARGET_DIR/virtual-aliases"
 echo " - $TARGET_DIR/virtual-users"
-
 
 # -------------------------------
 # Add worker-controller.inc to ../services/spam/conf
@@ -142,7 +129,7 @@ echo "Running Thunder initialization script..."
 # -------------------------------
 # Force recreate only the SMTP service
 echo "Rebuilding and recreating only the SMTP service..."
-docker compose up -d --build --force-recreate smtp
+docker compose up -d --build --force-recreate smtp-server
 
 if [ $? -eq 0 ]; then
     echo "SMTP service has been successfully rebuilt and recreated."
