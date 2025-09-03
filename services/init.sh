@@ -80,6 +80,8 @@ EOF
 
 echo "Successfully created .env file."
 echo "You can now run the other scripts that depend on this file."
+
+
 # Check if the target directory exists and create it if it doesn't.
 TARGET_DIR="../services/smtp/conf"
 if [ ! -d "$TARGET_DIR" ]; then
@@ -87,8 +89,64 @@ if [ ! -d "$TARGET_DIR" ]; then
     mkdir -p "$TARGET_DIR"
 fi
 
-printf "%s\n%s" \
-    "postmaster@${MAIL_DOMAIN} ${USER_MAIL}" \
-    > ../services/smtp/conf/virtual_aliases
+# Create virtual-domains file
+echo "${MAIL_DOMAIN} OK" > "$TARGET_DIR/virtual-domains"
 
-echo "Smtp files created has been created successfully."
+# Create virtual-aliases file (map postmaster to admin email)
+echo "postmaster@${MAIL_DOMAIN} ${USER_USERNAME}@${MAIL_DOMAIN}" > "$TARGET_DIR/virtual-aliases"
+
+echo "SMTP configuration files created successfully:"
+echo " - $TARGET_DIR/virtual-domains"
+echo " - $TARGET_DIR/virtual-aliases"
+echo " - $TARGET_DIR/virtual-users"
+
+
+# -------------------------------
+# Add worker-controller.inc to ../services/spam/conf
+
+if [ ! -d "../services/spam/conf" ]; then
+    mkdir -p "../services/spam/conf"
+fi
+echo "password = \"\$2\$8hn4c88rmafsueo4h3yckiirwkieidb3\$uge4i3ynbba89qpo1gqmqk9gqjy8ysu676z1p8ss5qz5y1773zgb\";" > ../services/spam/conf/worker-controller.inc
+echo "Added worker-controller.inc to ../services/spam/conf"
+
+# -------------------------------
+# Run docker compose and wait for services
+echo "Starting Docker services..."
+docker compose up -d --build --force-recreate
+
+if [ $? -ne 0 ]; then
+    echo "Docker compose failed. Please check the logs."
+    exit 1
+fi
+
+echo "Waiting for all services to become healthy..."
+# Wait until all containers are running
+while [ "$(docker compose ps --services --filter "status=running" | wc -l)" -lt "$(docker compose ps --services | wc -l)" ]; do
+    echo "Some services are not yet running. Retrying in 5s..."
+    sleep 5
+done
+
+echo "All services are up and running."
+
+sleep 10 # Additional wait time for services to stabilize
+
+# -------------------------------
+# Make Thunder init.sh executable
+chmod +x ../services/thunder/scripts/init.sh
+
+# Run Thunder initialization script
+echo "Running Thunder initialization script..."
+( cd ../services && ./thunder/scripts/init.sh )
+
+# -------------------------------
+# Force recreate only the SMTP service
+echo "Rebuilding and recreating only the SMTP service..."
+docker compose up -d --build --force-recreate smtp
+
+if [ $? -eq 0 ]; then
+    echo "SMTP service has been successfully rebuilt and recreated."
+else
+    echo "Failed to recreate SMTP service. Please check the logs."
+    exit 1
+fi
