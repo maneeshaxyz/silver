@@ -1,7 +1,5 @@
-# Use minimal base image to reduce attack surface
-FROM ubuntu:22.04
+FROM debian:bookworm-slim
 
-# Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install OpenDKIM and dependencies
