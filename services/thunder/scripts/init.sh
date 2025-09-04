@@ -72,7 +72,7 @@ USER_RESPONSE=$(curl -sk -w "\n%{http_code}" -X POST \
       \"email\": \"$USER_EMAIL\",
       \"firstName\": \"$USER_FIRST_NAME\",
       \"lastName\": \"$USER_LAST_NAME\",
-      \"age\": $USER_AGE,
+      \"age\": \"$USER_AGE\",
       \"mobileNumber\": \"$USER_PHONE\"
     }
   }")

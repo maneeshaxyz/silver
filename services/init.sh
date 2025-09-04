@@ -11,6 +11,9 @@ YELLOW="\033[1;33m"
 RED="\033[0;31m"
 NC="\033[0m" # No Color
 
+# Get the script directory (where init.sh is located)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # ASCII Banner
 echo -e "${CYAN}"
 cat <<'EOF'
@@ -58,7 +61,7 @@ if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
     exit 1
 fi
 
-echo "MAIL_DOMAIN=${MAIL_DOMAIN}" > .env
+echo "MAIL_DOMAIN=${MAIL_DOMAIN}" > "${SCRIPT_DIR}/.env"
 echo -e "${GREEN}✓ .env file created successfully for ${MAIL_DOMAIN}${NC}"
 
 # ================================
@@ -82,7 +85,10 @@ echo -e "${GREEN}✓ Admin user information collected${NC}"
 # ================================
 echo -e "\n${YELLOW}Step 3/6: Creating Thunder configuration file${NC}"
 
-cat > ../services/thunder/scripts/.env <<EOF
+# Create thunder scripts directory if it doesn't exist
+mkdir -p "${SCRIPT_DIR}/thunder/scripts"
+
+cat > "${SCRIPT_DIR}/thunder/scripts/.env" <<EOF
 # Thunder Server Configuration
 THUNDER_HOST="localhost"
 THUNDER_PORT="8090"
@@ -110,7 +116,7 @@ echo -e "${GREEN}✓ Thunder .env file created${NC}"
 # ================================
 echo -e "\n${YELLOW}Step 4/6: Creating SMTP configuration${NC}"
 
-TARGET_DIR="../services/smtp/conf"
+TARGET_DIR="${SCRIPT_DIR}/smtp/conf"
 if [ ! -d "$TARGET_DIR" ]; then
     echo "Directory '$TARGET_DIR' does not exist. Creating it now..."
     mkdir -p "$TARGET_DIR"
@@ -130,10 +136,10 @@ echo " - $TARGET_DIR/virtual-users"
 # ================================
 echo -e "\n${YELLOW}Step 5/6: Configuring Spam Filter${NC}"
 
-if [ ! -d "../services/spam/conf" ]; then
-    mkdir -p "../services/spam/conf"
+if [ ! -d "${SCRIPT_DIR}/spam/conf" ]; then
+    mkdir -p "${SCRIPT_DIR}/spam/conf"
 fi
-echo "password = \"\$2\$8hn4c88rmafsueo4h3yckiirwkieidb3\$uge4i3ynbba89qpo1gqmqk9gqjy8ysu676z1p8ss5qz5y1773zgb\";" > ../services/spam/conf/worker-controller.inc
+echo "password = \"\$2\$8hn4c88rmafsueo4h3yckiirwkieidb3\$uge4i3ynbba89qpo1gqmqk9gqjy8ysu676z1p8ss5qz5y1773zgb\";" > "${SCRIPT_DIR}/spam/conf/worker-controller.inc"
 echo -e "${GREEN}✓ worker-controller.inc created for spam filter${NC}"
 
 # ================================
@@ -141,27 +147,25 @@ echo -e "${GREEN}✓ worker-controller.inc created for spam filter${NC}"
 # ================================
 echo -e "\n${YELLOW}Step 6/6: Starting Docker services${NC}"
 
-docker compose up -d --build --force-recreate
+( cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate )
 if [ $? -ne 0 ]; then
     echo -e "${RED}✗ Docker compose failed. Please check the logs.${NC}"
     exit 1
 fi
 
 echo -n "⏳ Waiting for services to become healthy"
-while [ "$(docker compose ps --services --filter "status=running" | wc -l)" -lt "$(docker compose ps --services | wc -l)" ]; do
+while [ "$(cd "${SCRIPT_DIR}" && docker compose ps --services --filter "status=running" | wc -l)" -lt "$(cd "${SCRIPT_DIR}" && docker compose ps --services | wc -l)" ]; do
     echo -n "."
     sleep 5
 done
 echo -e " ${GREEN}done${NC}"
 
-sleep 10
-
-chmod +x ../services/thunder/scripts/init.sh
+chmod +x "${SCRIPT_DIR}/thunder/scripts/init.sh"
 echo "Running Thunder initialization script..."
-( cd ../services && ./thunder/scripts/init.sh )
+( cd "${SCRIPT_DIR}" && ./thunder/scripts/init.sh )
 
 echo "Rebuilding and recreating only the SMTP service..."
-docker compose up -d --build --force-recreate smtp-server
+( cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate smtp-server )
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ SMTP service rebuilt and running${NC}"
@@ -182,9 +186,8 @@ echo " Admin Email:   ${USER_USERNAME}@${MAIL_DOMAIN}"
 echo " Thunder API:   http://localhost:8090"
 echo "---------------------------------------------"
 
-
 # ================================
 # Public DKIM Key Instructions
 # ================================
-chmod +x ./get-dkim.sh
-./get-dkim.sh
+chmod +x "${SCRIPT_DIR}/get-dkim.sh"
+( cd "${SCRIPT_DIR}" && ./get-dkim.sh )
