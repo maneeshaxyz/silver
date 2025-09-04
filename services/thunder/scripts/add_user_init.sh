@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-#  Thunder Init Script - Setup Application & User
+#  Thunder Init - Create Add User
 # ============================================
 
 # Colors
@@ -11,14 +11,16 @@ YELLOW="\033[1;33m"
 RED="\033[0;31m"
 NC="\033[0m" # No Color
 
-ENV_FILE="../services/thunder/scripts/.env"
-
 echo -e "${CYAN}---------------------------------------------${NC}"
-echo -e " 🚀 ${GREEN}Starting Thunder Initialization${NC}"
+echo -e " 🚀 ${GREEN}Thunder - Add User${NC}"
 echo -e "${CYAN}---------------------------------------------${NC}\n"
 
+# -------------------------------
 # Step 1: Load Environment Variables
-echo -e "${YELLOW}Step 1/2: Loading environment variables...${NC}"
+# -------------------------------
+echo -e "${YELLOW}Step 1/3: Loading environment variables...${NC}"
+
+ENV_FILE="../services/thunder/scripts/.env"
 if [ -f "$ENV_FILE" ]; then
     set -o allexport
     source "$ENV_FILE"
@@ -29,36 +31,12 @@ else
     exit 1
 fi
 
-# Step 2: Create Application
-echo -e "\n${YELLOW}Step 2/2: Creating Application...${NC}"
-APP_RESPONSE=$(curl -sk -w "\n%{http_code}" -X POST \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
-  https://$THUNDER_HOST:$THUNDER_PORT/applications \
-  -d "{
-    \"name\": \"$APP_NAME\",
-    \"description\": \"$APP_DESCRIPTION\",
-    \"client_id\": \"$APP_CLIENT_ID\",
-    \"client_secret\": \"$APP_CLIENT_SECRET\",
-    \"redirect_uris\": [\"https://localhost:3000\"],
-    \"grant_types\": [\"client_credentials\"],
-    \"token_endpoint_auth_method\": [\"client_secret_basic\", \"client_secret_post\"],
-    \"auth_flow_graph_id\": \"auth_flow_config_basic\"
-  }")
+# -------------------------------
+# Step 2: Create User
+# -------------------------------
 
-APP_BODY=$(echo "$APP_RESPONSE" | head -n -1)
-APP_STATUS=$(echo "$APP_RESPONSE" | tail -n1)
+echo -e "\n${YELLOW}Creating user...${NC}"
 
-if [ "$APP_STATUS" -eq 201 ] || [ "$APP_STATUS" -eq 200 ]; then
-    echo -e "${GREEN}✓ Application created successfully (HTTP $APP_STATUS)${NC}"
-else
-    echo -e "${RED}✗ Failed to create application (HTTP $APP_STATUS)${NC}"
-    echo "Response: $APP_BODY"
-    exit 1
-fi
-
-# Step 3: Create User
-echo -e "\n${YELLOW}Step 3/3: Creating Admin User...${NC}"
 USER_RESPONSE=$(curl -sk -w "\n%{http_code}" -X POST \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
@@ -88,12 +66,36 @@ else
     exit 1
 fi
 
+# -------------------------------
+# Step 3: Update virtual-users file
+# -------------------------------
+echo -e "\n${YELLOW}Step 3/3: Updating virtual-users file...${NC}"
+
+VIRTUAL_USERS_FILE="./smtp/conf/virtual-users"
+
+# Ensure directory exists
+mkdir -p "$(dirname "$VIRTUAL_USERS_FILE")"
+
+# Ensure the file exists
+touch "$VIRTUAL_USERS_FILE"
+
+# Remove old entry for this user if it exists
+grep -v "^${USER_USERNAME}@${MAIL_DOMAIN}" "$VIRTUAL_USERS_FILE" > "${VIRTUAL_USERS_FILE}.tmp" && mv "${VIRTUAL_USERS_FILE}.tmp" "$VIRTUAL_USERS_FILE"
+
+# Append the new user
+echo -e "${USER_USERNAME}@${MAIL_DOMAIN}\t${MAIL_DOMAIN}/${USER_USERNAME}" >> "$VIRTUAL_USERS_FILE"
+
+# Ensure file ends with a newline
+sed -i -e '$a\' "$VIRTUAL_USERS_FILE"
+
+echo -e "${GREEN}✓ Added ${USER_USERNAME}@${MAIL_DOMAIN} to virtual-users file${NC}"
+
+# -------------------------------
 # Final Summary
+# -------------------------------
 echo -e "\n${CYAN}---------------------------------------------${NC}"
-echo -e " 🎉 ${GREEN}Thunder Initialization Complete${NC}"
-echo -e "${CYAN}---------------------------------------------${NC}"
-echo " Application Name:   $APP_NAME"
-echo " Client ID:          $APP_CLIENT_ID"
-echo " Admin Username:     $USER_USERNAME"
-echo " Admin Email:        $USER_EMAIL"
+echo -e " 🎉 ${GREEN}Thunder Application & User Setup Complete${NC}"
+echo " Username: $USER_USERNAME"
+echo " Email:    $USER_EMAIL"
+echo " Domain:   $MAIL_DOMAIN"
 echo -e "${CYAN}---------------------------------------------${NC}"
