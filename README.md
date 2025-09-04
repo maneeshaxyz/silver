@@ -119,7 +119,7 @@ npm start
 ```
 - The web user interface will be available at `http://your-server-ip:3001`. Follow the instructions on the page to set up your email server.
 
-![Silver Mail WebUI Screenshot](docs/images/webui-screenshot.png)
+![Silver Mail WebUI Screenshot](docs/images/webui.png)
 
 ## Contributing
 
