@@ -102,7 +102,7 @@ Silver is built using opensource software.
 - [ClamAV](https://docs.clamav.net/Introduction.html) -  virus scanning system.
 
 ## Web user interface for mail services
-We have created a simple web user interface for initial setup and user creation. b>It is not recommended for production use. It is just for ease of use for the developers and testers to quickly set up and test the email server.
+We have created a simple web user interface for initial setup and user creation. <b>It is not recommended for production use.</b> It is just for ease of use for the developers and testers to quickly set up and test the email server.
 
 ### Setting up the web user interface
 - Navigate to the webui folder and give permission to the init.sh file and run it.
