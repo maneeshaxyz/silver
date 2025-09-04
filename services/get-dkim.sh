@@ -19,7 +19,7 @@ if [ -z "$DOMAIN" ]; then
 fi
 
 SELECTOR="mail"
-CONTAINER_NAME="opendkim-server"
+CONTAINER_NAME="opendkim"
 KEY_PATH="/etc/opendkim/keys/$DOMAIN/$SELECTOR.txt"
 
 # -------------------------------
