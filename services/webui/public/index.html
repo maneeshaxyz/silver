@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silver Mail Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+        }
+        
+        .card-header {
+            padding: 25px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            text-align: center;
+        }
+        
+        .card-header.setup {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .card-header.add-user {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .card-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .card-body {
+            padding: 30px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-indicator.ready {
+            background: #28a745;
+        }
+        
+        .status-indicator.not-ready {
+            background: #dc3545;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #5b86e5;
+            box-shadow: 0 0 0 3px rgba(91, 134, 229, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .btn {
+            width: 100%;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(91, 134, 229, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #ccc !important;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #5b86e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result {
+            display: none;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Silver Mail Management</h1>
+        <p>Manage your mail server with ease</p>
+    </div>
+    
+    <div class="container">
+        <div class="cards-container">
+            <!-- Initial Setup Card -->
+            <div class="card" id="setupCard">
+                <div class="card-header setup">
+                    <h2>📧 Initial Setup</h2>
+                    <p><span class="status-indicator" id="setupStatus"></span><span id="setupStatusText">Checking status...</span></p>
+                </div>
+                <div class="card-body">
+                    <form id="setupForm">
+                        <div class="form-group">
+                            <label for="domain">Domain Name *</label>
+                            <input type="text" id="domain" name="domain" placeholder="example.com" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="setupUsername">Username *</label>
+                                <input type="text" id="setupUsername" name="username" placeholder="admin" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="setupPassword">Password *</label>
+                                <input type="password" id="setupPassword" name="password" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="setupFirstName">First Name *</label>
+                                <input type="text" id="setupFirstName" name="firstName" placeholder="John" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="setupLastName">Last Name *</label>
+                                <input type="text" id="setupLastName" name="lastName" placeholder="Doe" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="setupAge">Age</label>
+                                <input type="number" id="setupAge" name="age" placeholder="25" min="1" max="120">
+                            </div>
+                            <div class="form-group">
+                                <label for="setupPhone">Phone Number</label>
+                                <input type="tel" id="setupPhone" name="phone" placeholder="+1234567890">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" id="setupBtn">
+                            🚀 Setup Silver Mail System
+                        </button>
+                    </form>
+                    
+                    <div class="loading" id="setupLoading">
+                        <div class="spinner"></div>
+                        <p>Setting up Silver Mail system... This may take several minutes.</p>
+                    </div>
+                    
+                    <div class="result" id="setupResult"></div>
+                </div>
+            </div>
+            
+            <!-- Add User Card -->
+            <div class="card" id="addUserCard">
+                <div class="card-header add-user">
+                    <h2>👤 Add User</h2>
+                    <p><span class="status-indicator" id="addUserStatus"></span><span id="addUserStatusText">System not initialized</span></p>
+                </div>
+                <div class="card-body">
+                    <form id="addUserForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="addUsername">Username *</label>
+                                <input type="text" id="addUsername" name="username" placeholder="newuser" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="addPassword">Password *</label>
+                                <input type="password" id="addPassword" name="password" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="addFirstName">First Name *</label>
+                                <input type="text" id="addFirstName" name="firstName" placeholder="Jane" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="addLastName">Last Name *</label>
+                                <input type="text" id="addLastName" name="lastName" placeholder="Smith" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="addAge">Age</label>
+                                <input type="number" id="addAge" name="age" placeholder="30" min="1" max="120">
+                            </div>
+                            <div class="form-group">
+                                <label for="addPhone">Phone Number</label>
+                                <input type="tel" id="addPhone" name="phone" placeholder="+1234567890">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success" id="addUserBtn" disabled>
+                            👤 Add New User
+                        </button>
+                    </form>
+                    
+                    <div class="loading" id="addUserLoading">
+                        <div class="spinner"></div>
+                        <p>Adding new user... Please wait.</p>
+                    </div>
+                    
+                    <div class="result" id="addUserResult"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check system status on page load
+        window.onload = function() {
+            checkSystemStatus();
+        };
+        
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+                
+                const setupStatus = document.getElementById('setupStatus');
+                const setupStatusText = document.getElementById('setupStatusText');
+                const addUserStatus = document.getElementById('addUserStatus');
+                const addUserStatusText = document.getElementById('addUserStatusText');
+                const addUserBtn = document.getElementById('addUserBtn');
+                const setupBtn = document.getElementById('setupBtn');
+                
+                if (status.initialized) {
+                    setupStatus.className = 'status-indicator ready';
+                    setupStatusText.textContent = 'System initialized';
+                    setupBtn.textContent = '🔄 Reinitialize System';
+                    
+                    addUserStatus.className = 'status-indicator ready';
+                    addUserStatusText.textContent = 'Ready to add users';
+                    addUserBtn.disabled = false;
+                } else {
+                    setupStatus.className = 'status-indicator not-ready';
+                    setupStatusText.textContent = 'System not initialized';
+                    
+                    addUserStatus.className = 'status-indicator not-ready';
+                    addUserStatusText.textContent = 'Initialize system first';
+                    addUserBtn.disabled = true;
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+        
+        // Setup form handler
+        document.getElementById('setupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Validate domain format
+            const domainRegex = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!domainRegex.test(data.domain)) {
+                showResult('setupResult', 'error', '❌ Invalid domain format. Please enter a valid domain name like "example.com"');
+                return;
+            }
+            
+            // Show loading state
+            document.getElementById('setupForm').classList.add('hidden');
+            document.getElementById('setupLoading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/setup-silver-mail', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('setupResult', 'success', `
+                        🎉 <strong>Setup Complete!</strong><br>
+                        <strong>Domain:</strong> ${data.domain}<br>
+                        <strong>Admin User:</strong> ${data.username}<br>
+                        <strong>Admin Email:</strong> ${data.username}@${data.domain}<br>
+                        <strong>Thunder API:</strong> http://localhost:8090<br><br>
+                        ${result.message || 'Silver Mail server is now running!'}
+                    `);
+                    checkSystemStatus(); // Refresh status
+                } else {
+                    showResult('setupResult', 'error', `❌ Setup failed: ${result.error || 'Unknown error occurred'}`);
+                }
+            } catch (error) {
+                showResult('setupResult', 'error', `❌ Connection error: ${error.message}`);
+            }
+            
+            document.getElementById('setupLoading').style.display = 'none';
+            document.getElementById('setupForm').classList.remove('hidden');
+        });
+        
+        // Add user form handler
+        document.getElementById('addUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Show loading state
+            document.getElementById('addUserForm').classList.add('hidden');
+            document.getElementById('addUserLoading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/add-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('addUserResult', 'success', `
+                        🎉 <strong>User Added Successfully!</strong><br>
+                        <strong>Username:</strong> ${data.username}<br>
+                        <strong>Name:</strong> ${data.firstName} ${data.lastName}<br>
+                        <strong>Email:</strong> ${data.username}@[domain]<br><br>
+                        ${result.message || 'User is ready to use!'}
+                    `);
+                    this.reset(); // Clear form
+                } else {
+                    showResult('addUserResult', 'error', `❌ Failed to add user: ${result.error || 'Unknown error occurred'}`);
+                }
+            } catch (error) {
+                showResult('addUserResult', 'error', `❌ Connection error: ${error.message}`);
+            }
+            
+            document.getElementById('addUserLoading').style.display = 'none';
+            document.getElementById('addUserForm').classList.remove('hidden');
+        });
+        
+        function showResult(resultId, type, message) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = message;
+            resultDiv.style.display = 'block';
+            
+            // Hide result after some time for success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    resultDiv.style.display = 'none';
+                }, 10000);
+            }
+        }
+        
+        // Real-time domain validation
+        document.getElementById('domain').addEventListener('input', function() {
+            const domainRegex = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (this.value && !domainRegex.test(this.value)) {
+                this.style.borderColor = '#dc3545';
+            } else {
+                this.style.borderColor = '#5b86e5';
+            }
+        });
+    </script>
+</body>
+</html>
