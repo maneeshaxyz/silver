@@ -89,6 +89,8 @@ chmod +x init.sh
   - [mail-tester](https://www.mail-tester.com/)
   - [mxtoolbox](https://mxtoolbox.com/SuperTool.aspx)
 
+- You can also set up a Mail User Agent (MUA) like Thunderbird to send and receive emails. Follow the instructions in [Mail User Agent Setup](docs/Mail-User-Agent-Setup.md).
+
 ## Software
 
 Silver is built using opensource software. 
