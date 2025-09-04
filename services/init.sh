@@ -165,7 +165,7 @@ echo "Running Thunder initialization script..."
 ( cd "${SCRIPT_DIR}" && ./thunder/scripts/init.sh )
 
 echo "Rebuilding and recreating only the SMTP service..."
-( cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate smtp-server )
+( cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate postfix )
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ SMTP service rebuilt and running${NC}"
