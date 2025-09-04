@@ -123,7 +123,7 @@ echo -e "${GREEN}✓ Thunder initialization completed${NC}"
 # Step 6: Recreate SMTP service
 # -------------------------------
 echo -e "\n${YELLOW}Rebuilding and recreating only the SMTP service...${NC}"
-( cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate postfix )
+( cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate smtp-server )
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ SMTP service successfully rebuilt and running${NC}"

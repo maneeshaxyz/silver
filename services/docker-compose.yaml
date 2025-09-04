@@ -1,7 +1,9 @@
+
 services:
-  postfix:
+  smtp-server:
     build:
       context: ./smtp
+    container_name: smtp-server-container
     hostname: ${MAIL_DOMAIN}
     env_file:
       - .env
@@ -18,14 +20,15 @@ services:
     networks:
       - mail-network
     depends_on:
-      - opendkim
-      - dovecot
-      - rspamd
-      - certbot
+      - opendkim-server
+      - dovecot-server
+      - rspamd-server
+      - certbot-server
 
-  dovecot:
+  dovecot-server:
     build:
       context: ./imap
+    container_name: dovecot-server
     env_file:
       - .env
     ports:
@@ -37,12 +40,12 @@ services:
     networks:
       - mail-network
     depends_on:
-      - certbot
+      - certbot-server
 
-  opendkim:
+  opendkim-server:
     build:
       context: ./dkim
-    container_name: opendkim
+    container_name: opendkim-server
     env_file:
       - .env
     volumes:
@@ -50,9 +53,9 @@ services:
     networks:
       - mail-network
 
-  rspamd:
+  rspamd-server:
     image: rspamd/rspamd:latest
-    container_name: rspamd
+    container_name: rspamd-server
     hostname: rspamd
     ports:
       - "11332:11332"
@@ -64,8 +67,8 @@ services:
     networks:
       - mail-network
 
-  clamav:
-    image: clamav/clamav:alpine
+  clamav-server:
+    image: mkodockx/docker-clamav:alpine
     container_name: clamav-server
     volumes:
       - clamsock:/var/run/clamav  # shared socket volume
@@ -73,7 +76,7 @@ services:
       - mail-network
     restart: always
     depends_on:
-      - rspamd
+      - rspamd-server
 
   thunder-server:
     image: ghcr.io/asgardeo/thunder:latest
@@ -83,8 +86,9 @@ services:
     networks:
       - mail-network
 
-  certbot:
+  certbot-server:
     image: certbot/certbot
+    container_name: certbot-server
     volumes:
       - ./letsencrypt:/etc/letsencrypt
       - ./letsencrypt/certbot-logs:/var/log/letsencrypt
