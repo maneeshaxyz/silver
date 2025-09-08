@@ -39,6 +39,7 @@ You will need to add a few records to your DNS control panel.
 | DNS Record | Name | Value |
 |----------|----------|----------|
 | A   | mail  | your-ip-address |
+| A   | example.com  | your-ip-address |
 | MX   |  example.com  | mail.example.com   |
 | TXT   | example.com  | "v=spf1 ip4:your-ip-address ~all"|
 | TXT  | example.com  | "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com"  |
