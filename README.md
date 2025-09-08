@@ -42,7 +42,7 @@ You will need to add a few records to your DNS control panel.
 | A   | example.com  | your-ip-address |
 | MX   |  example.com  | mail.example.com   |
 | TXT   | example.com  | "v=spf1 ip4:your-ip-address ~all"|
-| TXT  | example.com  | "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com"  |
+| TXT  | _dmarc  | "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com"  |
 | PTR   | your-ip-address | mail.example.com |
 
 > [!Tip]
@@ -79,10 +79,14 @@ chmod +x init.sh
 
 ### Adding users
 
+- To add more users to your email server, give permission to the add-users.sh file and run it.
+
 ```bash
 # silver/services
+chmod +x add-users.sh
 ./add-users.sh
 ```
+- Follow the prompts to add a new user.
 
 ### Testing your setup
 - Now that you have a working email server, you can test your configuration using the following links/scripts.
@@ -103,7 +107,7 @@ Silver is built using opensource software.
 - [ClamAV](https://docs.clamav.net/Introduction.html) -  virus scanning system.
 
 ## Web user interface for mail services
-We have created a simple web user interface for initial setup and user creation. <b>It is not recommended for production use.</b> It is just for ease of use for the developers and testers to quickly set up and test the email server.
+We have created a simple web user interface for initial setup and user creation. b>It is not recommended for production use. It is just for ease of use for the developers and testers to quickly set up and test the email server.
 
 ### Setting up the web user interface
 - Navigate to the webui folder and give permission to the init.sh file and run it.
