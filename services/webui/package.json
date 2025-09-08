@@ -8,12 +8,18 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "dotenv": "^17.2.2",
     "express": "^4.18.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["silver-mail", "mail-server", "web-ui", "management"],
+  "keywords": [
+    "silver-mail",
+    "mail-server",
+    "web-ui",
+    "management"
+  ],
   "author": "Silver Mail Team",
   "license": "MIT"
 }
