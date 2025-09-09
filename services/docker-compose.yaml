@@ -2,105 +2,105 @@ services:
   postfix:
     build:
       context: ./smtp
-    hostname: ${MAIL_DOMAIN}
-    env_file:
-      - .env
     ports:
       - "25:25"
       - "587:587"
     volumes:
-      - maildata:/var/mail/vmail
-      - postfix-sasl:/var/spool/postfix/private
-      - ./letsencrypt:/etc/letsencrypt:ro
+      - ./silver.yaml:/etc/postfix/silver.yaml:ro
+      - ./data/maildata:/var/mail/vmail
+      - ./data/postfix-sasl:/var/spool/postfix/private
+      - ./data/letsencrypt:/etc/letsencrypt:ro
       - ./smtp/conf/virtual-domains:/etc/postfix/virtual-domains:ro
       - ./smtp/conf/virtual-users:/etc/postfix/virtual-users:ro
       - ./smtp/conf/virtual-aliases:/etc/postfix/virtual-aliases:ro
-    networks:
-      - mail-network
-    depends_on:
-      - opendkim
-      - dovecot
-      - rspamd
-      - certbot
+    # networks:
+    #   - mail-network
+    # depends_on:
+    #   - opendkim-server
+    #   - dovecot-server
+    #   - rspamd-server
+    #   - certbot-server
 
-  dovecot:
-    build:
-      context: ./imap
-    env_file:
-      - .env
-    ports:
-      - "143:143"
-    volumes:
-      - maildata:/var/mail/vmail
-      - postfix-sasl:/var/spool/postfix/private
-      - ./letsencrypt:/etc/letsencrypt:ro
-    networks:
-      - mail-network
-    depends_on:
-      - certbot
+  # dovecot:
+  #   build:
+  #     context: ./imap
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "143:143"
+  #     - "993:993"
+  #   volumes:
+  #     - ./data/maildata:/var/mail/vmail
+  #     - ./data/postfix-sasl:/var/spool/postfix/private
+  #     - ./data/letsencrypt:/etc/letsencrypt:ro
+    # networks:
+    #   - mail-network
+    # depends_on:
+    #   - certbot-server
 
-  opendkim:
-    build:
-      context: ./dkim
-    container_name: opendkim
-    env_file:
-      - .env
-    volumes:
-      - dkim-keys:/etc/opendkim/keys
-    networks:
-      - mail-network
+#   opendkim-server:
+#     build:
+#       context: ./dkim
+#     container_name: opendkim-server
+#     env_file:
+#       - .env
+#     volumes:
+#       - dkim-keys:/etc/opendkim/keys
+#     networks:
+#       - mail-network
 
-  rspamd:
-    image: rspamd/rspamd:latest
-    container_name: rspamd
-    hostname: rspamd
-    ports:
-      - "11332:11332"
-      - "11334:11334"
-    volumes:
-      - rspamd_data:/var/lib/rspamd
-      - ./spam/conf:/etc/rspamd/local.d
-      - clamsock:/var/run/clamav  # shared socket volume
-    networks:
-      - mail-network
+#   rspamd-server:
+#     image: rspamd/rspamd:latest
+#     container_name: rspamd-server
+#     hostname: rspamd
+#     ports:
+#       - "11332:11332"
+#       - "11334:11334"
+#     volumes:
+#       - rspamd_data:/var/lib/rspamd
+#       - ./spam/conf:/etc/rspamd/local.d
+#       - clamsock:/var/run/clamav  # shared socket volume
+#     networks:
+#       - mail-network
 
-  clamav:
-    image: clamav/clamav:alpine
-    container_name: clamav-server
-    volumes:
-      - clamsock:/var/run/clamav  # shared socket volume
-    networks:
-      - mail-network
-    restart: always
-    depends_on:
-      - rspamd
+#   clamav-server:
+#     image: mkodockx/docker-clamav:alpine
+#     container_name: clamav-server
+#     volumes:
+#       - clamsock:/var/run/clamav  # shared socket volume
+#     networks:
+#       - mail-network
+#     restart: always
+#     depends_on:
+#       - rspamd-server
 
-  thunder-server:
-    image: ghcr.io/asgardeo/thunder:latest
-    container_name: thunder-server
-    ports:
-      - "8090:8090"
-    networks:
-      - mail-network
+#   thunder-server:
+#     image: ghcr.io/asgardeo/thunder:latest
+#     container_name: thunder-server
+#     ports:
+#       - "8090:8090"
+#     networks:
+#       - mail-network
 
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - ./letsencrypt:/etc/letsencrypt
-      - ./letsencrypt/certbot-logs:/var/log/letsencrypt
-    command: certonly --standalone --non-interactive --agree-tos --email admin@${MAIL_DOMAIN} -d ${MAIL_DOMAIN} -d mail.${MAIL_DOMAIN}
-    ports:
-      - "80:80"
-      - "443:443"
-    networks:
-      - mail-network
+#   certbot-server:
+#     image: certbot/certbot
+#     container_name: certbot-server
+#     volumes:
+#       - ./letsencrypt:/etc/letsencrypt
+#       - ./letsencrypt/certbot-logs:/var/log/letsencrypt
+#     command: certonly --standalone --non-interactive --agree-tos --email admin@${MAIL_DOMAIN} -d ${MAIL_DOMAIN} -d mail.${MAIL_DOMAIN}
+#     ports:
+#       - "80:80"
+#       - "443:443"
+#     networks:
+#       - mail-network
 
-volumes:
-  maildata:
-  postfix-sasl:
-  dkim-keys:
-  rspamd_data:
-  clamsock:
+# volumes:
+#   maildata:
+#   postfix-sasl:
+#   dkim-keys:
+#   rspamd_data:
+#   clamsock:
 
-networks:
-  mail-network:
+# networks:
+#   mail-network:

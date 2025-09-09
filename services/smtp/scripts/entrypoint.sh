@@ -1,10 +1,6 @@
 #!/bin/bash
 set -e
-
-# -------------------------------
-# Load .env from grandparent folder
-# -------------------------------
-ENV_FILE="$(dirname "$(dirname "$0")")/.env"
+set -x
 
 if [ -f "$ENV_FILE" ]; then
     export $(grep -v '^#' "$ENV_FILE" | xargs)
@@ -36,7 +32,7 @@ postconf -e "mynetworks = 127.0.0.0/8"
 postconf -e "relayhost = $RELAYHOST"
 
 # Logging to stdout for Docker
-postconf -e "maillog_file = /var/log/mail.log"
+postconf -e "maillog_file = /dev/stdout"
 
 # -------------------------------
 # TLS / SSL
@@ -107,40 +103,33 @@ postconf -e "smtpd_client_connection_count_limit = 20"
 # vmail user/group and directories
 # -------------------------------
 
-if ! getent group mail >/dev/null; then
-    groupadd -g 8 mail
-fi
+# if ! getent group mail >/dev/null; then
+#     groupadd -g 8 mail
+# fi
 
-if ! id "vmail" &>/dev/null; then
-    useradd -r -u 5000 -g 8 -d "$VMAIL_DIR" -s /sbin/nologin -c "Virtual Mail User" vmail
-fi
+# if ! id "vmail" &>/dev/null; then
+#     useradd -r -u 5000 -g 8 -d "$VMAIL_DIR" -s /sbin/nologin -c "Virtual Mail User" vmail
+# fi
 
-mkdir -p "$VMAIL_DIR"
+# mkdir -p "$VMAIL_DIR"
 
-# Create maildirs from virtual-users map
-if [ -f /etc/postfix/virtual-users ]; then
-    cut -f1 /etc/postfix/virtual-users | while read email; do
-        local_part=$(echo "$email" | cut -d'@' -f1)
-        mkdir -p "$VMAIL_DIR/$local_part"/{new,cur,tmp}
-        chown -R vmail:mail "$VMAIL_DIR/$local_part"
-        chmod -R 755 "$VMAIL_DIR/$local_part"
-    done
-fi
+# # Create maildirs from virtual-users map
+# if [ -f /etc/postfix/virtual-users ]; then
+#     cut -f1 /etc/postfix/virtual-users | while read email; do
+#         local_part=$(echo "$email" | cut -d'@' -f1)
+#         mkdir -p "$VMAIL_DIR/$local_part"/{new,cur,tmp}
+#         chown -R vmail:mail "$VMAIL_DIR/$local_part"
+#         chmod -R 755 "$VMAIL_DIR/$local_part"
+#     done
+# fi
 
-echo "=== Maildirs created for all virtual users ==="
+# echo "=== Maildirs created for all virtual users ==="
 
-# -------------------------------
-# Fix for DNS resolution in chroot
-# -------------------------------
-mkdir -p /var/spool/postfix/etc
-cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/
-chmod 644 /var/spool/postfix/etc/*
+# # -------------------------------
+# # Fix for DNS resolution in chroot
+# # -------------------------------
+# mkdir -p /var/spool/postfix/etc
+# cp /etc/host.conf /etc/resolv.conf /etc/services /var/spool/postfix/etc/
+# chmod 644 /var/spool/postfix/etc/*
 
-# -------------------------------
-# Start Postfix
-# -------------------------------
-echo "=== Starting Postfix ==="
-service postfix start
-
-# Keep container running
-sleep infinity
+exec "$@"

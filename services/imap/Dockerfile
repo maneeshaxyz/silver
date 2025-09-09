@@ -5,17 +5,21 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install dovecot and mail utilities
 RUN apt-get update && \
     apt-get install -y \
-        dovecot-core \
-        dovecot-imapd \
-        dovecot-lmtpd \
-        mailutils \
-        dovecot-auth-lua \
-        lua5.3 \
-        lua-socket \
-        lua-sec \
-        lua-dkjson \
+    dovecot-core \
+    dovecot-imapd \
+    dovecot-lmtpd \
+    mailutils \
+    dovecot-auth-lua \
+    lua5.3 \
+    lua-socket \
+    lua-sec \
+    lua-dkjson \
+    wget \
+    && wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" && \
+    chmod +x /usr/local/bin/yq && \
+    apt-get purge -y --auto-remove wget && \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-    
+
 # Create vmail user and group for virtual mailboxes
 RUN groupadd -g 5000 vmail && \
     useradd -u 5000 -g vmail -s /bin/false -d /var/mail/vmail -M vmail
@@ -25,10 +29,9 @@ RUN mkdir -p /var/mail/vmail && \
     chown -R vmail:vmail /var/mail/vmail && \
     chmod -R 755 /var/mail/vmail
 
-# Generate configuration files from scripts
-COPY scripts/entrypoint.sh /entrypoint.sh
-COPY scripts/generate_lua.sh /generate_lua.sh
-
+# Generate configuration files
+COPY ./imap/scripts/entrypoint.sh /entrypoint.sh
+COPY ./imap/scripts/generate_lua.sh /generate_lua.sh
 RUN chmod +x /entrypoint.sh /generate_lua.sh
 
 # Ensure Dovecot key directory exists and secure it

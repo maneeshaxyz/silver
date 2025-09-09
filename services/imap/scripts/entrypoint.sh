@@ -1,13 +1,12 @@
 #!/bin/bash
 set -e
 
-# Load environment variables from grandparent .env
-if [ -f /etc/dovecot/../../.env ]; then
-    echo "Loading environment variables from ../../.env"
-    export $(grep -v '^#' /etc/dovecot/../../.env | xargs)
-fi
+CONFIG_FILE="/etc/dovecot/silver.yaml"
 
-MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
+# -------------------------------
+# Environment variables
+# -------------------------------
+export MAIL_DOMAIN=$(yq -e '.domain' "$CONFIG_FILE")
 
 # Generate Lua authentication script
 echo "Generating Lua authentication script..."
