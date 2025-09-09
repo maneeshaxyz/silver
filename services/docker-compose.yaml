@@ -15,13 +15,13 @@ services:
       - ./smtp/conf/virtual-domains:/etc/postfix/virtual-domains:ro
       - ./smtp/conf/virtual-users:/etc/postfix/virtual-users:ro
       - ./smtp/conf/virtual-aliases:/etc/postfix/virtual-aliases:ro
-    networks:
-      - mail-network
-    depends_on:
-      - opendkim-server
-      - dovecot-server
-      - rspamd-server
-      - certbot-server
+    # networks:
+    #   - mail-network
+    # depends_on:
+    #   - opendkim-server
+    #   - dovecot-server
+    #   - rspamd-server
+    #   - certbot-server
 
   dovecot-server:
     build:
@@ -36,8 +36,8 @@ services:
       - ./letsencrypt:/etc/letsencrypt:ro
     networks:
       - mail-network
-    depends_on:
-      - certbot-server
+    # depends_on:
+    #   - certbot-server
 
   opendkim-server:
     build:

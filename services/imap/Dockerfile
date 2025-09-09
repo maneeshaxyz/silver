@@ -18,7 +18,7 @@ RUN apt-get update && \
     wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" && \
     chmod +x /usr/local/bin/yq && \
     apt-get purge -y --auto-remove wget && \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt clean
 
 # Create vmail user and group for virtual mailboxes
 RUN groupadd -g 5000 vmail && \
