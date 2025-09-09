@@ -39,9 +39,10 @@ You will need to add a few records to your DNS control panel.
 | DNS Record | Name | Value |
 |----------|----------|----------|
 | A   | mail  | your-ip-address |
+| A   | example.com  | your-ip-address |
 | MX   |  example.com  | mail.example.com   |
 | TXT   | example.com  | "v=spf1 ip4:your-ip-address ~all"|
-| TXT  | example.com  | "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com"  |
+| TXT  | _dmarc  | "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com"  |
 | PTR   | your-ip-address | mail.example.com |
 
 > [!Tip]
@@ -78,16 +79,22 @@ chmod +x init.sh
 
 ### Adding users
 
+- To add more users to your email server, give permission to the add-users.sh file and run it.
+
 ```bash
 # silver/services
+chmod +x add-users.sh
 ./add-users.sh
 ```
+- Follow the prompts to add a new user.
 
 ### Testing your setup
 - Now that you have a working email server, you can test your configuration using the following links/scripts.
 
   - [mail-tester](https://www.mail-tester.com/)
   - [mxtoolbox](https://mxtoolbox.com/SuperTool.aspx)
+
+- You can also set up a Mail User Agent (MUA) like Thunderbird to send and receive emails. Follow the instructions in [Mail User Agent Setup](docs/Mail-User-Agent-Setup.md).
 
 ## Software
 
@@ -99,11 +106,29 @@ Silver is built using opensource software.
 - [Rspamd](https://rspamd.com/) - spam filtering system.
 - [ClamAV](https://docs.clamav.net/Introduction.html) -  virus scanning system.
 
+## Web user interface for mail services
+We have created a simple web user interface for initial setup and user creation. b>It is not recommended for production use. It is just for ease of use for the developers and testers to quickly set up and test the email server.
+
+### Setting up the web user interface
+- Navigate to the webui folder and give permission to the init.sh file and run it.
+```bash
+cd services
+chmod +x init.sh
+chmod +x add_user.sh
+cd webui
+```
+- Install the required npm packages and start the server.
+```bash
+npm install
+npm start
+```
+- The web user interface will be available at `http://your-server-ip:3001`. Follow the instructions on the page to set up your email server.
+
+![Silver Mail WebUI Screenshot](docs/images/webui.png)
 
 ## Contributing
 
-Thank you for wanting to contribute to our project. Please see [CONTRIBUTING.md](https://github.com/maneeshaxyz/silver/blob/main/docs/CONTRIBUTING.md) for more details.
-
+Thank you for wanting to contribute to our project. Please see [CONTRIBUTING.md](https://github.com/LSFLK/silver/blob/main/docs/CONTRIBUTING.md) for more details.
 
 ## License 
 
