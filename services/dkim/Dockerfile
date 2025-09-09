@@ -7,6 +7,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install OpenDKIM and dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends opendkim opendkim-tools openssl && \
+    wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" && \
+    chmod +x /usr/local/bin/yq && \
+    apt-get purge -y --auto-remove wget && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Ensure OpenDKIM user exists (package may already create it)

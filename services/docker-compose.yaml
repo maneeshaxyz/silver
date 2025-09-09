@@ -5,12 +5,11 @@ services:
       context: ./smtp
     container_name: smtp-server-container
     hostname: ${MAIL_DOMAIN}
-    env_file:
-      - .env
     ports:
       - "25:25"
       - "587:587"
     volumes:
+      - ./silver.yaml:/etc/postfix/silver.yaml:ro
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
       - ./letsencrypt:/etc/letsencrypt:ro
@@ -29,11 +28,10 @@ services:
     build:
       context: ./imap
     container_name: dovecot-server
-    env_file:
-      - .env
     ports:
       - "143:143"
     volumes:
+      - ./silver.yaml:/etc/dovecot/silver.yaml:ro
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
       - ./letsencrypt:/etc/letsencrypt:ro
@@ -46,9 +44,8 @@ services:
     build:
       context: ./dkim
     container_name: opendkim-server
-    env_file:
-      - .env
     volumes:
+      - ./silver.yaml:/etc/postfix/silver.yaml:ro
       - dkim-keys:/etc/opendkim/keys
     networks:
       - mail-network
