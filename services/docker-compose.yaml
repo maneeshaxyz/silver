@@ -83,8 +83,8 @@ services:
       - mail-network
 
   certbot-server:
-    build:
-    context: ./certbot
+    build: 
+      context: ./certbot
     container_name: certbot-server
     volumes:
       - ./silver.yaml:/etc/postfix/silver.yaml:ro
