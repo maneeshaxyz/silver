@@ -1,11 +1,9 @@
 #!/bin/bash
 set -e
 
-# Load env variables from the .env file in the grandparent folder
-if [ -f /etc/opendkim/../../.env ]; then
-    echo "Loading environment variables from ../../.env"
-    export $(grep -v '^#' /etc/opendkim/../../.env | xargs)
-fi
+CONFIG_FILE="/etc/opendkim/silver.yaml"
+
+export MAIL_DOMAIN=$(yq -e '.domain' "$CONFIG_FILE")
 
 # Defaults
 MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
