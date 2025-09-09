@@ -83,12 +83,13 @@ services:
       - mail-network
 
   certbot-server:
-    image: certbot/certbot
+    build:
+    context: ./certbot
     container_name: certbot-server
     volumes:
+      - ./silver.yaml:/etc/postfix/silver.yaml:ro
       - ./letsencrypt:/etc/letsencrypt
       - ./letsencrypt/certbot-logs:/var/log/letsencrypt
-    command: certonly --standalone --non-interactive --agree-tos --email admin@${MAIL_DOMAIN} -d ${MAIL_DOMAIN} -d mail.${MAIL_DOMAIN}
     ports:
       - "80:80"
       - "443:443"
