@@ -1,14 +1,9 @@
 #!/bin/bash
 set -e
 
-# -------------------------------
-# Load .env from grandparent folder
-# -------------------------------
-ENV_FILE="$(dirname "$(dirname "$0")")/.env"
+$CONFIG_FILE = "/etc/postfix/silver.yaml"
 
-if [ -f "$ENV_FILE" ]; then
-    export $(grep -v '^#' "$ENV_FILE" | xargs)
-fi
+export MAIL_DOMAIN=$(yq -e '.domain' "$CONFIG_FILE")
 
 # -------------------------------
 # Environment variables
