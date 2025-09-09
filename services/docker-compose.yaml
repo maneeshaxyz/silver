@@ -4,7 +4,6 @@ services:
     build:
       context: ./smtp
     container_name: smtp-server-container
-    hostname: ${MAIL_DOMAIN}
     ports:
       - "25:25"
       - "587:587"
