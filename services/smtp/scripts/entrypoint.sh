@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-$CONFIG_FILE = "/etc/postfix/silver.yaml"
+CONFIG_FILE="/etc/postfix/silver.yaml"
 
 export MAIL_DOMAIN=$(yq -e '.domain' "$CONFIG_FILE")
 
