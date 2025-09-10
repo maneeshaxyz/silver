@@ -15,6 +15,9 @@ echo -e "${CYAN}---------------------------------------------${NC}"
 echo -e " 🚀 ${GREEN}Thunder - Add User${NC}"
 echo -e "${CYAN}---------------------------------------------${NC}\n"
 
+#Files
+CONFIG_FILE="silver.yaml"
+
 # -------------------------------
 # Step 1: Load Environment Variables
 # -------------------------------
@@ -31,6 +34,10 @@ else
     exit 1
 fi
 
+# Load domain from yaml file
+
+MAIL_DOMAIN=$(grep -m 1 '^domain:' "$CONFIG_FILE" | sed 's/domain: //' | xargs)
+
 # -------------------------------
 # Step 2: Create User
 # -------------------------------
@@ -46,12 +53,7 @@ USER_RESPONSE=$(curl -sk -w "\n%{http_code}" -X POST \
     \"type\": \"superhuman\",
     \"attributes\": {
       \"username\": \"$USER_USERNAME\",
-      \"password\": \"$USER_PASSWORD\",
-      \"email\": \"$USER_EMAIL\",
-      \"firstName\": \"$USER_FIRST_NAME\",
-      \"lastName\": \"$USER_LAST_NAME\",
-      \"age\": $USER_AGE,
-      \"mobileNumber\": \"$USER_PHONE\"
+      \"password\": \"$USER_PASSWORD\"
     }
   }")
 
@@ -86,7 +88,7 @@ if [ -z "$USER_USERNAME" ] || [ -z "$MAIL_DOMAIN" ]; then
 fi
 
 # Remove any old entries for this user
-sed -i "/^${USER_USERNAME}@${MAIL_DOMAIN}[[:space:]]/d" "$VIRTUAL_USERS_FILE"
+sed -i '' "/^${USER_USERNAME}@${MAIL_DOMAIN}[[:space:]]/d" "$VIRTUAL_USERS_FILE"
 
 # Append the new entry
 echo -e "${USER_USERNAME}@${MAIL_DOMAIN}\t${MAIL_DOMAIN}/${USER_USERNAME}" >> "$VIRTUAL_USERS_FILE"
@@ -95,7 +97,7 @@ echo -e "${USER_USERNAME}@${MAIL_DOMAIN}\t${MAIL_DOMAIN}/${USER_USERNAME}" >> "$
 sort -u -o "$VIRTUAL_USERS_FILE" "$VIRTUAL_USERS_FILE"
 
 # Ensure file ends with a newline
-sed -i -e '$a\' "$VIRTUAL_USERS_FILE"
+sed -i '' -e '$a\' "$VIRTUAL_USERS_FILE"
 
 echo -e "${GREEN}✓ Added ${USER_USERNAME}@${MAIL_DOMAIN} to virtual-users file${NC}"
 
