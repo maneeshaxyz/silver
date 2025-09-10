@@ -13,6 +13,7 @@ NC="\033[0m" # No Color
 
 # Get the script directory (where init.sh is located)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="silver.yaml"
 
 # ASCII Banner
 echo -e "${CYAN}"
@@ -49,12 +50,17 @@ MAIL_DOMAIN=""
 # Step 1: Domain Configuration
 # ================================
 echo -e "\n${YELLOW}Step 1/6: Configure domain name${NC}"
-while [ -z "$MAIL_DOMAIN" ]; do
-  read -p "Please enter the domain name: " MAIL_DOMAIN
-  if [ -z "$MAIL_DOMAIN" ]; then
-    echo -e "${RED}✗ Domain name cannot be empty. Please try again.${NC}"
-  fi
-done
+
+MAIL_DOMAIN=$(grep -m 1 '^domain:' "$CONFIG_FILE" | sed 's/domain: //' | xargs)
+
+# Validate if MAIL_DOMAIN is empty
+if [ -z "$MAIL_DOMAIN" ]; then
+    echo -e "${RED}Error: Domain name is not configured or is empty. Please set it in '$CONFIG_FILE'.${NC}"
+    exit 1 # Exit the script with a failure status
+else
+    echo "Domain name found: $MAIL_DOMAIN"
+    # ...continue with the rest of your script...
+fi
 
 if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
     echo -e "${RED}✗ Warning: '${MAIL_DOMAIN}' does not look like a valid domain name.${NC}"

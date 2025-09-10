@@ -25,10 +25,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Define paths relative to script location
 ENV_FILE="${SCRIPT_DIR}/thunder/scripts/.env"
-ENV_FILE_LOCAL="${SCRIPT_DIR}/.env"
+
+CONFIG_FILE="silver.yaml"
 
 echo "Looking for Thunder .env at: $ENV_FILE"
-echo "Looking for local .env at: $ENV_FILE_LOCAL"
 
 if [ -f "$ENV_FILE" ]; then
     set -o allexport
@@ -41,19 +41,19 @@ else
     exit 1
 fi
 
-if [ -f "$ENV_FILE_LOCAL" ]; then
-    set -o allexport
-    source "$ENV_FILE_LOCAL"
-    set +o allexport
-    echo -e "${GREEN}✓ Environment variables loaded from local .env${NC}"
-else
-    echo -e "${RED}✗ Local .env file not found at: $ENV_FILE_LOCAL${NC}"
-    echo -e "${RED}Please run initial setup first!${NC}"
-    exit 1
+MAIL_DOMAIN=$(grep -m 1 '^domain:' "$CONFIG_FILE" | sed 's/domain: //' | xargs)
+
+if [ -z "$MAIL_DOMAIN" ]; then
+    echo -e "${RED}Error: Domain name is not configured or is empty. Please add it in silver.yaml.${NC}"
+    exit 1 
 fi
 
-echo -e "${CYAN}Main domain detected: ${GREEN}$MAIL_DOMAIN${NC}\n"
+if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+    echo -e "${RED}Error: '${MAIL_DOMAIN}' is not a valid domain name.${NC}"
+    exit 1 
+fi
 
+echo -e "${GREEN}✓ Domain name is valid: $MAIL_DOMAIN${NC}"
 # -------------------------------
 # Step 2: Collect new user info
 # -------------------------------
@@ -62,10 +62,6 @@ echo -e "${YELLOW}Step 2/3: Enter new user information${NC}"
 read -p "Enter username: " USER_USERNAME
 read -s -p "Enter password: " USER_PASSWORD
 echo ""
-read -p "Enter first name: " USER_FIRST_NAME
-read -p "Enter last name: " USER_LAST_NAME
-read -p "Enter age: " USER_AGE
-read -p "Enter phone number: " USER_PHONE
 
 echo -e "${GREEN}✓ User input collected${NC}"
 
@@ -87,11 +83,6 @@ update_or_add_env() {
 
 update_or_add_env "USER_USERNAME" "$USER_USERNAME"
 update_or_add_env "USER_PASSWORD" "$USER_PASSWORD"
-update_or_add_env "USER_EMAIL" "${USER_USERNAME}@${MAIL_DOMAIN}"
-update_or_add_env "USER_FIRST_NAME" "$USER_FIRST_NAME"
-update_or_add_env "USER_LAST_NAME" "$USER_LAST_NAME"
-update_or_add_env "USER_AGE" "$USER_AGE"
-update_or_add_env "USER_PHONE" "$USER_PHONE"
 
 echo -e "${GREEN}✓ User info updated in Thunder .env file${NC}"
 
@@ -119,27 +110,24 @@ chmod +x "${SCRIPT_DIR}/thunder/scripts/add_user_init.sh"
 ( cd "${SCRIPT_DIR}" && ./thunder/scripts/add_user_init.sh )
 echo -e "${GREEN}✓ Thunder initialization completed${NC}"
 
-# -------------------------------
-# Step 6: Recreate SMTP service
-# -------------------------------
-echo -e "\n${YELLOW}Rebuilding and recreating only the SMTP service...${NC}"
-( cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate smtp-server )
+# # -------------------------------
+# # Step 6: Recreate SMTP service
+# # -------------------------------
+# echo -e "\n${YELLOW}Rebuilding and recreating only the SMTP service...${NC}"
+# ( cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate smtp-server )
 
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✓ SMTP service successfully rebuilt and running${NC}"
-else
-    echo -e "${RED}✗ Failed to recreate SMTP service. Please check the logs.${NC}"
-    exit 1
-fi
+# if [ $? -eq 0 ]; then
+#     echo -e "${GREEN}✓ SMTP service successfully rebuilt and running${NC}"
+# else
+#     echo -e "${RED}✗ Failed to recreate SMTP service. Please check the logs.${NC}"
+#     exit 1
+# fi
 
-# -------------------------------
-# Final Summary
-# -------------------------------
-echo -e "\n${CYAN}---------------------------------------------${NC}"
-echo -e " 🎉 ${GREEN}New User Setup Complete!${NC}"
-echo " Username: $USER_USERNAME"
-echo " Email:    ${USER_USERNAME}@${MAIL_DOMAIN}"
-echo " Name:     $USER_FIRST_NAME $USER_LAST_NAME"
-echo " Age:      $USER_AGE"
-echo " Phone:    $USER_PHONE"
-echo -e "${CYAN}---------------------------------------------${NC}"
+# # -------------------------------
+# # Final Summary
+# # -------------------------------
+# echo -e "\n${CYAN}---------------------------------------------${NC}"
+# echo -e " 🎉 ${GREEN}New User Setup Complete!${NC}"
+# echo " Username: $USER_USERNAME"
+# echo " Email:    ${USER_USERNAME}@${MAIL_DOMAIN}"
+# echo -e "${CYAN}---------------------------------------------${NC}"
