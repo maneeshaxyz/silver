@@ -11,24 +11,31 @@ YELLOW="\033[1;33m"
 RED="\033[0;31m"
 NC="\033[0m" # No Color
 
-echo -e "${CYAN}---------------------------------------------${NC}"
-echo -e " 🚀 ${GREEN}Silver Mail - Add New User${NC}"
-echo -e "${CYAN}---------------------------------------------${NC}\n"
+# -------------------------------
+# Step 0: Check maximum user limit
+# -------------------------------
+MAX_USERS=100
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VIRTUAL_USERS_FILE="${SCRIPT_DIR}/smtp/conf/virtual-users"
+
+mkdir -p "$(dirname "$VIRTUAL_USERS_FILE")"
+touch "$VIRTUAL_USERS_FILE"
+
+CURRENT_USER_COUNT=$(grep -c "@" "$VIRTUAL_USERS_FILE")
+if [ "$CURRENT_USER_COUNT" -ge "$MAX_USERS" ]; then
+    echo -e "${RED}✗ Cannot add new user: maximum user limit ($MAX_USERS) reached. Current users: $CURRENT_USER_COUNT${NC}"
+    exit 1
+fi
+
+echo -e "${CYAN}Current users: ${GREEN}$CURRENT_USER_COUNT${NC}. Maximum allowed: $MAX_USERS${NC}"
 
 # -------------------------------
 # Step 1: Load existing .env files
 # -------------------------------
 echo -e "${YELLOW}Step 1/3: Loading environment variables...${NC}"
 
-# Get the script directory (where add_user.sh is located)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# Define paths relative to script location
 ENV_FILE="${SCRIPT_DIR}/thunder/scripts/.env"
 ENV_FILE_LOCAL="${SCRIPT_DIR}/.env"
-
-echo "Looking for Thunder .env at: $ENV_FILE"
-echo "Looking for local .env at: $ENV_FILE_LOCAL"
 
 if [ -f "$ENV_FILE" ]; then
     set -o allexport
@@ -37,7 +44,6 @@ if [ -f "$ENV_FILE" ]; then
     echo -e "${GREEN}✓ Environment variables loaded from Thunder .env${NC}"
 else
     echo -e "${RED}✗ Thunder .env file not found at: $ENV_FILE${NC}"
-    echo -e "${RED}Please run initial setup first!${NC}"
     exit 1
 fi
 
@@ -48,7 +54,6 @@ if [ -f "$ENV_FILE_LOCAL" ]; then
     echo -e "${GREEN}✓ Environment variables loaded from local .env${NC}"
 else
     echo -e "${RED}✗ Local .env file not found at: $ENV_FILE_LOCAL${NC}"
-    echo -e "${RED}Please run initial setup first!${NC}"
     exit 1
 fi
 
@@ -100,14 +105,8 @@ echo -e "${GREEN}✓ User info updated in Thunder .env file${NC}"
 # -------------------------------
 echo -e "\n${YELLOW}Step 4/5: Updating SMTP configuration...${NC}"
 
-TARGET_DIR="${SCRIPT_DIR}/smtp/conf"
-if [ ! -d "$TARGET_DIR" ]; then
-    echo "Creating SMTP conf directory: $TARGET_DIR"
-    mkdir -p "$TARGET_DIR"
-fi
-
-# Add new user to SMTP configuration
-echo -e "${USER_USERNAME}@${MAIL_DOMAIN}\t${MAIL_DOMAIN}/${USER_USERNAME}" >> "$TARGET_DIR/virtual-users"
+mkdir -p "${SCRIPT_DIR}/smtp/conf"
+echo -e "${USER_USERNAME}@${MAIL_DOMAIN}\t${MAIL_DOMAIN}/${USER_USERNAME}" >> "$VIRTUAL_USERS_FILE"
 
 echo -e "${GREEN}✓ SMTP configuration updated${NC}"
 
@@ -142,4 +141,5 @@ echo " Email:    ${USER_USERNAME}@${MAIL_DOMAIN}"
 echo " Name:     $USER_FIRST_NAME $USER_LAST_NAME"
 echo " Age:      $USER_AGE"
 echo " Phone:    $USER_PHONE"
+echo " Total users now: $((CURRENT_USER_COUNT + 1))"
 echo -e "${CYAN}---------------------------------------------${NC}"
