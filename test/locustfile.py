@@ -23,13 +23,20 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class EmailServerConfig:
-    """Email server configuration"""
+    """Email server configuration with multiple fallback options"""
     SMTP_SERVER = "openmail.lk"
     SMTP_PORT = 587
     IMAP_SERVER = "openmail.lk"
-    IMAP_PORT = 993
-    USE_TLS = True
+
+    # Try these configurations in order
+    IMAP_CONFIGS = [
+        {"port": 993, "ssl": True, "name": "IMAP4_SSL"},      # Standard SSL
+        {"port": 143, "ssl": False, "starttls": True, "name": "STARTTLS"},  # STARTTLS
+        {"port": 143, "ssl": False, "starttls": False, "name": "Plain"},    # Plain (fallback)
+    ]
+    
     TIMEOUT = 30
+    USE_TLS = True
 
 class TestDataGenerator:
     """Generate realistic test data for emails"""
@@ -431,221 +438,237 @@ class SMTPLoadTester(User):
                     pass
 
 class IMAPLoadTester(User):
-    """IMAP Load Testing User"""
+    """IMAP Load Testing User with robust connection handling"""
     wait_time = between(2, 8)
     weight = 2
     
     def on_start(self):
-        """Initialize IMAP user session"""
         self.config = EmailServerConfig()
         self.user_manager = TestUserManager()
         self.user_account = self.user_manager.get_random_user()
+        self.working_config = None  # Cache working config
         logger.info(f"Starting IMAP tests for user: {self.user_account['email']}")
     
-    def _connect_imap(self):
-        """Establish IMAP connection"""
-        start_time = time.time()
-        mail = None
-        
+    def _create_ssl_context(self):
+        """Create a more permissive SSL context"""
         try:
-            if self.config.USE_TLS:
-                mail = imaplib.IMAP4_SSL(self.config.IMAP_SERVER, self.config.IMAP_PORT)
-            else:
-                mail = imaplib.IMAP4(self.config.IMAP_SERVER, self.config.IMAP_PORT)
-            
-            mail.login(self.user_account['username'], self.user_account['password'])
-            
-            response_time = (time.time() - start_time) * 1000
-            self.environment.events.request.fire(
-                request_type="IMAP",
-                name="connect",
-                response_time=response_time,
-                response_length=0,
-                exception=None
-            )
-            return mail
-            
-        except Exception as e:
-            response_time = (time.time() - start_time) * 1000
-            self.environment.events.request.fire(
-                request_type="IMAP",
-                name="connect",
-                response_time=response_time,
-                response_length=0,
-                exception=e
-            )
-            if mail:
-                try:
-                    mail.logout()
-                except:
-                    pass
+            context = ssl.create_default_context()
+            # Allow older TLS versions if needed
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
+            # For testing environments, you might need to disable cert verification
+            # context.check_hostname = False
+            # context.verify_mode = ssl.CERT_NONE
+            return context
+        except Exception:
             return None
     
-    @task(3)
-    def list_folders(self):
-        """List mail folders"""
-        mail = self._connect_imap()
-        if not mail:
-            return
-        
-        start_time = time.time()
-        
+    def _try_imap_connection(self, config):
+        """Try a specific IMAP configuration"""
+        mail = None
         try:
-            status, folders = mail.list()
-            mail.logout()
+            if config.get("ssl", False):
+                # Direct SSL connection
+                context = self._create_ssl_context()
+                mail = imaplib.IMAP4_SSL(
+                    self.config.IMAP_SERVER, 
+                    config["port"],
+                    ssl_context=context
+                )
+            else:
+                # Plain connection, possibly with STARTTLS
+                mail = imaplib.IMAP4(self.config.IMAP_SERVER, config["port"])
+                if config.get("starttls", False):
+                    context = self._create_ssl_context()
+                    mail.starttls(ssl_context=context)
             
-            response_time = (time.time() - start_time) * 1000
-            self.environment.events.request.fire(
-                request_type="IMAP",
-                name="list_folders",
-                response_time=response_time,
-                response_length=len(folders) if folders else 0,
-                exception=None
-            )
+            # Test login
+            mail.login(self.user_account['username'], self.user_account['password'])
+            logger.info(f"IMAP connection successful using {config['name']} on port {config['port']}")
+            return mail, config
             
         except Exception as e:
-            response_time = (time.time() - start_time) * 1000
-            self.environment.events.request.fire(
-                request_type="IMAP",
-                name="list_folders",
-                response_time=response_time,
-                response_length=0,
-                exception=e
-            )
+            logger.debug(f"IMAP connection failed for {config['name']}: {e}")
             if mail:
-                try:
+                try: 
                     mail.logout()
-                except:
+                except: 
                     pass
+            return None, None
     
-    @task(4)
-    def check_inbox(self):
-        """Check inbox messages"""
-        mail = self._connect_imap()
-        if not mail:
-            return
-        
+    def _connect_imap(self):
+        """Connect to IMAP with fallback configurations"""
         start_time = time.time()
         
+        # If we have a working config, try it first
+        if self.working_config:
+            mail, config = self._try_imap_connection(self.working_config)
+            if mail:
+                self.environment.events.request.fire(
+                    request_type="IMAP",
+                    name="connect",
+                    response_time=(time.time() - start_time) * 1000,
+                    response_length=0,
+                    exception=None
+                )
+                return mail
+        
+        # Try all configurations until one works
+        for config in self.config.IMAP_CONFIGS:
+            mail, working_config = self._try_imap_connection(config)
+            if mail:
+                self.working_config = working_config  # Cache for future use
+                self.environment.events.request.fire(
+                    request_type="IMAP",
+                    name="connect",
+                    response_time=(time.time() - start_time) * 1000,
+                    response_length=0,
+                    exception=None
+                )
+                return mail
+        
+        # All configurations failed
+        error_msg = f"All IMAP connection methods failed for {self.config.IMAP_SERVER}"
+        logger.error(error_msg)
+        self.environment.events.request.fire(
+            request_type="IMAP",
+            name="connect",
+            response_time=(time.time() - start_time) * 1000,
+            response_length=0,
+            exception=Exception(error_msg)
+        )
+        return None
+
+    @task(5)
+    def check_inbox(self):
+        """Check inbox for new messages"""
+        mail = self._connect_imap()
+        if not mail: 
+            return
+            
+        start_time = time.time()
         try:
             mail.select('INBOX')
             status, messages = mail.search(None, 'ALL')
-            
-            if messages[0]:
-                message_count = len(messages[0].split())
-            else:
-                message_count = 0
-            
+            message_count = len(messages[0].split()) if messages[0] else 0
             mail.logout()
             
-            response_time = (time.time() - start_time) * 1000
             self.environment.events.request.fire(
                 request_type="IMAP",
                 name="check_inbox",
-                response_time=response_time,
+                response_time=(time.time() - start_time) * 1000,
                 response_length=message_count,
                 exception=None
             )
+            logger.info(f"Inbox check successful: {message_count} messages")
             
         except Exception as e:
-            response_time = (time.time() - start_time) * 1000
             self.environment.events.request.fire(
                 request_type="IMAP",
                 name="check_inbox",
-                response_time=response_time,
+                response_time=(time.time() - start_time) * 1000,
                 response_length=0,
                 exception=e
             )
             if mail:
-                try:
+                try: 
                     mail.logout()
-                except:
+                except: 
                     pass
-    
+            logger.error(f"Inbox check failed: {e}")
+
+    @task(3)
+    def list_folders(self):
+        """List available folders"""
+        mail = self._connect_imap()
+        if not mail: 
+            return
+            
+        start_time = time.time()
+        try:
+            status, folders = mail.list()
+            folder_count = len(folders) if folders else 0
+            mail.logout()
+            
+            self.environment.events.request.fire(
+                request_type="IMAP",
+                name="list_folders",
+                response_time=(time.time() - start_time) * 1000,
+                response_length=folder_count,
+                exception=None
+            )
+            logger.info(f"Folder listing successful: {folder_count} folders")
+            
+        except Exception as e:
+            self.environment.events.request.fire(
+                request_type="IMAP",
+                name="list_folders",
+                response_time=(time.time() - start_time) * 1000,
+                response_length=0,
+                exception=e
+            )
+            if mail:
+                try: 
+                    mail.logout()
+                except: 
+                    pass
+            logger.error(f"Folder listing failed: {e}")
+
     @task(2)
     def fetch_recent_messages(self):
         """Fetch recent messages"""
         mail = self._connect_imap()
-        if not mail:
+        if not mail: 
             return
-        
+            
         start_time = time.time()
-        fetch_count = 0
-        
         try:
             mail.select('INBOX')
-            status, messages = mail.search(None, 'RECENT')
-            
-            # Fetch up to 5 recent messages
+            # Get recent messages (last 5)
+            status, messages = mail.search(None, 'ALL')
             if messages[0]:
                 message_ids = messages[0].split()
-                fetch_count = min(5, len(message_ids))
+                recent_ids = message_ids[-5:] if len(message_ids) >= 5 else message_ids
                 
-                for msg_id in message_ids[-fetch_count:]:
+                fetched_count = 0
+                for msg_id in recent_ids:
                     status, msg_data = mail.fetch(msg_id, '(RFC822)')
-            
-            mail.logout()
-            
-            response_time = (time.time() - start_time) * 1000
-            self.environment.events.request.fire(
-                request_type="IMAP",
-                name="fetch_messages",
-                response_time=response_time,
-                response_length=fetch_count,
-                exception=None
-            )
-            
+                    if status == 'OK':
+                        fetched_count += 1
+                
+                mail.logout()
+                
+                self.environment.events.request.fire(
+                    request_type="IMAP",
+                    name="fetch_messages",
+                    response_time=(time.time() - start_time) * 1000,
+                    response_length=fetched_count,
+                    exception=None
+                )
+                logger.info(f"Message fetch successful: {fetched_count} messages")
+            else:
+                mail.logout()
+                self.environment.events.request.fire(
+                    request_type="IMAP",
+                    name="fetch_messages",
+                    response_time=(time.time() - start_time) * 1000,
+                    response_length=0,
+                    exception=None
+                )
+                
         except Exception as e:
-            response_time = (time.time() - start_time) * 1000
             self.environment.events.request.fire(
                 request_type="IMAP",
                 name="fetch_messages",
-                response_time=response_time,
+                response_time=(time.time() - start_time) * 1000,
                 response_length=0,
                 exception=e
             )
             if mail:
-                try:
+                try: 
                     mail.logout()
-                except:
+                except: 
                     pass
-
-# Event listeners for custom metrics
-@events.test_start.add_listener
-def on_test_start(environment, **kwargs):
-    """Called when test starts"""
-    print("Email load testing started!")
-    
-    # Create necessary directories
-    os.makedirs("test_data/attachments", exist_ok=True)
-    os.makedirs("test_results", exist_ok=True)
-
-@events.test_stop.add_listener
-def on_test_stop(environment, **kwargs):
-    """Called when test stops"""
-    print("Email load testing completed!")
-    
-    # Generate test report
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_file = f"test_results/email_load_test_report_{timestamp}.json"
-    
-    # Save test statistics
-    stats = environment.stats
-    report_data = {
-        "timestamp": timestamp,
-        "total_requests": stats.total.num_requests,
-        "total_failures": stats.total.num_failures,
-        "average_response_time": stats.total.avg_response_time,
-        "min_response_time": stats.total.min_response_time,
-        "max_response_time": stats.total.max_response_time,
-        "requests_per_second": stats.total.current_rps,
-        "failure_rate": stats.total.fail_ratio
-    }
-    
-    with open(report_file, 'w') as f:
-        json.dump(report_data, f, indent=2)
-    
-    print(f"Test report saved to: {report_file}")
+            logger.error(f"Message fetch failed: {e}")
 
 if __name__ == "__main__":
     # This allows running the test directly with python
