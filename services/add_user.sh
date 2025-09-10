@@ -11,24 +11,32 @@ YELLOW="\033[1;33m"
 RED="\033[0;31m"
 NC="\033[0m" # No Color
 
-echo -e "${CYAN}---------------------------------------------${NC}"
-echo -e " 🚀 ${GREEN}Silver Mail - Add New User${NC}"
-echo -e "${CYAN}---------------------------------------------${NC}\n"
+# -------------------------------
+# Step 0: Check maximum user limit
+# -------------------------------
+MAX_USERS=100
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VIRTUAL_USERS_FILE="${SCRIPT_DIR}/smtp/conf/virtual-users"
+
+mkdir -p "$(dirname "$VIRTUAL_USERS_FILE")"
+touch "$VIRTUAL_USERS_FILE"
+
+CURRENT_USER_COUNT=$(grep -c "@" "$VIRTUAL_USERS_FILE")
+if [ "$CURRENT_USER_COUNT" -ge "$MAX_USERS" ]; then
+    echo -e "${RED}✗ Cannot add new user: maximum user limit ($MAX_USERS) reached. Current users: $CURRENT_USER_COUNT${NC}"
+    exit 1
+fi
+
+echo -e "${CYAN}Current users: ${GREEN}$CURRENT_USER_COUNT${NC}. Maximum allowed: $MAX_USERS${NC}"
 
 # -------------------------------
 # Step 1: Load existing .env files
 # -------------------------------
 echo -e "${YELLOW}Step 1/3: Loading environment variables...${NC}"
 
-# Get the script directory (where add_user.sh is located)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# Define paths relative to script location
 ENV_FILE="${SCRIPT_DIR}/thunder/scripts/.env"
 
 CONFIG_FILE="silver.yaml"
-
-echo "Looking for Thunder .env at: $ENV_FILE"
 
 if [ -f "$ENV_FILE" ]; then
     set -o allexport
@@ -37,15 +45,7 @@ if [ -f "$ENV_FILE" ]; then
     echo -e "${GREEN}✓ Environment variables loaded from Thunder .env${NC}"
 else
     echo -e "${RED}✗ Thunder .env file not found at: $ENV_FILE${NC}"
-    echo -e "${RED}Please run initial setup first!${NC}"
     exit 1
-fi
-
-MAIL_DOMAIN=$(grep -m 1 '^domain:' "$CONFIG_FILE" | sed 's/domain: //' | xargs)
-
-if [ -z "$MAIL_DOMAIN" ]; then
-    echo -e "${RED}Error: Domain name is not configured or is empty. Please add it in silver.yaml.${NC}"
-    exit 1 
 fi
 
 if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
@@ -91,14 +91,8 @@ echo -e "${GREEN}✓ User info updated in Thunder .env file${NC}"
 # -------------------------------
 echo -e "\n${YELLOW}Step 4/5: Updating SMTP configuration...${NC}"
 
-TARGET_DIR="${SCRIPT_DIR}/smtp/conf"
-if [ ! -d "$TARGET_DIR" ]; then
-    echo "Creating SMTP conf directory: $TARGET_DIR"
-    mkdir -p "$TARGET_DIR"
-fi
-
-# Add new user to SMTP configuration
-echo -e "${USER_USERNAME}@${MAIL_DOMAIN}\t${MAIL_DOMAIN}/${USER_USERNAME}" >> "$TARGET_DIR/virtual-users"
+mkdir -p "${SCRIPT_DIR}/smtp/conf"
+echo -e "${USER_USERNAME}@${MAIL_DOMAIN}\t${MAIL_DOMAIN}/${USER_USERNAME}" >> "$VIRTUAL_USERS_FILE"
 
 echo -e "${GREEN}✓ SMTP configuration updated${NC}"
 
@@ -110,24 +104,28 @@ chmod +x "${SCRIPT_DIR}/thunder/scripts/add_user_init.sh"
 ( cd "${SCRIPT_DIR}" && ./thunder/scripts/add_user_init.sh )
 echo -e "${GREEN}✓ Thunder initialization completed${NC}"
 
-# # -------------------------------
-# # Step 6: Recreate SMTP service
-# # -------------------------------
-# echo -e "\n${YELLOW}Rebuilding and recreating only the SMTP service...${NC}"
-# ( cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate smtp-server )
+# -------------------------------
+# Step 6: Recreate SMTP service
+# -------------------------------
+echo -e "\n${YELLOW}Rebuilding and recreating only the SMTP service...${NC}"
+( cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate smtp-server )
 
-# if [ $? -eq 0 ]; then
-#     echo -e "${GREEN}✓ SMTP service successfully rebuilt and running${NC}"
-# else
-#     echo -e "${RED}✗ Failed to recreate SMTP service. Please check the logs.${NC}"
-#     exit 1
-# fi
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✓ SMTP service successfully rebuilt and running${NC}"
+else
+    echo -e "${RED}✗ Failed to recreate SMTP service. Please check the logs.${NC}"
+    exit 1
+fi
 
-# # -------------------------------
-# # Final Summary
-# # -------------------------------
-# echo -e "\n${CYAN}---------------------------------------------${NC}"
-# echo -e " 🎉 ${GREEN}New User Setup Complete!${NC}"
-# echo " Username: $USER_USERNAME"
-# echo " Email:    ${USER_USERNAME}@${MAIL_DOMAIN}"
-# echo -e "${CYAN}---------------------------------------------${NC}"
+# -------------------------------
+# Final Summary
+# -------------------------------
+echo -e "\n${CYAN}---------------------------------------------${NC}"
+echo -e " 🎉 ${GREEN}New User Setup Complete!${NC}"
+echo " Username: $USER_USERNAME"
+echo " Email:    ${USER_USERNAME}@${MAIL_DOMAIN}"
+echo " Name:     $USER_FIRST_NAME $USER_LAST_NAME"
+echo " Age:      $USER_AGE"
+echo " Phone:    $USER_PHONE"
+echo " Total users now: $((CURRENT_USER_COUNT + 1))"
+echo -e "${CYAN}---------------------------------------------${NC}"
