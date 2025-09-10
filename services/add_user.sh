@@ -35,7 +35,8 @@ echo -e "${CYAN}Current users: ${GREEN}$CURRENT_USER_COUNT${NC}. Maximum allowed
 echo -e "${YELLOW}Step 1/3: Loading environment variables...${NC}"
 
 ENV_FILE="${SCRIPT_DIR}/thunder/scripts/.env"
-ENV_FILE_LOCAL="${SCRIPT_DIR}/.env"
+
+CONFIG_FILE="silver.yaml"
 
 if [ -f "$ENV_FILE" ]; then
     set -o allexport
@@ -47,18 +48,12 @@ else
     exit 1
 fi
 
-if [ -f "$ENV_FILE_LOCAL" ]; then
-    set -o allexport
-    source "$ENV_FILE_LOCAL"
-    set +o allexport
-    echo -e "${GREEN}✓ Environment variables loaded from local .env${NC}"
-else
-    echo -e "${RED}✗ Local .env file not found at: $ENV_FILE_LOCAL${NC}"
-    exit 1
+if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+    echo -e "${RED}Error: '${MAIL_DOMAIN}' is not a valid domain name.${NC}"
+    exit 1 
 fi
 
-echo -e "${CYAN}Main domain detected: ${GREEN}$MAIL_DOMAIN${NC}\n"
-
+echo -e "${GREEN}✓ Domain name is valid: $MAIL_DOMAIN${NC}"
 # -------------------------------
 # Step 2: Collect new user info
 # -------------------------------
@@ -67,10 +62,6 @@ echo -e "${YELLOW}Step 2/3: Enter new user information${NC}"
 read -p "Enter username: " USER_USERNAME
 read -s -p "Enter password: " USER_PASSWORD
 echo ""
-read -p "Enter first name: " USER_FIRST_NAME
-read -p "Enter last name: " USER_LAST_NAME
-read -p "Enter age: " USER_AGE
-read -p "Enter phone number: " USER_PHONE
 
 echo -e "${GREEN}✓ User input collected${NC}"
 
@@ -92,11 +83,6 @@ update_or_add_env() {
 
 update_or_add_env "USER_USERNAME" "$USER_USERNAME"
 update_or_add_env "USER_PASSWORD" "$USER_PASSWORD"
-update_or_add_env "USER_EMAIL" "${USER_USERNAME}@${MAIL_DOMAIN}"
-update_or_add_env "USER_FIRST_NAME" "$USER_FIRST_NAME"
-update_or_add_env "USER_LAST_NAME" "$USER_LAST_NAME"
-update_or_add_env "USER_AGE" "$USER_AGE"
-update_or_add_env "USER_PHONE" "$USER_PHONE"
 
 echo -e "${GREEN}✓ User info updated in Thunder .env file${NC}"
 
