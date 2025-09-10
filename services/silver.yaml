@@ -3,11 +3,7 @@
 # ===============================================================
 #
 # This file contains the primary configuration for your mail server.
-# The setup script (`init.sh`) reads this file to get the necessary
-# details for the installation.
-
 # --- Domain Configuration ---
-#
 # This is the most critical setting. It defines the primary domain name
 # that your mail server will be responsible for.
 #
@@ -19,4 +15,4 @@
 # Example (this line is commented out and is just a guide):
 # domain: your-awesome-domain.com
 
-domain:
+domain: maneesha.dev
