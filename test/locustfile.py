@@ -24,12 +24,10 @@ logger = logging.getLogger(__name__)
 
 class EmailServerConfig:
     """Email server configuration"""
-    SMTP_SERVER = "aravindahwk.org"
+    SMTP_SERVER = "openmail.lk"
     SMTP_PORT = 587
-    IMAP_SERVER = "aravindahwk.org"
-    IMAP_PORT = 143
-    POP3_SERVER = "aravindahwk.org"
-    POP3_PORT = 110
+    IMAP_SERVER = "openmail.lk"
+    IMAP_PORT = 993
     USE_TLS = True
     TIMEOUT = 30
 
@@ -85,34 +83,26 @@ class TestDataGenerator:
     def _get_attachments(self):
         """Get list of test attachment files"""
         attachment_dir = "test_data/attachments/"
-        if not os.path.exists(attachment_dir):
-            os.makedirs(attachment_dir)
-            # Create sample files
-            self._create_sample_attachments(attachment_dir)
-        
-        return [
-            {"path": f"{attachment_dir}sample.pdf", "size": "1MB"},
-            {"path": f"{attachment_dir}image.jpg", "size": "500KB"},
-            {"path": f"{attachment_dir}document.docx", "size": "2MB"},
-            {"path": f"{attachment_dir}spreadsheet.xlsx", "size": "3MB"},
-            {"path": f"{attachment_dir}large_file.zip", "size": "10MB"}
-        ]
-    
-    def _create_sample_attachments(self, directory):
-        """Create sample attachment files for testing"""
-        # Create files of different sizes
-        sizes = {
+        os.makedirs(attachment_dir, exist_ok=True)
+
+        # Define files and sizes
+        files = {
             "sample.pdf": 1024 * 1024,      # 1MB
             "image.jpg": 512 * 1024,        # 500KB
             "document.docx": 2 * 1024 * 1024, # 2MB
             "spreadsheet.xlsx": 3 * 1024 * 1024, # 3MB
             "large_file.zip": 10 * 1024 * 1024  # 10MB
         }
-        
-        for filename, size in sizes.items():
-            filepath = os.path.join(directory, filename)
-            with open(filepath, 'wb') as f:
-                f.write(b'0' * size)
+
+        # Create files if missing
+        for filename, size in files.items():
+            filepath = os.path.join(attachment_dir, filename)
+            if not os.path.exists(filepath):
+                with open(filepath, 'wb') as f:
+                    f.write(b'0' * size)
+
+        # Return attachment info
+        return [{"path": os.path.join(attachment_dir, fname), "size": f"{size//1024}KB"} for fname, size in files.items()]
     
     def generate_email_content(self, email_type="random"):
         """Generate email content based on type"""
@@ -163,7 +153,7 @@ class TestUserManager:
         for i in range(100):
             users.append({
                 'username': f'testuser{i:03d}',
-                'email': f'testuser{i:03d}@aravindahwk.org',
+                'email': f'testuser{i:03d}@openmail.lk',
                 'password': 'TestPassword123!',
                 'full_name': fake.name()
             })
@@ -197,9 +187,10 @@ class SMTPLoadTester(User):
     
     def _connect_smtp(self):
         """Establish SMTP connection"""
+        start_time = time.time()
+        server = None
+        
         try:
-            start_time = time.time()
-            
             if self.config.USE_TLS:
                 server = smtplib.SMTP(self.config.SMTP_SERVER, self.config.SMTP_PORT)
                 server.starttls()
@@ -209,23 +200,29 @@ class SMTPLoadTester(User):
             server.login(self.user_account['username'], self.user_account['password'])
             
             response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
+            self.environment.events.request.fire(
                 request_type="SMTP",
                 name="connect",
                 response_time=response_time,
-                response_length=0
+                response_length=0,
+                exception=None
             )
             return server
             
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
+            self.environment.events.request.fire(
                 request_type="SMTP",
                 name="connect",
                 response_time=response_time,
                 response_length=0,
                 exception=e
             )
+            if server:
+                try:
+                    server.quit()
+                except:
+                    pass
             return None
     
     @task(5)
@@ -235,9 +232,9 @@ class SMTPLoadTester(User):
         if not server:
             return
         
+        start_time = time.time()
+        
         try:
-            start_time = time.time()
-            
             content = self.data_generator.generate_email_content("plain_text")
             recipient = self.user_manager.get_random_user()['email']
             
@@ -250,16 +247,17 @@ class SMTPLoadTester(User):
             server.quit()
             
             response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
+            self.environment.events.request.fire(
                 request_type="SMTP",
                 name="send_text",
                 response_time=response_time,
-                response_length=len(content['body'])
+                response_length=len(content['body']),
+                exception=None
             )
             
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
+            self.environment.events.request.fire(
                 request_type="SMTP",
                 name="send_text",
                 response_time=response_time,
@@ -267,7 +265,10 @@ class SMTPLoadTester(User):
                 exception=e
             )
             if server:
-                server.quit()
+                try:
+                    server.quit()
+                except:
+                    pass
     
     @task(3)
     def send_html_email(self):
@@ -276,9 +277,9 @@ class SMTPLoadTester(User):
         if not server:
             return
         
+        start_time = time.time()
+        
         try:
-            start_time = time.time()
-            
             content = self.data_generator.generate_email_content("marketing")
             recipient = self.user_manager.get_random_user()['email']
             
@@ -294,16 +295,17 @@ class SMTPLoadTester(User):
             server.quit()
             
             response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
+            self.environment.events.request.fire(
                 request_type="SMTP",
                 name="send_html",
                 response_time=response_time,
-                response_length=len(content['body'])
+                response_length=len(content['body']),
+                exception=None
             )
             
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
+            self.environment.events.request.fire(
                 request_type="SMTP",
                 name="send_html",
                 response_time=response_time,
@@ -311,7 +313,10 @@ class SMTPLoadTester(User):
                 exception=e
             )
             if server:
-                server.quit()
+                try:
+                    server.quit()
+                except:
+                    pass
     
     @task(1)
     def send_email_with_attachment(self):
@@ -320,9 +325,9 @@ class SMTPLoadTester(User):
         if not server:
             return
         
+        start_time = time.time()
+        
         try:
-            start_time = time.time()
-            
             content = self.data_generator.generate_email_content("transactional")
             recipient = self.user_manager.get_random_user()['email']
             attachment = self.data_generator.get_random_attachment()
@@ -352,16 +357,17 @@ class SMTPLoadTester(User):
             server.quit()
             
             response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
+            self.environment.events.request.fire(
                 request_type="SMTP",
                 name="send_attachment",
                 response_time=response_time,
-                response_length=len(content['body'])
+                response_length=len(content['body']),
+                exception=None
             )
             
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
+            self.environment.events.request.fire(
                 request_type="SMTP",
                 name="send_attachment",
                 response_time=response_time,
@@ -369,7 +375,10 @@ class SMTPLoadTester(User):
                 exception=e
             )
             if server:
-                server.quit()
+                try:
+                    server.quit()
+                except:
+                    pass
     
     @task(2)
     def send_bulk_emails(self):
@@ -378,9 +387,9 @@ class SMTPLoadTester(User):
         if not server:
             return
         
+        start_time = time.time()
+        
         try:
-            start_time = time.time()
-            
             # Send 5-10 emails in one session
             num_emails = random.randint(5, 10)
             
@@ -398,16 +407,17 @@ class SMTPLoadTester(User):
             server.quit()
             
             response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
+            self.environment.events.request.fire(
                 request_type="SMTP",
                 name="send_bulk",
                 response_time=response_time,
-                response_length=num_emails
+                response_length=num_emails,
+                exception=None
             )
             
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
+            self.environment.events.request.fire(
                 request_type="SMTP",
                 name="send_bulk",
                 response_time=response_time,
@@ -415,7 +425,10 @@ class SMTPLoadTester(User):
                 exception=e
             )
             if server:
-                server.quit()
+                try:
+                    server.quit()
+                except:
+                    pass
 
 class IMAPLoadTester(User):
     """IMAP Load Testing User"""
@@ -431,9 +444,10 @@ class IMAPLoadTester(User):
     
     def _connect_imap(self):
         """Establish IMAP connection"""
+        start_time = time.time()
+        mail = None
+        
         try:
-            start_time = time.time()
-            
             if self.config.USE_TLS:
                 mail = imaplib.IMAP4_SSL(self.config.IMAP_SERVER, self.config.IMAP_PORT)
             else:
@@ -442,23 +456,29 @@ class IMAPLoadTester(User):
             mail.login(self.user_account['username'], self.user_account['password'])
             
             response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
+            self.environment.events.request.fire(
                 request_type="IMAP",
                 name="connect",
                 response_time=response_time,
-                response_length=0
+                response_length=0,
+                exception=None
             )
             return mail
             
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
+            self.environment.events.request.fire(
                 request_type="IMAP",
                 name="connect",
                 response_time=response_time,
                 response_length=0,
                 exception=e
             )
+            if mail:
+                try:
+                    mail.logout()
+                except:
+                    pass
             return None
     
     @task(3)
@@ -468,23 +488,24 @@ class IMAPLoadTester(User):
         if not mail:
             return
         
+        start_time = time.time()
+        
         try:
-            start_time = time.time()
-            
             status, folders = mail.list()
             mail.logout()
             
             response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
+            self.environment.events.request.fire(
                 request_type="IMAP",
                 name="list_folders",
                 response_time=response_time,
-                response_length=len(folders) if folders else 0
+                response_length=len(folders) if folders else 0,
+                exception=None
             )
             
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
+            self.environment.events.request.fire(
                 request_type="IMAP",
                 name="list_folders",
                 response_time=response_time,
@@ -492,7 +513,10 @@ class IMAPLoadTester(User):
                 exception=e
             )
             if mail:
-                mail.logout()
+                try:
+                    mail.logout()
+                except:
+                    pass
     
     @task(4)
     def check_inbox(self):
@@ -501,9 +525,9 @@ class IMAPLoadTester(User):
         if not mail:
             return
         
+        start_time = time.time()
+        
         try:
-            start_time = time.time()
-            
             mail.select('INBOX')
             status, messages = mail.search(None, 'ALL')
             
@@ -515,16 +539,17 @@ class IMAPLoadTester(User):
             mail.logout()
             
             response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
+            self.environment.events.request.fire(
                 request_type="IMAP",
                 name="check_inbox",
                 response_time=response_time,
-                response_length=message_count
+                response_length=message_count,
+                exception=None
             )
             
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
+            self.environment.events.request.fire(
                 request_type="IMAP",
                 name="check_inbox",
                 response_time=response_time,
@@ -532,7 +557,10 @@ class IMAPLoadTester(User):
                 exception=e
             )
             if mail:
-                mail.logout()
+                try:
+                    mail.logout()
+                except:
+                    pass
     
     @task(2)
     def fetch_recent_messages(self):
@@ -541,9 +569,10 @@ class IMAPLoadTester(User):
         if not mail:
             return
         
+        start_time = time.time()
+        fetch_count = 0
+        
         try:
-            start_time = time.time()
-            
             mail.select('INBOX')
             status, messages = mail.search(None, 'RECENT')
             
@@ -558,16 +587,17 @@ class IMAPLoadTester(User):
             mail.logout()
             
             response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
+            self.environment.events.request.fire(
                 request_type="IMAP",
                 name="fetch_messages",
                 response_time=response_time,
-                response_length=fetch_count if messages[0] else 0
+                response_length=fetch_count,
+                exception=None
             )
             
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
+            self.environment.events.request.fire(
                 request_type="IMAP",
                 name="fetch_messages",
                 response_time=response_time,
@@ -575,125 +605,10 @@ class IMAPLoadTester(User):
                 exception=e
             )
             if mail:
-                mail.logout()
-
-class POP3LoadTester(User):
-    """POP3 Load Testing User"""
-    wait_time = between(3, 10)
-    weight = 1
-    
-    def on_start(self):
-        """Initialize POP3 user session"""
-        self.config = EmailServerConfig()
-        self.user_manager = TestUserManager()
-        self.user_account = self.user_manager.get_random_user()
-        logger.info(f"Starting POP3 tests for user: {self.user_account['email']}")
-    
-    def _connect_pop3(self):
-        """Establish POP3 connection"""
-        try:
-            start_time = time.time()
-            
-            if self.config.USE_TLS:
-                mail = poplib.POP3_SSL(self.config.POP3_SERVER, self.config.POP3_PORT)
-            else:
-                mail = poplib.POP3(self.config.POP3_SERVER, self.config.POP3_PORT)
-            
-            mail.user(self.user_account['username'])
-            mail.pass_(self.user_account['password'])
-            
-            response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
-                request_type="POP3",
-                name="connect",
-                response_time=response_time,
-                response_length=0
-            )
-            return mail
-            
-        except Exception as e:
-            response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
-                request_type="POP3",
-                name="connect",
-                response_time=response_time,
-                response_length=0,
-                exception=e
-            )
-            return None
-    
-    @task(3)
-    def check_messages(self):
-        """Check message count"""
-        mail = self._connect_pop3()
-        if not mail:
-            return
-        
-        try:
-            start_time = time.time()
-            
-            message_count, mailbox_size = mail.stat()
-            mail.quit()
-            
-            response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
-                request_type="POP3",
-                name="stat",
-                response_time=response_time,
-                response_length=message_count
-            )
-            
-        except Exception as e:
-            response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
-                request_type="POP3",
-                name="stat",
-                response_time=response_time,
-                response_length=0,
-                exception=e
-            )
-            if mail:
-                mail.quit()
-    
-    @task(2)
-    def retrieve_messages(self):
-        """Retrieve messages"""
-        mail = self._connect_pop3()
-        if not mail:
-            return
-        
-        try:
-            start_time = time.time()
-            
-            message_count, mailbox_size = mail.stat()
-            
-            # Retrieve up to 3 messages
-            retrieve_count = min(3, message_count)
-            
-            for i in range(1, retrieve_count + 1):
-                response, lines, octets = mail.retr(i)
-            
-            mail.quit()
-            
-            response_time = (time.time() - start_time) * 1000
-            events.request_success.fire(
-                request_type="POP3",
-                name="retrieve",
-                response_time=response_time,
-                response_length=retrieve_count
-            )
-            
-        except Exception as e:
-            response_time = (time.time() - start_time) * 1000
-            events.request_failure.fire(
-                request_type="POP3",
-                name="retrieve",
-                response_time=response_time,
-                response_length=0,
-                exception=e
-            )
-            if mail:
-                mail.quit()
+                try:
+                    mail.logout()
+                except:
+                    pass
 
 # Event listeners for custom metrics
 @events.test_start.add_listener
