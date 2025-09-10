@@ -33,5 +33,8 @@ EXPOSE 8891
 # Switch to non-root user
 USER opendkim
 
+# Ensure correct ownership of configuration and runtime directories
+RUN chown -R opendkim:opendkim /etc/opendkim /var/run/opendkim
+
 # Run entrypoint script
 CMD ["/entrypoint.sh"]

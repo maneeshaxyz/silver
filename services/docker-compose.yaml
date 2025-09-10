@@ -43,7 +43,7 @@ services:
       context: ./dkim
     container_name: opendkim-server
     volumes:
-      - ./silver.yaml:/etc/postfix/silver.yaml:ro
+      - ./silver.yaml:/etc/opendkim/silver.yaml:ro
       - dkim-keys:/etc/opendkim/keys
     networks:
       - mail-network
