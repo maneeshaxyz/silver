@@ -79,11 +79,20 @@ mkdir -p "$(dirname "$VIRTUAL_USERS_FILE")"
 # Ensure the file exists
 touch "$VIRTUAL_USERS_FILE"
 
-# Remove old entry for this user if it exists
-grep -v "^${USER_USERNAME}@${MAIL_DOMAIN}" "$VIRTUAL_USERS_FILE" > "${VIRTUAL_USERS_FILE}.tmp" && mv "${VIRTUAL_USERS_FILE}.tmp" "$VIRTUAL_USERS_FILE"
+# Validate variables
+if [ -z "$USER_USERNAME" ] || [ -z "$MAIL_DOMAIN" ]; then
+    echo -e "${RED}✗ USER_USERNAME or MAIL_DOMAIN is empty. Cannot update virtual-users.${NC}"
+    exit 1
+fi
 
-# Append the new user
+# Remove any old entries for this user
+sed -i "/^${USER_USERNAME}@${MAIL_DOMAIN}[[:space:]]/d" "$VIRTUAL_USERS_FILE"
+
+# Append the new entry
 echo -e "${USER_USERNAME}@${MAIL_DOMAIN}\t${MAIL_DOMAIN}/${USER_USERNAME}" >> "$VIRTUAL_USERS_FILE"
+
+# Remove duplicate lines if any
+sort -u -o "$VIRTUAL_USERS_FILE" "$VIRTUAL_USERS_FILE"
 
 # Ensure file ends with a newline
 sed -i -e '$a\' "$VIRTUAL_USERS_FILE"

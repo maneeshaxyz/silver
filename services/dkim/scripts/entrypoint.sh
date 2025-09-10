@@ -12,7 +12,7 @@ DKIM_KEY_SIZE=${DKIM_KEY_SIZE:-2048}
 
 # Create directories
 mkdir -p /etc/opendkim/keys/$MAIL_DOMAIN
-chown -R opendkim:opendkim /etc/opendkim
+chown -R opendkim:opendkim /etc/opendkim/keys
 
 # Generate DKIM keys if missing
 if [ ! -f /etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.private ]; then
