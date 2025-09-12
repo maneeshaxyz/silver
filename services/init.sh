@@ -67,9 +67,6 @@ if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
     exit 1
 fi
 
-echo "MAIL_DOMAIN=${MAIL_DOMAIN}" > "${SCRIPT_DIR}/.env"
-echo -e "${GREEN}✓ .env file created successfully for ${MAIL_DOMAIN}${NC}"
-
 # ================================
 # Step 2: SMTP Configuration
 # ================================
