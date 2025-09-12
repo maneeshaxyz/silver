@@ -74,7 +74,7 @@ services:
       - rspamd-server
 
   thunder-server:
-    image: ghcr.io/asgardeo/thunder:0.7.0
+    image: ghcr.io/asgardeo/thunder:latest
     container_name: thunder-server
     ports:
       - "8090:8090"
