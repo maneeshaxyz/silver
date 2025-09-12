@@ -125,6 +125,35 @@ else
 fi
 
 # ================================
+# Step 5: Initialize Thunder User Schema
+# ================================
+echo -e "\n${YELLOW}Step 5/6: Creating default user schema in Thunder${NC}"
+
+SCHEMA_RESPONSE=$(curl -sk -w "\n%{http_code}" -X POST \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  https://localhost:8090/user-schemas \
+  -d "{
+    \"name\": \"emailuser\",
+    \"schema\": {
+      \"username\": { \"type\": \"string\", \"unique\": true },
+      \"password\": { \"type\": \"string\" },
+      \"email\": { \"type\": \"string\", \"unique\": true }
+    }
+  }")
+
+SCHEMA_BODY=$(echo "$SCHEMA_RESPONSE" | head -n -1)
+SCHEMA_STATUS=$(echo "$SCHEMA_RESPONSE" | tail -n1)
+
+if [ "$SCHEMA_STATUS" -eq 201 ] || [ "$SCHEMA_STATUS" -eq 200 ]; then
+    echo -e "${GREEN}✓ User schema 'emailuser' created successfully (HTTP $SCHEMA_STATUS)${NC}"
+else
+    echo -e "${RED}✗ Failed to create user schema (HTTP $SCHEMA_STATUS)${NC}"
+    echo "Response: $SCHEMA_BODY"
+    exit 1
+fi
+
+# ================================
 # Public DKIM Key Instructions
 # ================================
 chmod +x "${SCRIPT_DIR}/get-dkim.sh"
