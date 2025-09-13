@@ -122,7 +122,7 @@ chmod 644 ./thunder/certs/server.cert
 # ================================
 # Step 5: Docker Setup
 # ================================
-echo -e "\n${YELLOW}Step 4/6: Starting Docker services${NC}"
+echo -e "\n${YELLOW}Step 5/6: Starting Docker services${NC}"
 
 ( cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate )
 if [ $? -ne 0 ]; then
