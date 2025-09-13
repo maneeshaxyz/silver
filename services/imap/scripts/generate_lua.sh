@@ -26,7 +26,7 @@ local function api_authenticate(user, password, req)
     local request_body = json.encode({ email = user, password = password })
     local response_body = {}
 
-    local res, code, headers, status = https.request{
+    local params = {
         url = "https://thunder-server:8090/users/authenticate",
         method = "POST",
         headers = {
@@ -34,8 +34,17 @@ local function api_authenticate(user, password, req)
             ["Content-Length"] = tostring(#request_body)
         },
         source = ltn12.source.string(request_body),
-        sink = ltn12.sink.table(response_body)
+        sink = ltn12.sink.table(response_body),
+
+        protocol = "tlsv1_2",   -- enforce TLS 1.2+
+        options = "all",
+
+        cafile = "/etc/ssl/certs/ca-certificates.crt",  -- system CA store (Debian/Ubuntu)
+        verify = "peer",       -- verify server certificate
+        verifyext = { "lsec_continue" },
     }
+
+    local res, code, headers, status = https.request(params)
 
     req:log_debug("HTTPS request finished. HTTP code: " .. tostring(code))
 

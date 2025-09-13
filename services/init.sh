@@ -100,7 +100,27 @@ echo "password = \"\$2\$8hn4c88rmafsueo4h3yckiirwkieidb3\$uge4i3ynbba89qpo1gqmqk
 echo -e "${GREEN}✓ worker-controller.inc created for spam filter${NC}"
 
 # ================================
-# Step 4: Docker Setup
+# Step 4: Thunder TLS Configuration
+# ================================
+echo -e "\n${YELLOW}Step 4/6: Configuring Thunder TLS certificates${NC}"
+
+THUNDER_HOST=${MAIL_DOMAIN}
+THUNDER_PORT=8090
+
+LETSENCRYPT_DIR="./letsencrypt/live/${MAIL_DOMAIN}/"
+
+mkdir -p "./thunder/certs"
+
+cp "${LETSENCRYPT_DIR}/fullchain.pem" "./thunder/certs/server.cert"
+cp "${LETSENCRYPT_DIR}/privkey.pem" "./thunder/certs/server.key"
+
+sudo chown 802:802 ./thunder/certs/server.key ./thunder/certs/server.cert
+
+chmod 600 ./thunder/certs/server.key
+chmod 644 ./thunder/certs/server.cert
+
+# ================================
+# Step 5: Docker Setup
 # ================================
 echo -e "\n${YELLOW}Step 4/6: Starting Docker services${NC}"
 
@@ -125,14 +145,16 @@ else
 fi
 
 # ================================
-# Step 5: Initialize Thunder User Schema
+# Step 6: Initialize Thunder User Schema
 # ================================
+
+
 echo -e "\n${YELLOW}Step 5/6: Creating default user schema in Thunder${NC}"
 
-SCHEMA_RESPONSE=$(curl -sk -w "\n%{http_code}" -X POST \
+SCHEMA_RESPONSE=$(curl -w  "\n%{http_code}" -X POST \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
-  https://localhost:8090/user-schemas \
+  https://${THUNDER_HOST}:${THUNDER_PORT}/user-schemas \
   -d "{
     \"name\": \"emailuser\",
     \"schema\": {
