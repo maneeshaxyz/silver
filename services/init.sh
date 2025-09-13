@@ -148,6 +148,7 @@ mkdir -p "./thunder/certs"
 cp "${LETSENCRYPT_DIR}/fullchain.pem" "./thunder/certs/server.cert"
 cp "${LETSENCRYPT_DIR}/privkey.pem" "./thunder/certs/server.key"
 
+# Set ownership to user ID 802 (thunder user in container)
 sudo chown 802:802 ./thunder/certs/server.key ./thunder/certs/server.cert
 
 chmod 600 ./thunder/certs/server.key
@@ -178,7 +179,7 @@ echo -e " ${GREEN}done${NC}"
 
 echo -e "\n${YELLOW}Step 7/7: Creating default user schema in Thunder${NC}"
 
-SCHEMA_RESPONSE=$(curl -w "\n%{http_code}" -X POST \
+SCHEMA_RESPONSE=$(curl -w  "\n%{http_code}" -X POST \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
   https://${THUNDER_HOST}:${THUNDER_PORT}/user-schemas \
