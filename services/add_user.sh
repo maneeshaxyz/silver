@@ -72,8 +72,9 @@ echo -e "${YELLOW}Step 2/3: Enter new user information${NC}"
 read -p "Enter username: " USER_USERNAME
 read -s -p "Enter password: " USER_PASSWORD
 echo ""
-read -p "Enter email (default: ${USER_USERNAME}@${MAIL_DOMAIN}): " USER_EMAIL
-USER_EMAIL=${USER_EMAIL:-"${USER_USERNAME}@${MAIL_DOMAIN}"}
+
+# Always use default email (no prompt)
+USER_EMAIL="${USER_USERNAME}@${MAIL_DOMAIN}"
 
 echo -e "${GREEN}✓ User input collected${NC}"
 
