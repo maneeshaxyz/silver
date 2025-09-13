@@ -68,6 +68,40 @@ if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
 fi
 
 # ================================
+# Step 2: Generate & Verify Certificates (via certbot container)
+# ================================
+echo -e "\n${YELLOW}Step 2/6: Generating TLS certificates using certbot container${NC}"
+
+# Start only certbot container first
+( cd "${SCRIPT_DIR}" && docker compose up certbot-server --build --force-recreate )
+
+LETSENCRYPT_DIR="./letsencrypt/live/${MAIL_DOMAIN}/"
+
+# Wait until certbot finishes and files exist
+echo -n "⏳ Waiting for certificates..."
+RETRIES=20
+while [ $RETRIES -gt 0 ]; do
+    if [ -f "${LETSENCRYPT_DIR}/fullchain.pem" ] && [ -f "${LETSENCRYPT_DIR}/privkey.pem" ]; then
+        echo -e " ${GREEN}done${NC}"
+        break
+    fi
+    echo -n "."
+    sleep 5
+    RETRIES=$((RETRIES-1))
+done
+
+if [ ! -f "${LETSENCRYPT_DIR}/fullchain.pem" ] || [ ! -f "${LETSENCRYPT_DIR}/privkey.pem" ]; then
+    echo -e "${RED}✗ Certificate generation failed. Required files not found:${NC}"
+    echo " - ${LETSENCRYPT_DIR}/fullchain.pem"
+    echo " - ${LETSENCRYPT_DIR}/privkey.pem"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Certificates ready for ${MAIL_DOMAIN}${NC}"
+echo " - ${LETSENCRYPT_DIR}/fullchain.pem"
+echo " - ${LETSENCRYPT_DIR}/privkey.pem"
+
+# ================================
 # Step 2: SMTP Configuration
 # ================================
 echo -e "\n${YELLOW}Step 2/6: Creating SMTP configuration${NC}"
@@ -136,13 +170,6 @@ while [ "$(cd "${SCRIPT_DIR}" && docker compose ps --services --filter "status=r
     sleep 5
 done
 echo -e " ${GREEN}done${NC}"
-
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✓ SMTP service rebuilt and running${NC}"
-else
-    echo -e "${RED}✗ Failed to recreate SMTP service. Please check the logs.${NC}"
-    exit 1
-fi
 
 # ================================
 # Step 6: Initialize Thunder User Schema
