@@ -38,11 +38,16 @@ decrypt_password() {
     while [ $i -lt ${#encrypted} ]; do
         local hex_pair="${encrypted:$i:2}"
         if [ ${#hex_pair} -eq 2 ]; then
-            local char_code=$((0x$hex_pair))
-            local key_char="${key:$(((i/2) % key_len)):1}"
-            local key_code=$(printf '%d' "'$key_char")
-            local xor_result=$((char_code ^ key_code))
-            decrypted="${decrypted}$(printf "\\$(printf %o $xor_result)")"
+            if [[ "$hex_pair" =~ ^[0-9A-Fa-f]{2}$ ]]; then
+                local char_code=$((0x$hex_pair))
+                local key_char="${key:$(((i/2) % key_len)):1}"
+                local key_code=$(printf '%d' "'$key_char")
+                local xor_result=$((char_code ^ key_code))
+                decrypted="${decrypted}$(printf "\\$(printf %o $xor_result)")"
+            else
+                echo -e "${RED}✗ Invalid hex pair: '$hex_pair' in encrypted string${NC}" >&2
+                return 1
+            fi
         fi
         i=$((i + 2))
     done
