@@ -44,7 +44,8 @@ echo -e "${CYAN}---------------------------------------------${NC}\n"
 
 # Generate a random strong password
 generate_password() {
-    tr -dc 'A-Za-z0-9!@#$%^&*' < /dev/urandom | head -c 16
+    # Use OpenSSL for cryptographically secure password generation
+    openssl rand -base64 24 | tr -d '\n' | head -c 16
 }
 
 # Simple XOR encryption
