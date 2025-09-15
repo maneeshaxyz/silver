@@ -140,7 +140,7 @@ echo -e "\n${YELLOW}Step 4.5: Updating ${MAIL_DOMAIN} mapping in /etc/hosts${NC}
 
 if grep -q "[[:space:]]${MAIL_DOMAIN}" /etc/hosts; then
     # Replace existing entry
-    sudo sed -i "s/^.*[[:space:]]${MAIL_DOMAIN}/127.0.0.1   ${MAIL_DOMAIN}/" /etc/hosts
+    sudo sed -i "/^[^#]*[[:space:]]${MAIL_DOMAIN}\([[:space:]]\|$\)/s/^.*[[:space:]]${MAIL_DOMAIN}\([[:space:]]\|$\).*/127.0.0.1   ${MAIL_DOMAIN}/" /etc/hosts
     echo -e "${GREEN}✓ Updated existing ${MAIL_DOMAIN} entry to 127.0.0.1${NC}"
 else
     # Add new if not present
