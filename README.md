@@ -89,7 +89,7 @@ bash init.sh
 
 ### Adding users
 
-- To add more users to your email server, open up users.yaml, and add their usernames.
+- To add more users to your email server, open up users.yaml, and add their usernames and run the following command.
 
 ```bash
 # silver/services
