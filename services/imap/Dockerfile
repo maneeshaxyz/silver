@@ -14,8 +14,13 @@ RUN apt-get update && \
         lua-socket \
         lua-sec \
         lua-dkjson \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-    
+        wget \
+        ca-certificates && \
+    wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" && \
+    chmod +x /usr/local/bin/yq && \
+    apt-get purge -y --auto-remove wget && \
+    apt clean
+
 # Create vmail user and group for virtual mailboxes
 RUN groupadd -g 5000 vmail && \
     useradd -u 5000 -g vmail -s /bin/false -d /var/mail/vmail -M vmail
