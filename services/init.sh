@@ -134,6 +134,21 @@ echo "password = \"\$2\$8hn4c88rmafsueo4h3yckiirwkieidb3\$uge4i3ynbba89qpo1gqmqk
 echo -e "${GREEN}✓ worker-controller.inc created for spam filter${NC}"
 
 # ================================
+# Step 4.5: Ensure ${MAIL_DOMAIN} points to 127.0.0.1 in /etc/hosts
+# ================================
+echo -e "\n${YELLOW}Step 4.5: Updating ${MAIL_DOMAIN} mapping in /etc/hosts${NC}"
+
+if grep -q "[[:space:]]${MAIL_DOMAIN}" /etc/hosts; then
+    # Replace existing entry
+    sudo sed -i "s/^.*[[:space:]]${MAIL_DOMAIN}/127.0.0.1   ${MAIL_DOMAIN}/" /etc/hosts
+    echo -e "${GREEN}✓ Updated existing ${MAIL_DOMAIN} entry to 127.0.0.1${NC}"
+else
+    # Add new if not present
+    echo "127.0.0.1   ${MAIL_DOMAIN}" | sudo tee -a /etc/hosts > /dev/null
+    echo -e "${GREEN}✓ Added ${MAIL_DOMAIN} entry to /etc/hosts${NC}"
+fi
+
+# ================================
 # Step 5: Thunder TLS Configuration
 # ================================
 echo -e "\n${YELLOW}Step 5/7: Configuring Thunder TLS certificates${NC}"
