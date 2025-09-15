@@ -8,12 +8,13 @@ The Silver project aims to reinvent email and digital communication that is suit
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Minimum hardware requirements](#minimum-hardware-requirements)
+    - [Software](#software)
     - [DNS setup](#dns-setup)
     - [Server Setup](#server-setup)
     - [Configuration](#configuration)
     - [Adding users](#adding-users)
     - [Testing your setup](#testing-your-setup)
-  - [Software](#software)
+  - [Open Source Software](#open-source-software)
   - [Contributing](#contributing)
   - [License](#license)
   - [Miscellaneous](#miscellaneous)
@@ -33,6 +34,9 @@ The Silver project aims to reinvent email and digital communication that is suit
 - 4GB of memory
 - 1GB of swap
 
+### Software 
+- Ensure you have [Git](https://git-scm.com/downloads/linux) and [Docker Engine](https://docs.docker.com/engine/install/) installed
+  
 ### DNS setup
 You own <a>example.com</a> and want to send email as person@example.com.
 
@@ -54,7 +58,7 @@ You will need to add a few records to your DNS control panel.
 > PTR records usually are set through your hosting provider. 
 
 ### Server Setup
-- Ensure you have [Git](https://git-scm.com/downloads/linux) and [Docker Engine](https://docs.docker.com/engine/install/) installed
+
 -  Clone the repository and navigate to the services folder.
 
 ```bash
@@ -70,6 +74,7 @@ cd silver/services
 - Run the `init.sh`
 
 ```bash
+# silver/services
 bash init.sh
 ```
 
@@ -102,7 +107,7 @@ bash add_users.sh
 
 - You can also set up a Mail User Agent (MUA) like Thunderbird to send and receive emails. Follow the instructions in [Mail User Agent Setup](docs/Mail-User-Agent-Setup.md).
 
-## Software
+## Open Source Software
 
 Silver is built using opensource software. 
 
