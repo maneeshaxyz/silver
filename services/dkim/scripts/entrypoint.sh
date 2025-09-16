@@ -1,18 +1,19 @@
 #!/bin/bash
 set -e
 
+chown -R opendkim:opendkim /etc/opendkim/keys /var/run/opendkim
+
 CONFIG_FILE="/etc/opendkim/silver.yaml"
 
+# Extract variables from YAML
 export MAIL_DOMAIN=$(yq -e '.domain' "$CONFIG_FILE")
-
-# Defaults
 MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
 DKIM_SELECTOR=${DKIM_SELECTOR:-mail}
 DKIM_KEY_SIZE=${DKIM_KEY_SIZE:-2048}
 
-# Create directories
-mkdir -p /etc/opendkim/keys/$MAIL_DOMAIN
-chown -R opendkim:opendkim /etc/opendkim/keys
+mkdir -p /etc/opendkim/keys/$MAIL_DOMAIN /var/run/opendkim
+chown -R opendkim:opendkim /etc/opendkim /var/run/opendkim
+chmod 700 /etc/opendkim/keys
 
 # Generate DKIM keys if missing
 if [ ! -f /etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.private ]; then
@@ -44,7 +45,7 @@ cat > /etc/opendkim/SigningTable <<EOF
 *@$MAIL_DOMAIN $DKIM_SELECTOR._domainkey.$MAIL_DOMAIN
 EOF
 
-# Start OpenDKIM
+# Output DKIM record
 echo "Starting OpenDKIM..."
 echo ""
 echo "========== DKIM DNS Record =========="
@@ -54,4 +55,5 @@ cat /etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.txt
 echo "====================================="
 echo ""
 
+# Start OpenDKIM
 exec opendkim -f
