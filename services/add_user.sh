@@ -104,6 +104,13 @@ update_container_virtual_users() {
     "
 }
 
+# Check user count in container
+get_container_user_count() {
+    local smtp_container="$1"
+    local count=$(docker exec "$smtp_container" bash -c "grep -c '@' '${CONTAINER_VIRTUAL_USERS_FILE}' 2>/dev/null || echo '0'" | tr -d '\n\r' | head -c 10)
+    echo ${count:-0}
+}
+
 # Create proper maildir structure
 create_user_maildir() {
     local smtp_container="$1"
@@ -159,7 +166,7 @@ docker exec "$SMTP_CONTAINER" bash -c "
 "
 
 # Get current user count
-CURRENT_USER_COUNT=$(docker exec "$SMTP_CONTAINER" bash -c "grep -c '@' '${CONTAINER_VIRTUAL_USERS_FILE}' 2>/dev/null || echo '0'" | tr -d '\n\r' | head -c 10)
+CURRENT_USER_COUNT=$(get_container_user_count "$SMTP_CONTAINER")
 CURRENT_USER_COUNT=${CURRENT_USER_COUNT:-0}
 echo -e "${CYAN}Current users: ${GREEN}$CURRENT_USER_COUNT${NC}. Maximum allowed: $MAX_USERS${NC}"
 
@@ -225,8 +232,7 @@ while IFS= read -r line; do
             USER_EMAIL="${USER_USERNAME}@${MAIL_DOMAIN}"
 
             # Check user limit
-            CURRENT_USER_COUNT=$(docker exec "$SMTP_CONTAINER" bash -c "grep -c '@' '${CONTAINER_VIRTUAL_USERS_FILE}' 2>/dev/null || echo '0'" | tr -d '\n\r' | head -c 10)
-            CURRENT_USER_COUNT=${CURRENT_USER_COUNT:-0}
+            CURRENT_USER_COUNT=$(get_container_user_count "$SMTP_CONTAINER")
             if [ "$CURRENT_USER_COUNT" -ge "$MAX_USERS" ]; then
                 echo -e "${RED}✗ Cannot add ${USER_USERNAME}: maximum user limit ($MAX_USERS) reached. Skipping.${NC}"
                 USER_USERNAME=""
@@ -367,7 +373,7 @@ fi
 # -------------------------------
 # Final Summary
 # -------------------------------
-TOTAL_USERS=$(docker exec "$SMTP_CONTAINER" bash -c "grep -c '@' '${CONTAINER_VIRTUAL_USERS_FILE}' 2>/dev/null || echo '0'")
+TOTAL_USERS=$(get_container_user_count "$SMTP_CONTAINER")
 echo -e "\n${CYAN}==============================================${NC}"
 echo -e " 🎉 ${GREEN}User Setup Complete!${NC}"
 echo " Total new users added: $ADDED_COUNT"
