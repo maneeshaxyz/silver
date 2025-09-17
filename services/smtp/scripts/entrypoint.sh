@@ -128,7 +128,7 @@ mkdir -p "$VMAIL_DIR"
 chown vmail:mail "$VMAIL_DIR"
 chmod 755 "$VMAIL_DIR"
 
-echo "=== vmail user and directory created ==="
+echo "=== vmail directory setup completed ==="
 
 # -------------------------------
 # Fix for DNS resolution in chroot
