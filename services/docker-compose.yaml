@@ -77,7 +77,7 @@ services:
     image: ghcr.io/asgardeo/thunder:latest
     container_name: thunder-server
     ports:
-      - "8090:8090"
+      - "127.0.0.1:8090:8090"
     networks:
       - mail-network
     volumes:
