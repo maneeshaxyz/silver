@@ -26,6 +26,10 @@ RUN apt-get update && \
 RUN groupadd -g 5000 vmail && \
     useradd -u 5000 -g vmail -s /usr/sbin/nologin -d /var/mail/vmail -M vmail
 
+# We need a dummy postfix user to make dovecot happy.
+RUN groupadd -g 1001 postfix && \
+    useradd -u 1001 -g postfix -s /usr/sbin/nologin -M postfix
+
 # Create virtual mail directory structure
 RUN mkdir -p /var/mail/vmail && \
     chown -R vmail:vmail /var/mail/vmail && \
