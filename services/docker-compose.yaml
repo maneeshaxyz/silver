@@ -7,7 +7,7 @@ services:
       - "25:25"
       - "587:587"
     volumes:
-      - ./silver.yaml:/etc/postfix/silver.yaml:ro
+      - ./silver.yaml:/etc/postfix/silver.yaml
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
       - ./letsencrypt:/etc/letsencrypt:ro
@@ -43,7 +43,7 @@ services:
       context: ./dkim
     container_name: opendkim-server
     volumes:
-      - ./silver.yaml:/etc/opendkim/silver.yaml:ro
+      - ./silver.yaml:/etc/opendkim/silver.yaml
       - dkim-keys:/etc/opendkim/keys
     networks:
       - mail-network
