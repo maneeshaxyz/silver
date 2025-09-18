@@ -11,9 +11,9 @@ services:
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
       - ./letsencrypt:/etc/letsencrypt:ro
-      - ./smtp/conf/virtual-domains:/etc/postfix/virtual-domains:ro
-      - ./smtp/conf/virtual-users:/etc/postfix/virtual-users:ro
-      - ./smtp/conf/virtual-aliases:/etc/postfix/virtual-aliases:ro
+      - ./smtp/conf/virtual-domains:/etc/postfix/virtual-domains:rw
+      - ./smtp/conf/virtual-users:/etc/postfix/virtual-users:rw
+      - ./smtp/conf/virtual-aliases:/etc/postfix/virtual-aliases:rw
     networks:
       - mail-network
     depends_on:
