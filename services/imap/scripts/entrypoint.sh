@@ -22,7 +22,6 @@ plugin {
   # POP3-specific settings
   pop3_client_workarounds = outlook-no-nuls oe-ns-eoh
   pop3_uidl_format = %n
-  pop3_keep_on_server = yes    # Prevent deletion from POP3 clients
   pop3_read_only = yes
 }
 
