@@ -15,6 +15,7 @@ RUN apt-get update && \
         lua-sec \
         lua-dkjson \
         wget \
+        dovecot-pop3d \
         ca-certificates && \
     wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" && \
     chmod +x /usr/local/bin/yq && \
