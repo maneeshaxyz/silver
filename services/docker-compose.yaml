@@ -28,6 +28,9 @@ services:
     container_name: dovecot-server
     ports:
       - "143:143"
+      - "993:993"
+      - "110:110"
+      - "995:995"
     volumes:
       - ./silver.yaml:/etc/dovecot/silver.yaml:ro
       - maildata:/var/mail/vmail
