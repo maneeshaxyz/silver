@@ -11,8 +11,7 @@ Please provide a brief description of the changes:
 
 ## 📋 Related Issues
 
-Fixes # (issue number)  
-Closes # (issue number)
+Fixes #<issue-number> (remove if not applicable)
 
 ---
 
