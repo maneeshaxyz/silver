@@ -47,6 +47,10 @@ services:
       - dkim-keys:/etc/opendkim/keys
     networks:
       - mail-network
+    cap_drop:
+      - all
+    security_opt:
+    - no-new-privileges:true
 
   rspamd-server:
     image: rspamd/rspamd:latest
