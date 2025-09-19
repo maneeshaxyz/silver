@@ -53,7 +53,7 @@ services:
     cap_drop:
       - all
     security_opt:
-    - no-new-privileges:true
+      - no-new-privileges:true
 
   rspamd-server:
     image: rspamd/rspamd:latest
@@ -65,7 +65,7 @@ services:
     volumes:
       - rspamd_data:/var/lib/rspamd
       - ./spam/conf:/etc/rspamd/local.d
-      - clamsock:/var/run/clamav  # shared socket volume
+      - clamsock:/var/run/clamav # shared socket volume
     networks:
       - mail-network
 
@@ -73,7 +73,7 @@ services:
     image: mkodockx/docker-clamav:alpine
     container_name: clamav-server
     volumes:
-      - clamsock:/var/run/clamav  # shared socket volume
+      - clamsock:/var/run/clamav # shared socket volume
     networks:
       - mail-network
     restart: always
@@ -88,13 +88,13 @@ services:
     networks:
       - mail-network
     volumes:
-       - ./thunder/certs/server.cert:/opt/thunder/repository/resources/security/server.cert:ro
-       - ./thunder/certs/server.key:/opt/thunder/repository/resources/security/server.key:ro
+      - ./thunder/certs/server.cert:/opt/thunder/repository/resources/security/server.cert:ro
+      - ./thunder/certs/server.key:/opt/thunder/repository/resources/security/server.key:ro
     depends_on:
       - certbot-server
 
   certbot-server:
-    build: 
+    build:
       context: ./certbot
     container_name: certbot-server
     volumes:
@@ -113,6 +113,7 @@ volumes:
   dkim-keys:
   rspamd_data:
   clamsock:
+
 
 networks:
   mail-network:
