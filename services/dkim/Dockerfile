@@ -2,7 +2,7 @@ FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Create a system user and group for opendkim
-RUN groupadd -r opendkim && useradd -r -g opendkim -s /sbin/nologin opendkim
+RUN groupadd -r opendkim && useradd -r -g opendkim -s /usr/sbin/nologin opendkim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
