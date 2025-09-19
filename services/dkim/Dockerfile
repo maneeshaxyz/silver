@@ -1,6 +1,9 @@
 FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Create a system user and group for opendkim
+RUN groupadd -r opendkim && useradd -r -g opendkim -s /sbin/nologin opendkim
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     opendkim \
@@ -8,22 +11,24 @@ RUN apt-get update && \
     openssl \
     ca-certificates \
     curl && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install yq for YAML parsing
 RUN curl -L -o /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" && \
     chmod +x /usr/local/bin/yq
 
-RUN mkdir -p /etc/opendkim/keys /var/run/opendkim && \
-    chown -R opendkim:opendkim /etc/opendkim /var/run/opendkim && \
-    chmod 700 /etc/opendkim/keys
+# Create directories with proper ownership and permissions
+RUN mkdir -p /etc/opendkim/keys /var/run/opendkim
 
 COPY conf/opendkim.conf /etc/opendkim.conf
 COPY scripts/entrypoint.sh /entrypoint.sh
 
-# Set script permissions
-RUN chmod 750 /entrypoint.sh && chown opendkim:opendkim /entrypoint.sh
+# IMPORTANT: Fix ownership of ALL files after copying
+RUN chown -R opendkim:opendkim /etc/opendkim /var/run/opendkim /entrypoint.sh && \
+    chmod 755 /etc/opendkim/keys && \
+    chmod 750 /entrypoint.sh
 
+USER opendkim
 EXPOSE 8891
-
 ENTRYPOINT ["/entrypoint.sh"]

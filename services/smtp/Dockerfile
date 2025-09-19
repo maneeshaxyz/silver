@@ -9,7 +9,6 @@ RUN apt update && \
     apt-get purge -y --auto-remove wget && \
     apt clean
 
-# Copy entrypoint file and generating sql maps
 COPY scripts/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh
