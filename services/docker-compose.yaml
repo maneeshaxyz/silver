@@ -70,7 +70,9 @@ services:
       - mail-network
 
   clamav-server:
-    image: mkodockx/docker-clamav:alpine
+    image: clamav/clamav:stable
+    # uncomment when running on mac os
+    #platform: linux/amd64  
     container_name: clamav-server
     volumes:
       - clamsock:/var/run/clamav # shared socket volume
