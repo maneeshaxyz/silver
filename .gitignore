@@ -29,3 +29,6 @@ services/thunder/certs/
 
 # Ignore decrypted passwords file
 scripts/decrypt/user_passwords.txt
+
+# Ignore Go build files
+services/go-imap/mails.db
