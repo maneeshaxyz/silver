@@ -5,9 +5,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Expose IMAP/POP3 ports
 EXPOSE 143 993 110 995
 
-# non root dovecot user
-RUN groupadd -r dovecot && useradd -r -g dovecot -s /usr/sbin/nologin dovecot
-
 # Install dovecot, Lua, and required utilities
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -50,7 +47,5 @@ COPY scripts/entrypoint.sh /entrypoint.sh
 COPY scripts/generate_lua.sh /generate_lua.sh
 
 RUN chmod +x /entrypoint.sh /generate_lua.sh
-
-USER dovecot
 
 CMD ["/entrypoint.sh"]
