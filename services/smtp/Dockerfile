@@ -1,8 +1,6 @@
 FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 EXPOSE 25 587
-# non root postfix user
-RUN groupadd -r postfix && useradd -r -g postfix -s /usr/sbin/nologin postfix
 
 # Install required packages
 RUN apt-get update && \
@@ -16,8 +14,6 @@ RUN apt-get update && \
 COPY scripts/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh
-
-USER postfix
 
 # Start Postfix service and run the entrypoint script
 CMD ["/entrypoint.sh"]
