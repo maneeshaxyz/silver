@@ -6,7 +6,7 @@ RUN groupadd -r postfix && useradd -r -g postfix -s /usr/sbin/nologin postfix
 
 # Install required packages
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget postfix mailutils iputils-ping && \
+    apt-get install -y --no-install-recommends wget postfix mailutils iputils-ping ca-certificates && \
     wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" && \
     chmod +x /usr/local/bin/yq && \
     apt-get purge -y --auto-remove wget && \
