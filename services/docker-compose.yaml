@@ -21,15 +21,13 @@ services:
       - dovecot-server
       - rspamd-server
       - certbot-server
-    security_opt:
-      - no-new-privileges:true
 
   dovecot-server:
     build:
       context: ./imap
     container_name: dovecot-server
     ports:
-      - "143:143"
+      - "1143:143"
       - "993:993"
       - "110:110"
       - "995:995"
@@ -42,8 +40,6 @@ services:
       - mail-network
     depends_on:
       - certbot-server
-    security_opt:
-      - no-new-privileges:true
 
   opendkim-server:
     build:
@@ -69,30 +65,20 @@ services:
     volumes:
       - rspamd_data:/var/lib/rspamd
       - ./spam/conf:/etc/rspamd/local.d
-      - clamsock:/var/run/clamav # shared socket volume
+      - clamsock:/var/run/clamav
     networks:
       - mail-network
-    cap_drop:
-      - all
-    security_opt:
-      - no-new-privileges:true
 
   clamav-server:
-    image: clamav/clamav:stable
-    # uncomment when running on mac os
-    #platform: linux/amd64  
+    image: mkodockx/docker-clamav:alpine
     container_name: clamav-server
     volumes:
-      - clamsock:/var/run/clamav # shared socket volume
+      - clamsock:/var/run/clamav
     networks:
       - mail-network
     restart: always
     depends_on:
       - rspamd-server
-    cap_drop:
-      - all
-    security_opt:
-      - no-new-privileges:true
 
   thunder-server:
     image: ghcr.io/asgardeo/thunder:latest
@@ -104,12 +90,11 @@ services:
     volumes:
       - ./thunder/certs/server.cert:/opt/thunder/repository/resources/security/server.cert:ro
       - ./thunder/certs/server.key:/opt/thunder/repository/resources/security/server.key:ro
+    environment:
+      - THUNDER_TLS_ENABLED=true
+      - THUNDER_PORT=8090
     depends_on:
       - certbot-server
-    cap_drop:
-      - all
-    security_opt:
-      - no-new-privileges:true
 
   certbot-server:
     build:
@@ -124,10 +109,20 @@ services:
       - "443:443"
     networks:
       - mail-network
-    cap_drop:
-      - all
-    security_opt:
-      - no-new-privileges:true
+
+  go-imap-server:
+    build:
+      context: ./go-imap
+    container_name: go-imap-server
+    ports:
+      - "143:143"
+    volumes:
+      - go-imap-data:/app/data
+    networks:
+      - mail-network
+    environment:
+      - DB_FILE=/app/data/mails.db
+    restart: unless-stopped
 
 volumes:
   maildata:
@@ -135,7 +130,7 @@ volumes:
   dkim-keys:
   rspamd_data:
   clamsock:
-
+  go-imap-data:
 
 networks:
   mail-network:
