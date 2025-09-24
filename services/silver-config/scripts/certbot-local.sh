@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-
 # ---------------------------
 # Fake Certbot Script for Local Dev
 # ---------------------------
