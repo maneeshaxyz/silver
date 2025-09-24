@@ -118,11 +118,13 @@ services:
       - "143:143"
     volumes:
       - go-imap-data:/app/data
+      - ./letsencrypt:/etc/letsencrypt:ro
     networks:
       - mail-network
     environment:
       - DB_FILE=/app/data/mails.db
     restart: unless-stopped
+    user: "0:0"
 
 volumes:
   maildata:
