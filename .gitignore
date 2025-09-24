@@ -32,4 +32,4 @@ services/thunder/certs/
 scripts/decrypt/user_passwords.txt
 
 # generated files
-services/silver-config/data/gen/
+services/silver-config/gen/

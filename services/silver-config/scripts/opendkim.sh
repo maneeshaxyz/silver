@@ -17,7 +17,7 @@ set -o pipefail
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ROOT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 readonly SILVER_YAML_FILE="${ROOT_DIR}/silver.yaml"
-readonly DKIM_DATA_PATH="${ROOT_DIR}/silver-config/data/gen/opendkim"
+readonly DKIM_DATA_PATH="${ROOT_DIR}/silver-config/gen/opendkim"
 readonly DKIM_SELECTOR=mail
 # --- Main Logic ---
 readonly MAIL_DOMAIN=$(grep -m 1 '^domain:' "${SILVER_YAML_FILE}" | sed 's/domain: //' | xargs)
@@ -47,7 +47,6 @@ $DKIM_SELECTOR._domainkey.$MAIL_DOMAIN $MAIL_DOMAIN:$DKIM_SELECTOR:/etc/opendkim
 EOF
 
 echo "Successfully generated OpenDKIM KeyTable file for domain: ${MAIL_DOMAIN}"
-
 
 # # if keys missing
 # if [ ! -f /etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.private ]; then
