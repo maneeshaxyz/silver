@@ -67,10 +67,9 @@ if ! [[ "${MAIL_DOMAIN}" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
   exit 1
 fi
 
-# Generate local certificates
-# docker compose up certbot-server
+# Generate config files.
 
 echo -e "\n${YELLOW}Step 2/8: Generate local certificates${NC}"
 
-bash ./config/scripts/certbot-local.sh
-bash ./config/scripts/opendkim.sh
+bash ./silver-config/scripts/certbot-local.sh
+bash ./silver-config/scripts/opendkim.sh
