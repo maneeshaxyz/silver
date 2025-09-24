@@ -23,26 +23,6 @@ if [ ! -f /etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.private ]; then
     echo "DKIM keys ready."
 fi
 
-# Write TrustedHosts
-cat > /etc/opendkim/TrustedHosts <<EOF
-127.0.0.1
-localhost
-192.168.65.0/16
-172.16.0.0/12
-10.0.0.0/8
-*.${MAIL_DOMAIN}
-EOF
-
-# Write KeyTable
-cat > /etc/opendkim/KeyTable <<EOF
-$DKIM_SELECTOR._domainkey.$MAIL_DOMAIN $MAIL_DOMAIN:$DKIM_SELECTOR:/etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.private
-EOF
-
-# Write SigningTable
-cat > /etc/opendkim/SigningTable <<EOF
-*@$MAIL_DOMAIN $DKIM_SELECTOR._domainkey.$MAIL_DOMAIN
-EOF
-
 # Output DKIM record
 echo "Starting OpenDKIM..."
 echo ""

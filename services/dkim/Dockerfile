@@ -22,7 +22,6 @@ RUN curl -L -o /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/lates
 # Create directories with proper ownership and permissions
 RUN mkdir -p /etc/opendkim/keys /var/run/opendkim
 
-COPY conf/opendkim.conf /etc/opendkim.conf
 COPY scripts/entrypoint.sh /entrypoint.sh
 
 # IMPORTANT: Fix ownership of ALL files after copying
