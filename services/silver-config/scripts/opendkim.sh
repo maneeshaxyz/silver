@@ -5,13 +5,7 @@
 #
 
 # --- Sanity Checks & Configuration ---
-
-# Exit immediately if a command exits with a non-zero status.
-set -e
-# Treat unset variables as an error when substituting.
-set -u
-# The return value of a pipeline is the status of the last command to exit with a non-zero status.
-set -o pipefail
+set -euo pipefail
 
 # Define constant paths
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,9 +13,11 @@ readonly ROOT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 readonly SILVER_YAML_FILE="${ROOT_DIR}/silver.yaml"
 readonly DKIM_DATA_PATH="${ROOT_DIR}/silver-config/gen/opendkim"
 readonly DKIM_SELECTOR=mail
+
 # --- Main Logic ---
 readonly MAIL_DOMAIN=$(grep -m 1 '^domain:' "${SILVER_YAML_FILE}" | sed 's/domain: //' | xargs)
 
+# --- generate all files needed for OpenDkim ---
 # Generate the TrustedHosts file.
 mkdir -p ${DKIM_DATA_PATH}
 cat >"${DKIM_DATA_PATH}/TrustedHosts" <<EOF

@@ -71,5 +71,7 @@ fi
 
 echo -e "\n${YELLOW}Step 2/8: Generate local certificates${NC}"
 
+# TODO: comment this out 
 bash ./silver-config/scripts/certbot-local.sh
+
 bash ./silver-config/scripts/opendkim.sh
