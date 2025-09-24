@@ -14,6 +14,7 @@ services:
       - ./smtp/conf/virtual-domains:/etc/postfix/virtual-domains:rw
       - ./smtp/conf/virtual-users:/etc/postfix/virtual-users:rw
       - ./smtp/conf/virtual-aliases:/etc/postfix/virtual-aliases:rw
+      - go-imap-data:/app/data
     networks:
       - mail-network
     depends_on:
