@@ -43,27 +43,3 @@ $DKIM_SELECTOR._domainkey.$MAIL_DOMAIN $MAIL_DOMAIN:$DKIM_SELECTOR:/etc/opendkim
 EOF
 
 echo "Successfully generated OpenDKIM KeyTable file for domain: ${MAIL_DOMAIN}"
-
-# # if keys missing
-# if [ ! -f /etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.private ]; then
-#     echo "Generating DKIM keys for $MAIL_DOMAIN..."
-#     opendkim-genkey -b $DKIM_KEY_SIZE -s $DKIM_SELECTOR -d $MAIL_DOMAIN -D /etc/opendkim/keys/$MAIL_DOMAIN/
-#     chmod 600 /etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.private
-#     chmod 644 /etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.txt
-#     echo "DKIM keys ready."
-# fi
-
-# # Write TrustedHosts
-
-# # Output DKIM record
-# echo "Starting OpenDKIM..."
-# echo ""
-# echo "========== DKIM DNS Record =========="
-# echo "Record name: $DKIM_SELECTOR._domainkey.$MAIL_DOMAIN"
-# echo "Record value:"
-# cat /etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.txt
-# echo "====================================="
-# echo ""
-
-# # Start OpenDKIM
-# exec opendkim -f
