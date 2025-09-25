@@ -15,7 +15,7 @@
 # Example (this line is commented out and is just a guide):
 # domain: your-awesome-domain.com
 
-domain: maneesha.dev
+domain: hello.dev
 
 # DKIM 
 dkim-selector: 
