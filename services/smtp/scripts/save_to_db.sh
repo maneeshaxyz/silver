@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import sys, email, sqlite3, os
+from datetime import datetime
 
-DB_FILE = "/var/mail/maildb.sqlite"
+# Use same path as your container setup
+DB_FILE = "/app/data/mails.db"
 
 # Read full email
 raw_msg = sys.stdin.read()
@@ -15,35 +17,45 @@ recipient = sys.argv[-1]
 subject = msg.get("Subject", "")
 mail_from = msg.get("From", sender)
 mail_to = msg.get("To", recipient)
-date = msg.get("Date", "")
+date_header = msg.get("Date", "")
 
-# Extract plain text body
-body = ""
-if msg.is_multipart():
-    for part in msg.walk():
-        if part.get_content_type() == "text/plain":
-            body += part.get_payload(decode=True).decode(errors="ignore")
-else:
-    try:
-        body = msg.get_payload(decode=True).decode(errors="ignore")
-    except Exception:
-        body = msg.get_payload()
+# Normalize date → RFC3339 (same as Go code)
+try:
+    # Parse if valid date
+    from email.utils import parsedate_to_datetime
+    dt = parsedate_to_datetime(date_header)
+    date_sent = dt.isoformat()
+except Exception:
+    date_sent = datetime.utcnow().isoformat()
 
-# Save into SQLite
+# Save into SQLite with Go-compatible schema
 conn = sqlite3.connect(DB_FILE)
 cur = conn.cursor()
 cur.execute("""
     CREATE TABLE IF NOT EXISTS mails (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        mail_from TEXT,
-        mail_to TEXT,
         subject TEXT,
-        date TEXT,
-        body TEXT,
-        raw_message TEXT
+        sender TEXT,
+        recipient TEXT,
+        date_sent TEXT,
+        raw_message TEXT,
+        flags TEXT DEFAULT '',
+        folder TEXT DEFAULT 'INBOX'
     )
 """)
-cur.execute("INSERT INTO mails (mail_from, mail_to, subject, date, body, raw_message) VALUES (?,?,?,?,?,?)",
-            (mail_from, mail_to, subject, date, body, raw_msg))
+cur.execute("""
+    CREATE TABLE IF NOT EXISTS folders (
+        name TEXT PRIMARY KEY,
+        delimiter TEXT DEFAULT '/',
+        attributes TEXT DEFAULT ''
+    )
+""")
+cur.execute("INSERT OR IGNORE INTO folders (name) VALUES ('INBOX'), ('Sent'), ('Drafts'), ('Trash')")
+
+cur.execute("""
+    INSERT INTO mails (subject, sender, recipient, date_sent, raw_message, folder)
+    VALUES (?, ?, ?, ?, ?, ?)
+""", (subject, mail_from, mail_to, date_sent, raw_msg, "INBOX"))
+
 conn.commit()
 conn.close()
