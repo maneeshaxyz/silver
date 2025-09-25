@@ -33,4 +33,4 @@ scripts/decrypt/user_passwords.txt
 
 # generated files and volumes
 services/silver-config/gen/
-services/silver-config/volumes
+services/silver-config/data

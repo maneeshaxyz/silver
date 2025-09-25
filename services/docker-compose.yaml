@@ -52,7 +52,7 @@ services:
     container_name: opendkim-server
     volumes:
       - ./silver.yaml:/etc/opendkim/silver.yaml
-      - ./silver-config/volumes/opendkim/keys:/etc/dkimkeys
+      - ./silver-config/data/opendkim/keys:/etc/dkimkeys
     networks:
       - mail-network
     cap_drop:
