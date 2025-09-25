@@ -39,7 +39,7 @@ echo "Successfully generated OpenDKIM SigningTable file for domain: ${MAIL_DOMAI
 
 # Write KeyTable
 cat > "${DKIM_DATA_PATH}/KeyTable" <<EOF
-$DKIM_SELECTOR._domainkey.$MAIL_DOMAIN $MAIL_DOMAIN:$DKIM_SELECTOR:/etc/opendkim/keys/$MAIL_DOMAIN/$DKIM_SELECTOR.private
+$DKIM_SELECTOR._domainkey.$MAIL_DOMAIN $MAIL_DOMAIN:$DKIM_SELECTOR:/etc/dkimkeys/$MAIL_DOMAIN/$DKIM_SELECTOR.private
 EOF
 
 echo "Successfully generated OpenDKIM KeyTable file for domain: ${MAIL_DOMAIN}"
