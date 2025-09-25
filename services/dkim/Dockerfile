@@ -20,7 +20,7 @@ RUN curl -L -o /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/lates
     chmod +x /usr/local/bin/yq
 
 # Create directories with proper ownership and permissions
-RUN mkdir -p /etc/opendkim/keys /var/run/opendkim
+RUN mkdir -p  /var/run/opendkim
 
 COPY ./dkim/scripts/entrypoint.sh /entrypoint.sh
 COPY ./dkim/conf/opendkim.conf /etc/opendkim/opendkim.conf
@@ -31,7 +31,6 @@ COPY  ./silver-config/gen/opendkim/TrustedHosts etc/opendkim/TrustedHosts
 
 # IMPORTANT: Fix ownership of ALL files after copying
 RUN chown -R opendkim:opendkim /etc/opendkim /var/run/opendkim /entrypoint.sh && \
-    chmod 755 /etc/opendkim/keys && \
     chmod 750 /entrypoint.sh
 
 USER opendkim
