@@ -17,6 +17,7 @@ services:
       - go-imap-data:/app/data
     networks:
       - mail-network
+    command: sh -c "chmod -R 0777 /app/data && /entrypoint.sh"
     depends_on:
       - opendkim-server
       - dovecot-server
