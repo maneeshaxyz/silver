@@ -3,7 +3,7 @@ FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Expose IMAP/POP3 ports
-EXPOSE 143 993 110 995
+EXPOSE 1143 993 110 995
 
 # Install dovecot, Lua, and required utilities
 RUN apt-get update && \
