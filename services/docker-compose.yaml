@@ -121,6 +121,7 @@ services:
     volumes:
       - go-imap-data:/app/data
       - ./letsencrypt:/etc/letsencrypt:ro
+      - ./silver.yaml:/etc/goImap/silver.yaml
     networks:
       - mail-network
     environment:
