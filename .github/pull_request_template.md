@@ -21,11 +21,9 @@
 ---
 
 ## 🧪 Testing Instructions
-<!-- Explain how reviewers can test your changes locally. -->
-1. Run `docker-compose up`
-2. Send a test email using SMTP
-3. Fetch the same email via IMAP client (Thunderbird, Outlook, etc.)
-4. Check logs for errors/warnings
+<!-- Explain how reviewers can test your changes. -->
+1. 
+2.
 
 ---
 
