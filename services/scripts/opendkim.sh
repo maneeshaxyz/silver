@@ -8,9 +8,9 @@ set -euo pipefail
 
 # Define constant paths
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly ROOT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+readonly ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 readonly SILVER_YAML_FILE="${ROOT_DIR}/silver.yaml"
-readonly DKIM_DATA_PATH="${ROOT_DIR}/silver-config/gen/opendkim"
+readonly CONFIGS_PATH="${ROOT_DIR}/silver-config/gen/opendkim"
 readonly DKIM_SELECTOR=mail
 
 # --- Main Logic ---
@@ -18,8 +18,8 @@ readonly MAIL_DOMAIN=$(grep -m 1 '^domain:' "${SILVER_YAML_FILE}" | sed 's/domai
 
 # --- generate all files needed for OpenDkim ---
 # Generate the TrustedHosts file.
-mkdir -p ${DKIM_DATA_PATH}
-cat >"${DKIM_DATA_PATH}/TrustedHosts" <<EOF
+mkdir -p ${CONFIGS_PATH}
+cat >"${CONFIGS_PATH}/TrustedHosts" <<EOF
 127.0.0.1
 localhost
 192.168.65.0/16
@@ -30,14 +30,14 @@ EOF
 
 echo "Successfully generated OpenDKIM TrustedHosts file for domain: ${MAIL_DOMAIN}"
 
-cat >"${DKIM_DATA_PATH}/SigningTable" <<EOF
+cat >"${CONFIGS_PATH}/SigningTable" <<EOF
 *@$MAIL_DOMAIN $DKIM_SELECTOR._domainkey.$MAIL_DOMAIN
 EOF
 
 echo "Successfully generated OpenDKIM SigningTable file for domain: ${MAIL_DOMAIN}"
 
 # Write KeyTable
-cat > "${DKIM_DATA_PATH}/KeyTable" <<EOF
+cat >"${CONFIGS_PATH}/KeyTable" <<EOF
 $DKIM_SELECTOR._domainkey.$MAIL_DOMAIN $MAIL_DOMAIN:$DKIM_SELECTOR:/etc/dkimkeys/$MAIL_DOMAIN/$DKIM_SELECTOR.private
 EOF
 

@@ -31,6 +31,6 @@ services/thunder/certs/
 # Ignore decrypted passwords file
 scripts/decrypt/user_passwords.txt
 
-# generated files and volumes
+# generated configs
 services/silver-config/gen/
-services/silver-config/data
+services/silver-config/data/

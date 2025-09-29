@@ -12,8 +12,8 @@ readonly RED="\033[0;31m"
 readonly NC="\033[0m" # No Color
 
 # Get the script directory (where the scripts are located)
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly CONFIG_FILE="silver.yaml"
+readonly ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly CONFIG_FILE="${ROOT_DIR}/silver.yaml"
 
 # ASCII Banner
 echo -e "${CYAN}"
@@ -67,11 +67,4 @@ if ! [[ "${MAIL_DOMAIN}" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
   exit 1
 fi
 
-# Generate config files.
-
-echo -e "\n${YELLOW}Step 2/8: Generate local certificates${NC}"
-
-# TODO: comment this out 
-bash ./silver-config/scripts/certbot-local.sh
-
-bash ./silver-config/scripts/opendkim.sh
+bash ${ROOT_DIR}/scripts/opendkim.sh
