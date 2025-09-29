@@ -23,11 +23,11 @@ RUN curl -L -o /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/lates
 RUN mkdir -p  /var/run/opendkim
 
 COPY ./dkim/scripts/entrypoint.sh /entrypoint.sh
-COPY ./dkim/conf/opendkim.conf /etc/opendkim/opendkim.conf
 
-COPY  ./silver-config/gen/opendkim/KeyTable etc/opendkim/KeyTable
-COPY  ./silver-config/gen/opendkim/SigningTable etc/opendkim/SigningTable
-COPY  ./silver-config/gen/opendkim/TrustedHosts etc/opendkim/TrustedHosts
+COPY    ./silver-config/static/opendkim/opendkim.conf /etc/opendkim/opendkim.conf
+COPY    ./silver-config/gen/opendkim/KeyTable etc/opendkim/KeyTable
+COPY    ./silver-config/gen/opendkim/SigningTable etc/opendkim/SigningTable
+COPY    ./silver-config/gen/opendkim/TrustedHosts etc/opendkim/TrustedHosts
 
 # IMPORTANT: Fix ownership of ALL files after copying
 RUN chown -R opendkim:opendkim /etc/opendkim /var/run/opendkim /entrypoint.sh && \
