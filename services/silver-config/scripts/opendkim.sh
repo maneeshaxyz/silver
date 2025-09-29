@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# This script initializes the OpenDKIM trusted hosts file based on a domain
-# name found in a configuration YAML file.
+# This script initializes the OpenDKIM config files
 #
 
 # --- Sanity Checks & Configuration ---

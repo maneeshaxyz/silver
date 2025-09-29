@@ -35,4 +35,4 @@ echo "====================================="
 echo ""
 
 # Start OpenDKIM
-exec opendkim -f
+exec opendkim -f -x /etc/opendkim/opendkim.conf
