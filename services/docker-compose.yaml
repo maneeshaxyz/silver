@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: ./smtp/Dockerfile
-      container_name: smtp-server-container
+    container_name: smtp-server-container
     ports:
       - "25:25"
       - "587:587"
