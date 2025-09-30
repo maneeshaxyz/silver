@@ -1,8 +1,9 @@
 services:
   smtp-server:
     build:
-      context: ./smtp
-    container_name: smtp-server-container
+      context: .
+      dockerfile: ./smtp/Dockerfile
+    container_name: smtp-server
     ports:
       - "25:25"
       - "587:587"
@@ -11,16 +12,16 @@ services:
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
       - ./letsencrypt:/etc/letsencrypt:ro
-      - ./smtp/conf/virtual-domains:/etc/postfix/virtual-domains:rw
+      - ./services/smtp/conf/virtual-domains:/etc/postfix/virtual-domains:rw
       - ./smtp/conf/virtual-users:/etc/postfix/virtual-users:rw
       - ./smtp/conf/virtual-aliases:/etc/postfix/virtual-aliases:rw
     networks:
       - mail-network
-    depends_on:
-      - opendkim-server
-      - dovecot-server
-      - rspamd-server
-      - certbot-server
+    # depends_on:
+    #   - opendkim-server
+    #   - dovecot-server
+    #   - rspamd-server
+    #   - certbot-server
     security_opt:
       - no-new-privileges:true
 

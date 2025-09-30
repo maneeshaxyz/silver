@@ -12,7 +12,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY ./silver-config/gen/postfix/main.cf /etc/postfix/main.cf
-COPY scripts/entrypoint.sh /entrypoint.sh
+COPY ./smtp/scripts/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh
 
