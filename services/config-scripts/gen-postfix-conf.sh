@@ -30,8 +30,8 @@ cat > "${CONFIGS_PATH}/main.cf" << EOF
 #relayhost = RELAYHOST
 # --- Basic Postfix configuration ---
 myhostname = $MAIL_HOSTNAME
-myorigin = /etc/mailname
 mydomain = $MAIL_DOMAIN
+myorigin = $MAIL_DOMAIN
 mydestination = localhost.localdomain, localhost
 inet_interfaces = all
 inet_protocols = ipv4
