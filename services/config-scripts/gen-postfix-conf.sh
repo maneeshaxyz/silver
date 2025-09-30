@@ -32,7 +32,7 @@ cat > "${CONFIGS_PATH}/main.cf" << EOF
 # is /etc/mailname.
 #myorigin = /etc/mailname
 
-smtpd_banner = $myhostname ESMTP $mail_name (Debian/GNU)
+
 biff = no
 
 # appending .domain is the MUA's job.
@@ -50,17 +50,17 @@ compatibility_level = 3.6
 
 
 # TLS parameters
-smtpd_tls_cert_file = /etc/letsencrypt/live/"${MAIL_DOMAIN}"/fullchain.pem
-smtpd_tls_key_file = /etc/letsencrypt/live/"${MAIL_DOMAIN}"//privkey.pem
+smtpd_tls_cert_file = /etc/letsencrypt/live/${MAIL_DOMAIN}/fullchain.pem
+smtpd_tls_key_file = /etc/letsencrypt/live/${MAIL_DOMAIN}//privkey.pem
 smtpd_tls_security_level = may
 
 smtp_tls_CApath=/etc/ssl/certs
 smtp_tls_security_level=may
-smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+smtp_tls_session_cache_database = btree:\${data_directory}/smtp_scache
 
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
-myhostname = "${MAIL_HOSTNAME}"
+myhostname = ${MAIL_HOSTNAME}
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
 mydestination = localhost.localdomain, localhost
@@ -71,7 +71,7 @@ recipient_delimiter = +
 inet_interfaces = all
 inet_protocols = ipv4
 myorigin = /etc/mailname
-mydomain = "${MAIL_DOMAIN}"
+mydomain = ${MAIL_DOMAIN}
 maillog_file = /dev/stdout
 smtpd_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
 smtpd_use_tls = yes

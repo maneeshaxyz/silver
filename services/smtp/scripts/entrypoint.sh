@@ -12,6 +12,8 @@ MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
 MAIL_HOSTNAME=${MAIL_HOSTNAME:-mail.$MAIL_DOMAIN}
 RELAYHOST=${RELAYHOST:-}
 
+echo "$MAIL_DOMAIN" > /etc/mailname
+
 # Path for vmail
 VMAIL_DIR="/var/mail/vmail"
 
