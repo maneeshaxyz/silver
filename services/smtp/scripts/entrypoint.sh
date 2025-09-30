@@ -15,23 +15,19 @@ RELAYHOST=${RELAYHOST:-}
 # Path for vmail
 VMAIL_DIR="/var/mail/vmail"
 
+TARGET_DIR="/etc/postfix"
+echo "${MAIL_DOMAIN} OK" > "${TARGET_DIR}/virtual-domains"
+
+# Create empty files if they don't exist
+touch /etc/postfix/virtual-users
+touch /etc/postfix/virtual-aliases
+
 # Compile hash maps (this is essential)
 postmap /etc/postfix/virtual-domains
 postmap /etc/postfix/virtual-users
 postmap /etc/postfix/virtual-aliases
 
 echo "=== Hash maps compiled successfully ==="
-
-# -------------------------------
-# Submission service overrides
-# -------------------------------
-postconf -M submission/inet="submission inet n - y - - smtpd"
-postconf -P submission/inet/syslog_name="postfix/submission"
-postconf -P submission/inet/smtpd_tls_security_level="encrypt"
-postconf -P submission/inet/smtpd_sasl_auth_enable="yes"
-postconf -P submission/inet/smtpd_tls_auth_only="yes"
-postconf -P submission/inet/smtpd_relay_restrictions="permit_sasl_authenticated,reject"
-postconf -P submission/inet/smtpd_milters="inet:rspamd-server:11332,inet:opendkim-server:8891"
 
 # -------------------------------
 # vmail user/group and directories
