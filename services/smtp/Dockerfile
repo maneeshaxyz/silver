@@ -11,8 +11,6 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY ./silver-config/gen/postfix/main.cf /etc/postfix/main.cf
-COPY ./silver-config/static/postfix/master.cf /etc/postfix/master.cf
 COPY ./smtp/scripts/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-#  Silver Mail Setup Script
+#  Silver Mail Setup Script - This script is responsible for generating all the configs for our services.
 # ============================================
 
 # Colors
@@ -67,4 +67,5 @@ if ! [[ "${MAIL_DOMAIN}" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
   exit 1
 fi
 
+# Run config generation
 bash ${ROOT_DIR}/config-scripts/gen-configs.sh
