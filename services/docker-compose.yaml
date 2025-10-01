@@ -80,9 +80,7 @@ services:
       - no-new-privileges:true
 
   clamav-server:
-    image: clamav/clamav:stable
-    # uncomment when running on mac os
-    #platform: linux/amd64  
+    image: clamav/clamav:stable 
     container_name: clamav-server
     volumes:
       - clamsock:/var/run/clamav # shared socket volume
