@@ -70,7 +70,7 @@ services:
       - "11334:11334"
     volumes:
       - rspamd_data:/var/lib/rspamd
-      - ./spam/conf:/etc/rspamd/local.d
+      - ./silver-config/static/rspamd/:/etc/rspamd/local.d:ro
       - clamsock:/var/run/clamav # shared socket volume
     networks:
       - mail-network

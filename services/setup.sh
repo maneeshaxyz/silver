@@ -69,3 +69,4 @@ fi
 
 bash ${ROOT_DIR}/config-scripts/gen-opendkim-conf.sh
 bash ${ROOT_DIR}/config-scripts/gen-postfix-conf.sh
+bash ${ROOT_DIR}/config-scripts/gen-rspamd-conf.sh
