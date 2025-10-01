@@ -99,3 +99,5 @@ smtpd_recipient_limit = 50
 anvil_rate_time_unit = 60s
 smtpd_client_connection_count_limit = 20
 EOF
+
+echo  Postfix configuration successfully generated
