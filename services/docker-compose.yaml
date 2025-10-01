@@ -55,6 +55,10 @@ services:
     container_name: opendkim-server
     volumes:
       - ./silver.yaml:/etc/opendkim/silver.yaml
+      - ./silver-config/static/opendkim/opendkim.conf:/etc/opendkim/opendkim.conf:ro
+      - ./silver-config/gen/opendkim/KeyTable:/etc/opendkim/KeyTable:ro
+      - ./silver-config/gen/opendkim/SigningTable:/etc/opendkim/SigningTable:ro
+      - ./silver-config/gen/opendkim/TrustedHosts:/etc/opendkim/TrustedHosts:ro
       - dkim-keys:/etc/dkimkeys
     networks:
       - mail-network
