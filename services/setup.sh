@@ -67,4 +67,4 @@ if ! [[ "${MAIL_DOMAIN}" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
   exit 1
 fi
 
-bash ${ROOT_DIR}/config-scripts/gen-scripts.sh
+bash ${ROOT_DIR}/config-scripts/gen-configs.sh
