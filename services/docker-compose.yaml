@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: ./smtp/Dockerfile
     container_name: smtp-server-container
+    environment:
+      - MAIL_DOMAIN=${MAIL_DOMAIN:-example.lk}
     ports:
       - "25:25"
       - "587:587"
@@ -37,7 +39,8 @@ services:
       - "110:110"
       - "995:995"
     volumes:
-      - ./silver.yaml:/etc/dovecot/silver.yaml:ro
+      - ./silver-config/static/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
+      - ./silver-config/static/dovecot/auth_api.lua:/etc/dovecot/auth_api.lua:ro
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
       - ./letsencrypt:/etc/letsencrypt:ro
