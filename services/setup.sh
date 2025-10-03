@@ -42,7 +42,7 @@ echo -e "${NC}"
 
 echo
 echo -e " 🚀 ${GREEN}Welcome to the Silver Mail System Setup${NC}"
-echo "---------------------------------------------" 
+echo "---------------------------------------------"
 
 MAIL_DOMAIN=""
 
@@ -56,15 +56,15 @@ readonly MAIL_DOMAIN=$(grep -m 1 '^domain:' "${CONFIG_FILE}" | sed 's/domain: //
 
 # Validate if MAIL_DOMAIN is empty
 if [[ -z "${MAIL_DOMAIN}" ]]; then
-  echo -e "${RED}ERROR: Domain name is not configured. Please set it in '${CONFIG_FILE}'.${NC}"
-  exit 1
+	echo -e "${RED}ERROR: Domain name is not configured. Please set it in '${CONFIG_FILE}'.${NC}"
+	exit 1
 else
-  echo "Domain name found: ${MAIL_DOMAIN}"
+	echo "Domain name found: ${MAIL_DOMAIN}"
 fi
 
 if ! [[ "${MAIL_DOMAIN}" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-  echo -e "${RED}✗ ERROR: '${MAIL_DOMAIN}' does not look like a valid domain name.${NC}"
-  exit 1
+	echo -e "${RED}✗ ERROR: '${MAIL_DOMAIN}' does not look like a valid domain name.${NC}"
+	exit 1
 fi
 
 # Run config generation
