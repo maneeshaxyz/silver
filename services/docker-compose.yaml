@@ -4,8 +4,6 @@ services:
       context: .
       dockerfile: ./smtp/Dockerfile
     container_name: smtp-server-container
-    environment:
-      - MAIL_DOMAIN=${MAIL_DOMAIN:-example.lk}
     ports:
       - "25:25"
       - "587:587"
@@ -62,7 +60,7 @@ services:
       - ./silver-config/gen/opendkim/KeyTable:/etc/opendkim/KeyTable:ro
       - ./silver-config/gen/opendkim/SigningTable:/etc/opendkim/SigningTable:ro
       - ./silver-config/gen/opendkim/TrustedHosts:/etc/opendkim/TrustedHosts:ro
-      - dkim-keys:/etc/dkimkeys
+      - ./silver-config/data/opendkim/dkim-keys:/etc/dkimkeys
     networks:
       - mail-network
     cap_drop:
@@ -89,7 +87,7 @@ services:
       - no-new-privileges:true
 
   clamav-server:
-    image: clamav/clamav:stable 
+    image: clamav/clamav:stable
     container_name: clamav-server
     volumes:
       - clamsock:/var/run/clamav # shared socket volume

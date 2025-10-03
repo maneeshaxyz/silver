@@ -20,7 +20,7 @@ RUN curl -L -o /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/lates
     chmod +x /usr/local/bin/yq
 
 # Create directories with proper ownership and permissions
-RUN mkdir -p  /var/run/opendkim
+RUN mkdir -p /etc/opendkim  /var/run/opendkim
 
 COPY ./dkim/scripts/entrypoint.sh /entrypoint.sh
 
