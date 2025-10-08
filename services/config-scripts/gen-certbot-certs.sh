@@ -41,4 +41,6 @@ docker run --rm \
 	--standalone \
 	--agree-tos \
 	--register-unsafely-without-email \
-	-d "${MAIL_DOMAIN}"
+	--key-type rsa \
+	-d "${MAIL_DOMAIN}" \
+	-d "mail.${MAIL_DOMAIN}"
