@@ -13,7 +13,7 @@ services:
       - ./silver.yaml:/etc/postfix/silver.yaml
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
-      - ./letsencrypt:/etc/letsencrypt:ro
+      - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
       - ./smtp/conf/virtual-domains:/etc/postfix/virtual-domains:rw
       - ./smtp/conf/virtual-users:/etc/postfix/virtual-users:rw
       - ./smtp/conf/virtual-aliases:/etc/postfix/virtual-aliases:rw
@@ -41,7 +41,7 @@ services:
       - ./silver-config/static/dovecot/auth_api.lua:/etc/dovecot/auth_api.lua:ro
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
-      - ./letsencrypt:/etc/letsencrypt:ro
+      - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
     networks:
       - mail-network
     depends_on:
@@ -122,9 +122,9 @@ services:
     image: certbot/certbot:latest
     container_name: certbot-server
     volumes:
-      - ./silver.yaml:/etc/certbot/silver.yaml:ro
-      - ./letsencrypt:/etc/letsencrypt
-      - ./letsencrypt/certbot-logs:/var/log/letsencrypt
+      - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt
+      - ./silver-config/data/certbot/keys/log:/var/log/letsencrypt
+      - ./silver-config/data/certbot/keys/lib:/var/lib/letsencrypt"
     ports:
       - "80:80"
       - "443:443"
