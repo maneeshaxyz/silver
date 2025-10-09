@@ -14,7 +14,7 @@ services:
       - ./smtp/conf/virtual-domains:/etc/postfix/virtual-domains:rw
       - ./smtp/conf/virtual-users:/etc/postfix/virtual-users:rw
       - ./smtp/conf/virtual-aliases:/etc/postfix/virtual-aliases:rw
-      - ./silver-mda/data:/app/data:rw
+      - ./raven/data:/app/data:rw
     networks:
       - mail-network
     command: sh -c "chmod -R 0777 /app/data && /entrypoint.sh"
@@ -43,16 +43,16 @@ services:
     depends_on:
       - certbot-server
   
-  silver-mda:
-    image: ghcr.io/aravinda-hwk/silver-mda:latest
-    container_name: silver-mda
+  raven-server:
+    image: ghcr.io/lsflk/raven:latest
+    container_name: raven
     ports:
       - "143:143"
       - "993:993"
     volumes:
-      - ./silver-mda/config:/etc/goImap:rw
-      - ./silver-mda/data:/app/data:rw
-      - ./silver-mda/certs:/certs:ro
+      - ./raven/config:/etc/raven:rw
+      - ./raven/data:/app/data:rw
+      - ./raven/certs:/certs:ro
     environment:
       - DB_FILE=/app/data/mails.db
     networks:
