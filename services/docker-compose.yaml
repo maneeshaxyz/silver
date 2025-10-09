@@ -109,8 +109,8 @@ services:
     networks:
       - mail-network
     volumes:
-      - ./thunder/certs/server.cert:/opt/thunder/repository/resources/security/server.cert:ro
-      - ./thunder/certs/server.key:/opt/thunder/repository/resources/security/server.key:ro
+      - ./silver-config/data/thunder/certs/server.cert:/opt/thunder/repository/resources/security/server.cert:ro
+      - ./silver-config/data/thunder/certs/server.key:/opt/thunder/repository/resources/security/server.key:ro
     depends_on:
       - certbot-server
     cap_drop:
