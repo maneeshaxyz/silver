@@ -14,9 +14,9 @@ services:
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
       - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
-      - ./smtp/conf/virtual-domains:/etc/postfix/virtual-domains:rw
-      - ./smtp/conf/virtual-users:/etc/postfix/virtual-users:rw
-      - ./smtp/conf/virtual-aliases:/etc/postfix/virtual-aliases:rw
+      - ./silver-config/gen/postfix/virtual-domains:/etc/postfix/virtual-domains:rw
+      - ./silver-config/gen/postfix/virtual-users:/etc/postfix/virtual-users:rw
+      - ./silver-config/gen/postfix/virtual-aliases:/etc/postfix/virtual-aliases:rw
     networks:
       - mail-network
     depends_on:

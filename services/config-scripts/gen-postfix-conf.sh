@@ -22,8 +22,18 @@ VMAIL_DIR="/var/mail/vmail"
 
 mkdir -p ${CONFIGS_PATH}
 
+# Create required files
+echo "${MAIL_DOMAIN} OK" >"$CONFIGS_PATH/virtual-domains"
+: >"$CONFIGS_PATH/virtual-aliases"
+: >"$CONFIGS_PATH/virtual-users"
+
+echo -e "SMTP configuration files prepared"
+echo " - $CONFIGS_PATH/virtual-domains (with '${MAIL_DOMAIN} OK')"
+echo " - $CONFIGS_PATH/virtual-aliases (empty)"
+echo " - $CONFIGS_PATH/virtual-users (empty)"
+
 # --- Generate main.cf content ---
-cat > "${CONFIGS_PATH}/main.cf" << EOF
+cat >"${CONFIGS_PATH}/main.cf" <<EOF
 # See /usr/share/postfix/main.cf.dist for a commented, more complete version
 
 
@@ -100,4 +110,4 @@ anvil_rate_time_unit = 60s
 smtpd_client_connection_count_limit = 20
 EOF
 
-echo  Postfix configuration successfully generated
+echo Postfix configuration successfully generated
