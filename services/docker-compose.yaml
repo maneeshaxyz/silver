@@ -60,7 +60,7 @@ services:
       - ./silver-config/gen/opendkim/KeyTable:/etc/opendkim/KeyTable:ro
       - ./silver-config/gen/opendkim/SigningTable:/etc/opendkim/SigningTable:ro
       - ./silver-config/gen/opendkim/TrustedHosts:/etc/opendkim/TrustedHosts:ro
-      - ./silver-config/data/opendkim/dkim-keys:/etc/dkimkeys
+      - dkim-keys:/etc/dkimkeys
     networks:
       - mail-network
     cap_drop:
