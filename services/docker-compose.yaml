@@ -1,20 +1,22 @@
 services:
   smtp-server:
     build:
-      context: ./smtp
+      context: .
+      dockerfile: ./smtp/Dockerfile
     container_name: smtp-server-container
     ports:
       - "25:25"
       - "587:587"
     volumes:
+      - ./silver-config/gen/postfix/main.cf:/etc/postfix/main.cf:ro
+      - ./silver-config/static/postfix/master.cf:/etc/postfix/master.cf:ro
       - ./silver.yaml:/etc/postfix/silver.yaml
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
-      - ./letsencrypt:/etc/letsencrypt:ro
-      - ./smtp/conf/virtual-domains:/etc/postfix/virtual-domains:rw
-      - ./smtp/conf/virtual-users:/etc/postfix/virtual-users:rw
-      - ./smtp/conf/virtual-aliases:/etc/postfix/virtual-aliases:rw
-      - ./raven/data:/app/data:rw
+      - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
+      - ./silver-config/gen/postfix/virtual-domains:/etc/postfix/virtual-domains:rw
+      - ./silver-config/gen/postfix/virtual-users:/etc/postfix/virtual-users:rw
+      - ./silver-config/gen/postfix/virtual-aliases:/etc/postfix/virtual-aliases:rw
     networks:
       - mail-network
     command: sh -c "chmod -R 0777 /app/data && /entrypoint.sh"
@@ -34,10 +36,11 @@ services:
       - "110:110"
       - "995:995"
     volumes:
-      - ./silver.yaml:/etc/dovecot/silver.yaml:ro
+      - ./silver-config/static/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
+      - ./silver-config/static/dovecot/auth_api.lua:/etc/dovecot/auth_api.lua:ro
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
-      - ./letsencrypt:/etc/letsencrypt:ro
+      - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
     networks:
       - mail-network
     depends_on:
@@ -62,11 +65,16 @@ services:
 
   opendkim-server:
     build:
-      context: ./dkim
+      context: .
+      dockerfile: ./dkim/Dockerfile
     container_name: opendkim-server
     volumes:
       - ./silver.yaml:/etc/opendkim/silver.yaml
-      - dkim-keys:/etc/opendkim/keys
+      - ./silver-config/static/opendkim/opendkim.conf:/etc/opendkim/opendkim.conf:ro
+      - ./silver-config/gen/opendkim/KeyTable:/etc/opendkim/KeyTable:ro
+      - ./silver-config/gen/opendkim/SigningTable:/etc/opendkim/SigningTable:ro
+      - ./silver-config/gen/opendkim/TrustedHosts:/etc/opendkim/TrustedHosts:ro
+      - dkim-keys:/etc/dkimkeys
     networks:
       - mail-network
     cap_drop:
@@ -83,8 +91,8 @@ services:
       - "11334:11334"
     volumes:
       - rspamd_data:/var/lib/rspamd
-      - ./spam/conf:/etc/rspamd/local.d
-      - clamsock:/var/run/clamav
+      - ./silver-config/static/rspamd/:/etc/rspamd/local.d:ro
+      - clamsock:/var/run/clamav # shared socket volume
     networks:
       - mail-network
 
@@ -118,22 +126,18 @@ services:
     networks:
       - mail-network
     volumes:
-      - ./thunder/certs/server.cert:/opt/thunder/repository/resources/security/server.cert:ro
-      - ./thunder/certs/server.key:/opt/thunder/repository/resources/security/server.key:ro
-    environment:
-      - THUNDER_TLS_ENABLED=true
-      - THUNDER_PORT=8090
+      - ./silver-config/data/thunder/certs/server.cert:/opt/thunder/repository/resources/security/server.cert:ro
+      - ./silver-config/data/thunder/certs/server.key:/opt/thunder/repository/resources/security/server.key:ro
     depends_on:
       - certbot-server
 
   certbot-server:
-    build:
-      context: ./certbot
+    image: certbot/certbot:latest
     container_name: certbot-server
     volumes:
-      - ./silver.yaml:/etc/certbot/silver.yaml:ro
-      - ./letsencrypt:/etc/letsencrypt
-      - ./letsencrypt/certbot-logs:/var/log/letsencrypt
+      - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt
+      - ./silver-config/data/certbot/keys/log:/var/log/letsencrypt
+      - ./silver-config/data/certbot/keys/lib:/var/lib/letsencrypt"
     ports:
       - "80:80"
       - "443:443"
