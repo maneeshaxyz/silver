@@ -1,9 +1,10 @@
-# Ignore environment files
+# Ignore env files and certs
 *.env
 *.env.*
 services/conf/.env.conf
 services/test.env
 services/.env
+*.pem
 
 # Ignore rspamd configuration files
 services/spam/conf/worker-controller.inc
@@ -32,3 +33,7 @@ scripts/decrypt/user_passwords.txt
 
 # Ignore raven directory
 services/raven/
+
+# generated configs and artifacts
+services/silver-config/gen/
+services/silver-config/data/

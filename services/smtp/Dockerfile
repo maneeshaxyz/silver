@@ -10,8 +10,8 @@ RUN apt update && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy scripts
-COPY scripts/entrypoint.sh /entrypoint.sh
+COPY ./smtp/scripts/entrypoint.sh /entrypoint.sh
+
 RUN chmod +x /entrypoint.sh
 
 COPY scripts/save_to_db.sh /usr/local/bin/save_to_db.sh
