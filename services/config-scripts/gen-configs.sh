@@ -6,3 +6,4 @@ bash ./config-scripts/gen-rspamd-conf.sh
 bash ./config-scripts/gen-postfix-conf.sh
 bash ./config-scripts/gen-dovecot-conf.sh
 bash ./config-scripts/gen-thunder-certs.sh
+bash ./config-scripts/gen-raven-conf.sh

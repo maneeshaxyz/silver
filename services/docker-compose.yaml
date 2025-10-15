@@ -17,6 +17,7 @@ services:
       - ./silver-config/gen/postfix/virtual-domains:/etc/postfix/virtual-domains:rw
       - ./silver-config/gen/postfix/virtual-users:/etc/postfix/virtual-users:rw
       - ./silver-config/gen/postfix/virtual-aliases:/etc/postfix/virtual-aliases:rw
+      - ./silver-config/gen/raven/data:/app/data:rw
     networks:
       - mail-network
     depends_on:
@@ -24,16 +25,14 @@ services:
       - dovecot-server
       - rspamd-server
       - certbot-server
-    security_opt:
-      - no-new-privileges:true
 
   dovecot-server:
     build:
       context: ./imap
     container_name: dovecot-server
     ports:
-      - "143:143"
-      - "993:993"
+      - "1143:143"
+      - "1142:993"
       - "110:110"
       - "995:995"
     volumes:
@@ -46,8 +45,23 @@ services:
       - mail-network
     depends_on:
       - certbot-server
-    security_opt:
-      - no-new-privileges:true
+  
+  raven-server:
+    image: ghcr.io/lsflk/raven:latest
+    container_name: raven
+    ports:
+      - "143:143"
+      - "993:993"
+    volumes:
+      - ./silver-config/gen/raven/conf:/etc/raven:rw
+      - ./silver-config/gen/raven/data:/app/data:rw
+      - ./silver-config/data/raven/certs:/certs:ro
+    environment:
+      - DB_FILE=/app/data/mails.db
+    networks:
+      - mail-network
+    restart: unless-stopped
+    user: "0:0"
 
   opendkim-server:
     build:
@@ -81,25 +95,28 @@ services:
       - clamsock:/var/run/clamav # shared socket volume
     networks:
       - mail-network
-    cap_drop:
-      - all
-    security_opt:
-      - no-new-privileges:true
 
   clamav-server:
-    image: clamav/clamav:stable
+    image: clamav/clamav:latest  # Official ClamAV image
     container_name: clamav-server
     volumes:
-      - clamsock:/var/run/clamav # shared socket volume
+      - clamsock:/var/run/clamav
+      - clamav_db:/var/lib/clamav
     networks:
       - mail-network
     restart: always
     depends_on:
       - rspamd-server
-    cap_drop:
-      - all
-    security_opt:
-      - no-new-privileges:true
+    environment:
+      - CLAMAV_NO_FRESHCLAMD=false
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
 
   thunder-server:
     image: ghcr.io/asgardeo/thunder:latest
@@ -113,10 +130,6 @@ services:
       - ./silver-config/data/thunder/certs/server.key:/opt/thunder/repository/resources/security/server.key:ro
     depends_on:
       - certbot-server
-    cap_drop:
-      - all
-    security_opt:
-      - no-new-privileges:true
 
   certbot-server:
     image: certbot/certbot:latest
@@ -130,10 +143,6 @@ services:
       - "443:443"
     networks:
       - mail-network
-    cap_drop:
-      - all
-    security_opt:
-      - no-new-privileges:true
 
 volumes:
   maildata:
@@ -141,7 +150,8 @@ volumes:
   dkim-keys:
   rspamd_data:
   clamsock:
-
+  clamav_db: 
+  go-imap-data:
 
 networks:
   mail-network:
