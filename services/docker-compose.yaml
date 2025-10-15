@@ -18,6 +18,7 @@ services:
       - ./silver-config/gen/postfix/virtual-users:/etc/postfix/virtual-users:rw
       - ./silver-config/gen/postfix/virtual-aliases:/etc/postfix/virtual-aliases:rw
       - ./silver-config/gen/raven/data:/app/data:rw
+      - raven-sockets:/var/run/raven  # Shared socket directory
     networks:
       - mail-network
     depends_on:
@@ -52,10 +53,13 @@ services:
     ports:
       - "143:143"
       - "993:993"
+      - "24:24"
     volumes:
       - ./silver-config/gen/raven/conf:/etc/raven:rw
       - ./silver-config/gen/raven/data:/app/data:rw
       - ./silver-config/data/raven/certs:/certs:ro
+      - ./silver-config/static/raven/delivery.yaml:/etc/raven/delivery.yaml:ro
+      - raven-sockets:/var/run/raven  # Shared socket directory
     environment:
       - DB_FILE=/app/data/mails.db
     networks:
@@ -152,6 +156,7 @@ volumes:
   clamsock:
   clamav_db: 
   go-imap-data:
+  raven-sockets:
 
 networks:
   mail-network:
