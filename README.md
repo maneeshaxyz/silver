@@ -45,14 +45,14 @@ You will need to add a few records to your DNS control panel.
 > [!Note]
 > Replace example.com and 12.34.56.78 in the below example with your domain and ip address.
 
-| DNS Record | Name | Value |
-|----------|----------|----------|
-| A   | mail  | 12.34.56.78 |
-| A   | example.com  | 12.34.56.78 |
-| MX   |  example.com  | mail.example.com   |
-| TXT   | example.com  | "v=spf1 ip4:12.34.56.78 ~all"|
-| TXT  | _dmarc  | "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com"  |
-| PTR   | 12.34.56.78 | mail.example.com |
+| DNS Record | Name        | Value                                                  |
+| ---------- | ----------- | ------------------------------------------------------ |
+| A          | mail        | 12.34.56.78                                            |
+| A          | example.com | 12.34.56.78                                            |
+| MX         | example.com | mail.example.com                                       |
+| TXT        | example.com | "v=spf1 ip4:12.34.56.78 ~all"                          |
+| TXT        | _dmarc      | "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com" |
+| PTR        | 12.34.56.78 | mail.example.com                                       |
 
 > [!Tip]
 > PTR records usually are set through your hosting provider. 
@@ -70,9 +70,11 @@ cd silver/services
 
 - Enter your domain name.
 
-- Run the `init.sh`
+- Run `bash setup.sh` to setup the configs.
 
-- To add more users to your email server, give permission to the add-users.sh file and run it.
+- Run `bash start-silver.sh` to start the mail server.
+
+- To add more users to your email server, add users to `users.yaml` and run `bash add_user.sh`
 
 ```bash
 # silver/services
@@ -81,9 +83,9 @@ bash init.sh
 
 - Replace the dkim record below with the output you get after running the `init.sh` script
 
-| DNS Record | Name | Value |
-|----------|----------|----------|
-| TXT   | mail._domainkey | "v=DKIM1; h=sha256; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDYZd3CAas0+81zf13cvtO6o0+rlGx8ZobYQXRR9W8qcJOeO1SiQGx8F4/DjZE1ggujOaY1bkt8OnUg7vG7/bk5PNe05EHJrg344krodqCJrVI74ZzEB77Z1As395KX6/XqbQxBepQ8D5+RpGFOHitI443G/ZWgZ6BRyaaE6t3u0QIDAQAB" |
+| DNS Record | Name            | Value                                                                                                                                                                                                                                                  |
+| ---------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| TXT        | mail._domainkey | "v=DKIM1; h=sha256; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDYZd3CAas0+81zf13cvtO6o0+rlGx8ZobYQXRR9W8qcJOeO1SiQGx8F4/DjZE1ggujOaY1bkt8OnUg7vG7/bk5PNe05EHJrg344krodqCJrVI74ZzEB77Z1As395KX6/XqbQxBepQ8D5+RpGFOHitI443G/ZWgZ6BRyaaE6t3u0QIDAQAB" |
 
 > [!Important] 
 > Ensure that your dkim value is correctly formatted.
