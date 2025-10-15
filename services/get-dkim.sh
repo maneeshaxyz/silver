@@ -25,7 +25,7 @@ fi
 
 SELECTOR="mail"
 CONTAINER_NAME="opendkim-server"
-KEY_PATH="/etc/opendkim/keys/$DOMAIN/$SELECTOR.txt"
+KEY_PATH="/etc/dkimkeys/$DOMAIN/$SELECTOR.txt"
 
 # -------------------------------
 # Extract DKIM record from container
