@@ -64,11 +64,6 @@ postconf virtual_mailbox_maps
 postconf virtual_mailbox_base
 postconf virtual_transport
 
-cat >> /etc/postfix/master.cf << 'EOF'
-dbdelivery  unix  -       n       n       -       -       pipe
-  flags=Rq user=vmail argv=/usr/local/bin/save_to_db.sh -f ${sender} -- ${recipient}
-EOF
-
 # -------------------------------
 # Start Postfix
 # -------------------------------

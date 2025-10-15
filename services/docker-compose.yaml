@@ -9,7 +9,7 @@ services:
       - "587:587"
     volumes:
       - ./silver-config/gen/postfix/main.cf:/etc/postfix/main.cf:ro
-      - ./silver-config/static/postfix/master.cf:/etc/postfix/master.cf:rw
+      - ./silver-config/static/postfix/master.cf:/etc/postfix/master.cf:ro
       - ./silver.yaml:/etc/postfix/silver.yaml
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
