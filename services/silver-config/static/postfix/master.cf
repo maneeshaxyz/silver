@@ -142,5 +142,3 @@ submission inet  n       -       y       -       -       smtpd
     -o smtpd_tls_auth_only=yes
     -o smtpd_relay_restrictions=permit_sasl_authenticated,reject
     -o smtpd_milters=inet:rspamd-server:11332,inet:opendkim-server:8891
-dbdelivery  unix  -       n       n       -       -       pipe
-  flags=Rq user=vmail argv=/usr/local/bin/save_to_db.sh -f ${sender} -- ${recipient}

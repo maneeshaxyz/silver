@@ -14,10 +14,6 @@ COPY ./smtp/scripts/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh
 
-COPY ./smtp/scripts/save_to_db.sh /usr/local/bin/save_to_db.sh
-RUN chmod +x /usr/local/bin/save_to_db.sh
-RUN chmod 777 /usr/local/bin/save_to_db.sh
-
 # Ensure data directory exists
 RUN mkdir -p /app/data
 
