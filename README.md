@@ -74,14 +74,7 @@ cd silver/services
 
 - Run `bash start-silver.sh` to start the mail server.
 
-- To add more users to your email server, add users to `users.yaml` and run `bash add_user.sh`
-
-```bash
-# silver/services
-bash init.sh
-```
-
-- Replace the dkim record below with the output you get after running the `init.sh` script
+- Replace the dkim record below with the output you get after running the `setup.sh` script
 
 | DNS Record | Name            | Value                                                                                                                                                                                                                                                  |
 | ---------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
