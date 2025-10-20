@@ -18,7 +18,7 @@ services:
       - ./silver-config/gen/postfix/virtual-users:/etc/postfix/virtual-users:rw
       - ./silver-config/gen/postfix/virtual-aliases:/etc/postfix/virtual-aliases:rw
       - ./silver-config/gen/raven/data:/app/data:rw
-      - raven-sockets:/var/run/raven  # Shared socket directory
+      - raven-sockets:/var/run/raven # Shared socket directory
     networks:
       - mail-network
     depends_on:
@@ -32,8 +32,8 @@ services:
       context: ./imap
     container_name: dovecot-server
     ports:
-      - "1143:143"
-      - "1142:993"
+      - "143:143"
+      - "993:993"
       - "110:110"
       - "995:995"
     volumes:
@@ -46,26 +46,6 @@ services:
       - mail-network
     depends_on:
       - certbot-server
-  
-  raven-server:
-    image: ghcr.io/lsflk/raven:latest
-    container_name: raven
-    ports:
-      - "143:143"
-      - "993:993"
-      - "24:24"
-    volumes:
-      - ./silver-config/gen/raven/conf:/etc/raven:rw
-      - ./silver-config/gen/raven/data:/app/data:rw
-      - ./silver-config/data/raven/certs:/certs:ro
-      - ./silver-config/static/raven/delivery.yaml:/etc/raven/delivery.yaml:ro
-      - raven-sockets:/var/run/raven  # Shared socket directory
-    environment:
-      - DB_FILE=/app/data/mails.db
-    networks:
-      - mail-network
-    restart: unless-stopped
-    user: "0:0"
 
   opendkim-server:
     build:
@@ -101,7 +81,7 @@ services:
       - mail-network
 
   clamav-server:
-    image: clamav/clamav:latest  # Official ClamAV image
+    image: clamav/clamav:latest # Official ClamAV image
     container_name: clamav-server
     volumes:
       - clamsock:/var/run/clamav
@@ -154,9 +134,10 @@ volumes:
   dkim-keys:
   rspamd_data:
   clamsock:
-  clamav_db: 
+  clamav_db:
   go-imap-data:
   raven-sockets:
+
 
 networks:
   mail-network:
