@@ -1,9 +1,12 @@
 #!/bin/bash
 
-bash ./config-scripts/gen-certbot-certs.sh
-bash ./config-scripts/gen-opendkim-conf.sh
-bash ./config-scripts/gen-rspamd-conf.sh
-bash ./config-scripts/gen-postfix-conf.sh
-bash ./config-scripts/gen-dovecot-conf.sh
-bash ./config-scripts/gen-thunder-certs.sh
-bash ./config-scripts/gen-raven-conf.sh
+# Get the script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+bash "${SCRIPT_DIR}/gen-certbot-certs.sh"
+bash "${SCRIPT_DIR}/gen-opendkim-conf.sh"
+bash "${SCRIPT_DIR}/gen-rspamd-conf.sh"
+bash "${SCRIPT_DIR}/gen-postfix-conf.sh"
+bash "${SCRIPT_DIR}/gen-dovecot-conf.sh"
+bash "${SCRIPT_DIR}/gen-thunder-certs.sh"
+bash "${SCRIPT_DIR}/gen-raven-conf.sh"
