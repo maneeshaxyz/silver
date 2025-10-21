@@ -4,12 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'services/smtp/**'
-      - 'services/imap/**'
-      - 'services/dkim/**'
-      - 'services/certbot/**'
-      - '.github/workflows/build-and-push-images.yml'
   workflow_dispatch:
 
 env:
@@ -17,28 +11,40 @@ env:
   IMAGE_PREFIX: lsflk/silver
 
 jobs:
-  build-and-push:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      smtp: ${{ steps.changes.outputs.smtp }}
+      imap: ${{ steps.changes.outputs.imap }}
+      dkim: ${{ steps.changes.outputs.dkim }}
+      certbot: ${{ steps.changes.outputs.certbot }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed files
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            smtp:
+              - 'services/smtp/**'
+            imap:
+              - 'services/imap/**'
+            dkim:
+              - 'services/dkim/**'
+            certbot:
+              - 'services/certbot/**'
+
+  build-smtp:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.smtp == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
-    strategy:
-      matrix:
-        service:
-          - name: smtp
-            dockerfile: smtp/Dockerfile
-            context: services
-          - name: imap
-            dockerfile: Dockerfile
-            context: services/imap
-          - name: dkim
-            dockerfile: dkim/Dockerfile
-            context: services
-          - name: certbot
-            dockerfile: Dockerfile
-            context: services/certbot
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -57,7 +63,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service.name }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-smtp
           tags: |
             type=ref,event=branch
             type=sha,prefix={{branch}}-
@@ -66,8 +72,134 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.service.context }}
-          file: ${{ matrix.service.context }}/${{ matrix.service.dockerfile }}
+          context: services
+          file: services/smtp/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-imap:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.imap == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-imap
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: services/imap
+          file: services/imap/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-dkim:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.dkim == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-dkim
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: services
+          file: services/dkim/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-certbot:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.certbot == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-certbot
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: services/certbot
+          file: services/certbot/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
