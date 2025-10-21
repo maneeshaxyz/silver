@@ -12,8 +12,12 @@ readonly RED="\033[0;31m"
 readonly NC="\033[0m" # No Color
 
 # Get the script directory (where the scripts are located)
-readonly ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly CONFIG_FILE="${ROOT_DIR}/silver.yaml"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Services directory contains config-scripts
+readonly SERVICES_DIR="$(cd "${SCRIPT_DIR}/../../services" && pwd)"
+# Conf directory contains config files
+readonly CONF_DIR="$(cd "${SCRIPT_DIR}/../../conf" && pwd)"
+readonly CONFIG_FILE="${CONF_DIR}/silver.yaml"
 
 # ASCII Banner
 echo -e "${CYAN}"
@@ -68,4 +72,4 @@ if ! [[ "${MAIL_DOMAIN}" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
 fi
 
 # Run config generation
-bash ${ROOT_DIR}/config-scripts/gen-configs.sh
+bash ${SERVICES_DIR}/config-scripts/gen-configs.sh

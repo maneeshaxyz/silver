@@ -13,7 +13,11 @@ NC="\033[0m" # No Color
 
 # Get the script directory (where init.sh is located)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="silver.yaml"
+# Services directory contains docker-compose.yaml
+SERVICES_DIR="$(cd "${SCRIPT_DIR}/../../services" && pwd)"
+# Conf directory contains config files
+CONF_DIR="$(cd "${SCRIPT_DIR}/../../conf" && pwd)"
+CONFIG_FILE="${CONF_DIR}/silver.yaml"
 
 # ASCII Banner
 echo -e "${CYAN}"
@@ -87,7 +91,7 @@ fi
 # ================================
 echo -e "\n${YELLOW}Step 7/8: Starting Docker services${NC}"
 
-(cd "${SCRIPT_DIR}" && docker compose up -d --build --force-recreate)
+(cd "${SERVICES_DIR}" && docker compose up -d --build --force-recreate)
 if [ $? -ne 0 ]; then
 	echo -e "${RED}✗ Docker compose failed. Please check the logs.${NC}"
 	exit 1
@@ -129,5 +133,5 @@ fi
 # ================================
 # Public DKIM Key Instructions
 # ================================
-chmod +x "${SCRIPT_DIR}/get-dkim.sh"
-(cd "${SCRIPT_DIR}" && ./get-dkim.sh)
+chmod +x "${SCRIPT_DIR}/../utils/get-dkim.sh"
+(cd "${SCRIPT_DIR}/../utils" && ./get-dkim.sh)
