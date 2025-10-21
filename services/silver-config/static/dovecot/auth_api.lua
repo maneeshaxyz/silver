@@ -9,12 +9,13 @@ local function api_authenticate(user, password, req)
 
     local request_body = json.encode({
         email = user,
-        password = password
+        password = password,
+        skip_assertion = true
     })
     local response_body = {}
 
     local params = {
-        url = "https://thunder-server:8090/users/authenticate",
+        url = "https://thunder-server:8090/auth/credentials/authenticate",
         method = "POST",
         headers = {
             ["Content-Type"] = "application/json",
