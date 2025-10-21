@@ -91,7 +91,7 @@ fi
 # ================================
 echo -e "\n${YELLOW}Step 7/8: Starting Docker services${NC}"
 
-(cd "${SERVICES_DIR}" && docker compose up -d --build --force-recreate)
+(cd "${SERVICES_DIR}" && docker compose up -d )
 if [ $? -ne 0 ]; then
 	echo -e "${RED}✗ Docker compose failed. Please check the logs.${NC}"
 	exit 1
