@@ -11,7 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"                     # /root/silver/services
 GEN_DIR="${ROOT_DIR}/silver-config/gen/raven"           # Base path
 
-CONFIG_FILE="${ROOT_DIR}/silver.yaml"
+CONFIG_FILE="${ROOT_DIR}/../conf/silver.yaml"
 OUTPUT_FILE="${GEN_DIR}/conf/raven.yaml"
 MAILS_DB_PATH="${GEN_DIR}/data/mails.db"
 
