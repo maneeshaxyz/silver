@@ -7,7 +7,7 @@ set -euo pipefail
 # Define constant paths
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ROOT_DIR="$(dirname "$SCRIPT_DIR")"
-readonly SILVER_YAML_FILE="${ROOT_DIR}/silver.yaml"
+readonly SILVER_YAML_FILE="${ROOT_DIR}/../conf/silver.yaml"
 readonly CONFIGS_PATH="${ROOT_DIR}/silver-config/static/dovecot"
 readonly DKIM_SELECTOR=mail
 readonly DKIM_KEY_SIZE=2048

@@ -4,7 +4,7 @@ set -e
 # Fake Certbot Script for Local Dev
 # ---------------------------
 
-CONFIG_FILE="./silver.yaml"
+CONFIG_FILE="../conf/silver.yaml"
 MAIL_DOMAIN=$(grep -m 1 '^domain:' "$CONFIG_FILE" | awk '{print $2}' | xargs)
 MAIL_DOMAIN=${MAIL_DOMAIN:-example.local}
 

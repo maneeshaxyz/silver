@@ -66,13 +66,13 @@ cd silver/services
 ```
 
 ### Configuration
-- Open [`silver.yaml`](https://github.com/LSFLK/silver/blob/main/services/silver.yaml) with a text editor.
+- Open [`silver.yaml`](https://github.com/LSFLK/silver/blob/main/conf/silver.yaml) with a text editor.
 
 - Enter your domain name.
 
-- Run `bash setup.sh` to setup the configs.
+- Run `bash ../scripts/setup/setup.sh` to setup the configs.
 
-- Run `bash start-silver.sh` to start the mail server.
+- Run `bash ../scripts/service/start-silver.sh` to start the mail server.
 
 - Replace the dkim record below with the output you get after running the `setup.sh` script
 
@@ -85,11 +85,11 @@ cd silver/services
 
 ### Adding users
 
-- To add more users to your email server, open up [`users.yaml`](https://github.com/LSFLK/silver/blob/main/services/users.yaml), and add their usernames and run the following command.
+- To add more users to your email server, open up [`users.yaml`](https://github.com/LSFLK/silver/blob/main/conf/users.yaml), and add their usernames and run the following command.
 
 ```bash
 # silver/services
-bash add_users.sh
+bash ../scripts/user/add_user.sh
 ```
 - Follow the prompts to add a new user.
 
