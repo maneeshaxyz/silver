@@ -1,8 +1,6 @@
 services:
   smtp-server:
-    build:
-      context: .
-      dockerfile: ./smtp/Dockerfile
+    image: ghcr.io/lsflk/silver-smtp:main
     container_name: smtp-server-container
     ports:
       - "25:25"
@@ -28,8 +26,7 @@ services:
       - certbot-server
 
   dovecot-server:
-    build:
-      context: ./imap
+    image: ghcr.io/lsflk/silver-imap:main
     container_name: dovecot-server
     ports:
       - "1143:143"
@@ -68,9 +65,7 @@ services:
     user: "0:0"
 
   opendkim-server:
-    build:
-      context: .
-      dockerfile: ./dkim/Dockerfile
+    image: ghcr.io/lsflk/silver-dkim:main
     container_name: opendkim-server
     volumes:
       - ../conf/silver.yaml:/etc/opendkim/silver.yaml
@@ -136,7 +131,7 @@ services:
       - certbot-server
 
   certbot-server:
-    image: certbot/certbot:latest
+    image: ghcr.io/lsflk/silver-certbot:main
     container_name: certbot-server
     volumes:
       - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt
