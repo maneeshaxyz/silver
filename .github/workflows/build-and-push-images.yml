@@ -27,16 +27,16 @@ jobs:
       matrix:
         service:
           - name: smtp
-            dockerfile: ./smtp/Dockerfile
+            dockerfile: smtp/Dockerfile
             context: services
           - name: imap
-            dockerfile: ./imap/Dockerfile
+            dockerfile: Dockerfile
             context: services/imap
           - name: dkim
-            dockerfile: ./dkim/Dockerfile
+            dockerfile: dkim/Dockerfile
             context: services
           - name: certbot
-            dockerfile: ./certbot/Dockerfile
+            dockerfile: Dockerfile
             context: services/certbot
 
     steps:
