@@ -91,27 +91,42 @@ check_services() {
 	fi
 }
 
-# Safe file updates without locking issues
+# Add user to SQLite database
 update_container_virtual_users() {
 	local smtp_container="$1"
 	local user_email="$2"
 	local username="$3"
 	local mail_domain="$4"
 
-	echo -e "${YELLOW}Adding $user_email to container virtual-users file...${NC}"
+	echo -e "${YELLOW}Adding $user_email to SQLite database...${NC}"
 
 	docker exec "$smtp_container" bash -c "
-        # Append user line (domain/username/ path format) and domain line (with OK)
-        echo -e '${user_email}\t${mail_domain}/${username}/' >> '${CONTAINER_VIRTUAL_USERS_FILE}'
-        
-        echo 'Files updated successfully'
+        DB_PATH='/app/data/mails.db'
+
+        # Get domain_id
+        domain_id=\$(sqlite3 \"\$DB_PATH\" \"SELECT id FROM domains WHERE domain='${mail_domain}' AND enabled=1;\")
+
+        if [ -z \"\$domain_id\" ]; then
+            echo 'Error: Domain ${mail_domain} not found in database'
+            exit 1
+        fi
+
+        # Insert user into database
+        sqlite3 \"\$DB_PATH\" \"INSERT OR REPLACE INTO users (username, domain_id, enabled) VALUES ('${username}', \$domain_id, 1);\"
+
+        if [ \$? -eq 0 ]; then
+            echo 'User added to database successfully'
+        else
+            echo 'Failed to add user to database'
+            exit 1
+        fi
     "
 }
 
-# Check user count in container
+# Check user count in container (from SQLite database)
 get_container_user_count() {
 	local smtp_container="$1"
-	local count=$(docker exec "$smtp_container" bash -c "grep -c '@' '${CONTAINER_VIRTUAL_USERS_FILE}' 2>/dev/null || echo '0'" | tr -d '\n\r' | head -c 10)
+	local count=$(docker exec "$smtp_container" bash -c "sqlite3 /app/data/mails.db 'SELECT COUNT(*) FROM users WHERE enabled=1;' 2>/dev/null || echo '0'" | tr -d '\n\r' | head -c 10)
 	echo ${count:-0}
 }
 
@@ -163,11 +178,19 @@ if [ -z "$SMTP_CONTAINER" ]; then
 	exit 1
 fi
 
-# Ensure virtual files exist in container
+# Ensure SQLite database exists in container
 docker exec "$SMTP_CONTAINER" bash -c "
-    touch '${CONTAINER_VIRTUAL_USERS_FILE}'
-    touch '${CONTAINER_VIRTUAL_DOMAINS_FILE}'
+    if [ ! -f /app/data/mails.db ]; then
+        echo 'Error: Database does not exist at /app/data/mails.db'
+        echo 'Please ensure raven-server is running and has created the database'
+        exit 1
+    fi
 "
+
+if [ $? -ne 0 ]; then
+	echo -e "${RED}✗ SQLite database not found. Please start raven-server first.${NC}"
+	exit 1
+fi
 
 # Get current user count
 CURRENT_USER_COUNT=$(get_container_user_count "$SMTP_CONTAINER")
@@ -243,8 +266,9 @@ while IFS= read -r line; do
 				continue
 			fi
 
-			# Check if user already exists
-			if docker exec "$SMTP_CONTAINER" bash -c "grep -q '^${USER_EMAIL}' '${CONTAINER_VIRTUAL_USERS_FILE}' 2>/dev/null"; then
+			# Check if user already exists in database
+			USER_EXISTS=$(docker exec "$SMTP_CONTAINER" bash -c "sqlite3 /app/data/mails.db \"SELECT COUNT(*) FROM users u INNER JOIN domains d ON u.domain_id = d.id WHERE u.username='${USER_USERNAME}' AND d.domain='${MAIL_DOMAIN}' AND u.enabled=1;\"" 2>/dev/null || echo "0")
+			if [ "$USER_EXISTS" != "0" ]; then
 				echo -e "${YELLOW}⚠ User ${USER_EMAIL} already exists. Skipping.${NC}"
 				USER_USERNAME=""
 				continue
@@ -281,18 +305,7 @@ while IFS= read -r line; do
 					# Create maildir with correct structure
 					create_user_maildir "$SMTP_CONTAINER" "$USER_EMAIL" "$USER_USERNAME" "$MAIL_DOMAIN"
 
-					# CRITICAL: Rebuild hash databases immediately
-					echo -e "${YELLOW}Rebuilding hash databases for $USER_EMAIL...${NC}"
-					docker exec "$SMTP_CONTAINER" bash -c "
-                        postmap '${CONTAINER_VIRTUAL_USERS_FILE}' &&
-                        postmap '${CONTAINER_VIRTUAL_DOMAINS_FILE}'
-                    "
-
-					if [ $? -eq 0 ]; then
-						echo -e "${GREEN}✓ Hash databases updated for $USER_EMAIL${NC}"
-					else
-						echo -e "${RED}✗ Failed to rebuild hash databases${NC}"
-					fi
+					echo -e "${GREEN}✓ User $USER_EMAIL added to SQLite database (no hash rebuild needed)${NC}"
 
 					# Store encrypted password
 					ENCRYPTED_PASSWORD=$(encrypt_password "$USER_PASSWORD")
@@ -327,22 +340,7 @@ done <"$USERS_FILE"
 if [ "$ADDED_COUNT" -gt 0 ]; then
 	echo -e "\n${YELLOW}Applying final Postfix configuration changes...${NC}"
 
-	# Final rebuild of all hash databases
-	echo -e "${YELLOW}Final rebuild of all hash databases...${NC}"
-	docker exec "$SMTP_CONTAINER" bash -c "
-        postmap '${CONTAINER_VIRTUAL_USERS_FILE}' &&
-        postmap '${CONTAINER_VIRTUAL_DOMAINS_FILE}' &&
-        echo 'Hash databases rebuilt successfully'
-    "
-
-	if [ $? -eq 0 ]; then
-		echo -e "${GREEN}✓ All hash databases rebuilt successfully${NC}"
-	else
-		echo -e "${RED}✗ Failed to rebuild hash databases${NC}"
-		exit 1
-	fi
-
-	# Hot reload postfix configuration
+	# Hot reload postfix configuration (SQLite queries are dynamic, no rebuild needed)
 	echo -e "${YELLOW}Reloading Postfix configuration...${NC}"
 	if docker exec "$SMTP_CONTAINER" postfix reload; then
 		echo -e "${GREEN}✓ Postfix configuration reloaded successfully${NC}"
@@ -351,12 +349,12 @@ if [ "$ADDED_COUNT" -gt 0 ]; then
 		exit 1
 	fi
 
-	# Verify the changes
-	echo -e "${YELLOW}Verifying virtual configuration...${NC}"
-	echo "Virtual domains:"
-	docker exec "$SMTP_CONTAINER" postmap -s "${CONTAINER_VIRTUAL_DOMAINS_FILE}"
-	echo "Virtual users (last 5):"
-	docker exec "$SMTP_CONTAINER" postmap -s "${CONTAINER_VIRTUAL_USERS_FILE}" | tail -5
+	# Verify the changes from SQLite database
+	echo -e "${YELLOW}Verifying SQLite database contents...${NC}"
+	echo "Active domains:"
+	docker exec "$SMTP_CONTAINER" sqlite3 /app/data/mails.db "SELECT domain FROM domains WHERE enabled=1;"
+	echo "Active users (last 5):"
+	docker exec "$SMTP_CONTAINER" sqlite3 /app/data/mails.db "SELECT u.username || '@' || d.domain as email FROM users u INNER JOIN domains d ON u.domain_id = d.id WHERE u.enabled=1 ORDER BY u.id DESC LIMIT 5;"
 
 	# Reload Dovecot if available
 	DOVECOT_CONTAINER=$(cd "${SERVICES_DIR}" && docker compose ps -q dovecot-server 2>/dev/null)
