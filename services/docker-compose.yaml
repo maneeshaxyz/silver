@@ -6,17 +6,17 @@ services:
       - "25:25"
       - "587:587"
     volumes:
-      - ./silver-config/gen/postfix/main.cf:/etc/postfix/main.cf:ro
-      - ./silver-config/static/postfix/master.cf:/etc/postfix/master.cf:ro
+      - ./silver-config/postfix/main.cf:/etc/postfix/main.cf:ro
+      - ./silver-config/postfix/master.cf:/etc/postfix/master.cf:ro
       - ../conf/silver.yaml:/etc/postfix/silver.yaml
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
       - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
-      - ./silver-config/gen/postfix/virtual-domains:/etc/postfix/virtual-domains:rw
-      - ./silver-config/gen/postfix/virtual-users:/etc/postfix/virtual-users:rw
-      - ./silver-config/gen/postfix/virtual-aliases:/etc/postfix/virtual-aliases:rw
-      - ./silver-config/gen/raven/data:/app/data:rw
-      - raven-sockets:/var/run/raven  # Shared socket directory
+      - ./silver-config/postfix/virtual-domains:/etc/postfix/virtual-domains:rw
+      - ./silver-config/postfix/virtual-users:/etc/postfix/virtual-users:rw
+      - ./silver-config/postfix/virtual-aliases:/etc/postfix/virtual-aliases:rw
+      - ./silver-config/raven/data:/app/data:rw
+      - raven-sockets:/var/run/raven # Shared socket directory
     networks:
       - mail-network
     depends_on:
@@ -34,8 +34,8 @@ services:
       - "110:110"
       - "995:995"
     volumes:
-      - ./silver-config/static/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
-      - ./silver-config/static/dovecot/auth_api.lua:/etc/dovecot/auth_api.lua:ro
+      - ./silver-config/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
+      - ./silver-config/dovecot/auth_api.lua:/etc/dovecot/auth_api.lua:ro
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
       - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
@@ -43,7 +43,7 @@ services:
       - mail-network
     depends_on:
       - certbot-server
-  
+
   raven-server:
     image: ghcr.io/lsflk/raven:latest
     container_name: raven
@@ -52,11 +52,11 @@ services:
       - "993:993"
       - "24:24"
     volumes:
-      - ./silver-config/gen/raven/conf:/etc/raven:rw
-      - ./silver-config/gen/raven/data:/app/data:rw
+      - ./silver-config/raven/conf:/etc/raven:rw
+      - ./silver-config/raven/data:/app/data:rw
       - ./silver-config/data/raven/certs:/certs:ro
-      - ./silver-config/static/raven/delivery.yaml:/etc/raven/delivery.yaml:ro
-      - raven-sockets:/var/run/raven  # Shared socket directory
+      - ./silver-config/raven/delivery.yaml:/etc/raven/delivery.yaml:ro
+      - raven-sockets:/var/run/raven # Shared socket directory
     environment:
       - DB_FILE=/app/data/mails.db
     networks:
@@ -69,10 +69,10 @@ services:
     container_name: opendkim-server
     volumes:
       - ../conf/silver.yaml:/etc/opendkim/silver.yaml
-      - ./silver-config/static/opendkim/opendkim.conf:/etc/opendkim/opendkim.conf:ro
-      - ./silver-config/gen/opendkim/KeyTable:/etc/opendkim/KeyTable:ro
-      - ./silver-config/gen/opendkim/SigningTable:/etc/opendkim/SigningTable:ro
-      - ./silver-config/gen/opendkim/TrustedHosts:/etc/opendkim/TrustedHosts:ro
+      - ./silver-config/opendkim/opendkim.conf:/etc/opendkim/opendkim.conf:ro
+      - ./silver-config/opendkim/KeyTable:/etc/opendkim/KeyTable:ro
+      - ./silver-config/opendkim/SigningTable:/etc/opendkim/SigningTable:ro
+      - ./silver-config/opendkim/TrustedHosts:/etc/opendkim/TrustedHosts:ro
       - dkim-keys:/etc/dkimkeys
     networks:
       - mail-network
@@ -90,13 +90,13 @@ services:
       - "11334:11334"
     volumes:
       - rspamd_data:/var/lib/rspamd
-      - ./silver-config/static/rspamd/:/etc/rspamd/local.d:ro
+      - ./silver-config/rspamd/:/etc/rspamd/local.d:ro
       - clamsock:/var/run/clamav # shared socket volume
     networks:
       - mail-network
 
   clamav-server:
-    image: clamav/clamav:latest  # Official ClamAV image
+    image: clamav/clamav:latest # Official ClamAV image
     container_name: clamav-server
     volumes:
       - clamsock:/var/run/clamav
@@ -149,9 +149,10 @@ volumes:
   dkim-keys:
   rspamd_data:
   clamsock:
-  clamav_db: 
+  clamav_db:
   go-imap-data:
   raven-sockets:
+
 
 networks:
   mail-network:
