@@ -17,19 +17,26 @@ echo "$MAIL_DOMAIN" > /etc/mailname
 # Path for vmail
 VMAIL_DIR="/var/mail/vmail"
 
-TARGET_DIR="/etc/postfix"
-echo "${MAIL_DOMAIN} OK" > "${TARGET_DIR}/virtual-domains"
+# -------------------------------
+# Check SQLite database
+# -------------------------------
+DB_PATH="/app/data/mails.db"
 
-# Create empty files if they don't exist
-touch /etc/postfix/virtual-users
-touch /etc/postfix/virtual-aliases
+echo "=== Checking SQLite database ==="
+if [ -f "$DB_PATH" ]; then
+    echo "✓ SQLite database found at $DB_PATH"
 
-# Compile hash maps (this is essential)
-postmap /etc/postfix/virtual-domains
-postmap /etc/postfix/virtual-users
-postmap /etc/postfix/virtual-aliases
+    # Ensure domain exists in database
+    sqlite3 "$DB_PATH" "INSERT OR IGNORE INTO domains (domain, enabled) VALUES ('${MAIL_DOMAIN}', 1);" 2>/dev/null || echo "Note: Could not insert domain (may already exist)"
 
-echo "=== Hash maps compiled successfully ==="
+    # Set proper permissions
+    chown vmail:mail "$DB_PATH" 2>/dev/null || true
+    chmod 644 "$DB_PATH"
+else
+    echo "⚠ Warning: SQLite database not found at $DB_PATH"
+    echo "  Database should be created by raven-server"
+    echo "  Postfix will start but mail delivery may fail until database is available"
+fi
 
 # -------------------------------
 # vmail user/group and directories
