@@ -11,7 +11,7 @@ services:
       - ../conf/silver.yaml:/etc/postfix/silver.yaml
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
-      - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
+      - ./silver-config/certbot/keys/etc:/etc/letsencrypt:ro
       - ./silver-config/postfix/virtual-domains:/etc/postfix/virtual-domains:rw
       - ./silver-config/postfix/virtual-users:/etc/postfix/virtual-users:rw
       - ./silver-config/postfix/virtual-aliases:/etc/postfix/virtual-aliases:rw
@@ -38,7 +38,7 @@ services:
       - ./silver-config/dovecot/auth_api.lua:/etc/dovecot/auth_api.lua:ro
       - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
-      - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
+      - ./silver-config/certbot/keys/etc:/etc/letsencrypt:ro
     networks:
       - mail-network
     depends_on:
@@ -54,11 +54,11 @@ services:
     volumes:
       - ./silver-config/raven/conf:/etc/raven:rw
       - ./silver-config/raven/data:/app/data:rw
-      - ./silver-config/data/raven/certs:/certs:ro
+      - ./silver-config/raven/certs:/certs:ro
       - ./silver-config/raven/delivery.yaml:/etc/raven/delivery.yaml:ro
       - raven-sockets:/var/run/raven # Shared socket directory
     environment:
-      - DB_FILE=/app/data/mails.db
+      - DB_FILE=/app/mails.db
     networks:
       - mail-network
     restart: unless-stopped
@@ -125,8 +125,8 @@ services:
     networks:
       - mail-network
     volumes:
-      - ./silver-config/data/thunder/certs/server.cert:/opt/thunder/repository/resources/security/server.cert:ro
-      - ./silver-config/data/thunder/certs/server.key:/opt/thunder/repository/resources/security/server.key:ro
+      - ./silver-config/thunder/certs/server.cert:/opt/thunder/repository/resources/security/server.cert:ro
+      - ./silver-config/thunder/certs/server.key:/opt/thunder/repository/resources/security/server.key:ro
     depends_on:
       - certbot-server
 
@@ -134,9 +134,9 @@ services:
     image: ghcr.io/lsflk/silver-certbot:main
     container_name: certbot-server
     volumes:
-      - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt
-      - ./silver-config/data/certbot/keys/log:/var/log/letsencrypt
-      - ./silver-config/data/certbot/keys/lib:/var/lib/letsencrypt"
+      - ./silver-config/certbot/keys/etc:/etc/letsencrypt
+      - ./silver-config/certbot/keys/log:/var/log/letsencrypt
+      - ./silver-config/certbot/keys/lib:/var/lib/letsencrypt"
     ports:
       - "80:80"
       - "443:443"
