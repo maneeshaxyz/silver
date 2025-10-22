@@ -71,8 +71,6 @@ if ! [[ "${MAIL_DOMAIN}" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
 	exit 1
 fi
 
-# Clone the latest templates
 git clone https://github.com/maneeshaxyz/silver-config.git "${SERVICES_DIR}/silver-config"
 
-# Run config generation
 bash ${SERVICES_DIR}/config-scripts/gen-configs.sh

@@ -9,7 +9,7 @@ set -euo pipefail
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ROOT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 readonly SILVER_YAML_FILE="${ROOT_DIR}/conf/silver.yaml"
-readonly CONFIGS_PATH="${ROOT_DIR}/services/silver-config/gen/postfix"
+readonly CONFIGS_PATH="${ROOT_DIR}/services/silver-config/postfix"
 readonly DKIM_SELECTOR=mail
 
 # --- Main Logic ---
