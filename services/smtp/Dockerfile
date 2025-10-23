@@ -3,7 +3,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install required packages
 RUN apt update && \
-    apt install -y wget postfix mailutils iputils-ping sqlite3 && \
+    apt install -y wget postfix mailutils iputils-ping sqlite3 postfix-sqlite && \
     wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" && \
     chmod +x /usr/local/bin/yq && \
     apt-get purge -y --auto-remove wget && \
