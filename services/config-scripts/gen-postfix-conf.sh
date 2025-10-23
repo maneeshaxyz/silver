@@ -18,7 +18,6 @@ readonly MAIL_DOMAIN=$(grep -m 1 '^domain:' "${SILVER_YAML_FILE}" | sed 's/domai
 
 # --- Derived variables ---
 MAIL_HOSTNAME=${MAIL_HOSTNAME:-mail.$MAIL_DOMAIN}
-VMAIL_DIR="/var/mail/vmail"
 
 mkdir -p ${CONFIGS_PATH}
 
@@ -90,11 +89,7 @@ broken_sasl_auth_clients = yes
 virtual_mailbox_domains = sqlite:/etc/postfix/sqlite-virtual-domains.cf
 virtual_mailbox_maps = sqlite:/etc/postfix/sqlite-virtual-users.cf
 virtual_alias_maps = sqlite:/etc/postfix/sqlite-virtual-aliases.cf
-virtual_mailbox_base = "${VMAIL_DIR}"
 virtual_transport = lmtp:raven:24
-virtual_minimum_uid = 5000
-virtual_uid_maps = static:5000
-virtual_gid_maps = static:8
 milter_protocol = 6
 milter_default_action = accept
 smtpd_milters = inet:rspamd-server:11332,inet:opendkim-server:8891

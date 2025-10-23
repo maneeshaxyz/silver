@@ -130,38 +130,7 @@ get_container_user_count() {
 	echo ${count:-0}
 }
 
-# Create proper maildir structure
-create_user_maildir() {
-	local smtp_container="$1"
-	local user_email="$2"
-	local username="$3"
-	local mail_domain="$4"
-
-	echo -e "${YELLOW}Creating maildir for $user_email...${NC}"
-
-	docker exec "$smtp_container" bash -c "
-        VMAIL_DIR='/var/mail/vmail'
-        user_dir=\"\$VMAIL_DIR/${username}\"
-        
-        if [ ! -d \"\$user_dir\" ]; then
-            echo \"Creating maildir: \$user_dir\"
-            mkdir -p \"\$user_dir\"/{new,cur,tmp}
-            chown -R vmail:mail \"\$user_dir\"
-            chmod -R 750 \"\$user_dir\"
-            echo '✓ Maildir created successfully for ${user_email}'
-        else
-            echo 'Maildir already exists for ${user_email}'
-        fi
-    "
-
-	if [ $? -eq 0 ]; then
-		echo -e "${GREEN}✓ Maildir created for $user_email${NC}"
-		return 0
-	else
-		echo -e "${RED}✗ Failed to create maildir for $user_email${NC}"
-		return 1
-	fi
-}
+# Maildir creation removed - using Raven IMAP server for mail storage
 
 # -------------------------------
 # Step 0: Read domain from YAML first
@@ -326,9 +295,6 @@ while IFS= read -r line; do
 
 				# Update virtual configuration
 				if update_container_virtual_users "$SMTP_CONTAINER" "$USER_EMAIL" "$USER_USERNAME" "$MAIL_DOMAIN"; then
-
-					# Create maildir with correct structure
-					create_user_maildir "$SMTP_CONTAINER" "$USER_EMAIL" "$USER_USERNAME" "$MAIL_DOMAIN"
 
 					echo -e "${GREEN}✓ User $USER_EMAIL added to SQLite database (no hash rebuild needed)${NC}"
 
