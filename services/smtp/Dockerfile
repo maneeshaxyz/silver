@@ -1,21 +1,35 @@
 FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install required packages
-RUN apt update && \
-    apt install -y wget postfix mailutils iputils-ping sqlite3 && \
+# Install everything in one RUN to maintain package manager state
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        gnupg \
+        wget \
+        sqlite3 \
+        libsqlite3-0 \
+        postfix \
+        mailutils \
+        iputils-ping && \
+    # Install postfix-sqlite separately to ensure proper configuration
+    apt-get install -y postfix-sqlite && \
+    # Manually ensure the SQLite module is registered
+    if ! grep -q "^sqlite" /etc/postfix/dynamicmaps.cf; then \
+        echo "sqlite	postfix-sqlite.so	dict_sqlite_open" >> /etc/postfix/dynamicmaps.cf; \
+    fi && \
+    # Download yq
     wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" && \
     chmod +x /usr/local/bin/yq && \
-    apt-get purge -y --auto-remove wget && \
-    apt clean && \
+    # Clean up
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Copy entrypoint script
 COPY ./smtp/scripts/entrypoint.sh /entrypoint.sh
-
 RUN chmod +x /entrypoint.sh
 
-# Ensure data directory exists
+# Create data directory
 RUN mkdir -p /app/data
 
-# Start Postfix service and run the entrypoint script
 CMD ["/entrypoint.sh"]
