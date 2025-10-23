@@ -164,7 +164,29 @@ create_user_maildir() {
 }
 
 # -------------------------------
-# Step 0: Check services and maximum user limit
+# Step 0: Read domain from YAML first
+# -------------------------------
+if [ ! -f "$CONFIG_FILE" ]; then
+	echo -e "${RED}✗ Configuration file not found: $CONFIG_FILE${NC}"
+	exit 1
+fi
+
+MAIL_DOMAIN=$(grep -m 1 '^domain:' "$CONFIG_FILE" | sed 's/domain: //' | xargs)
+
+if [ -z "$MAIL_DOMAIN" ]; then
+	echo -e "${RED}✗ Domain not defined in $CONFIG_FILE${NC}"
+	exit 1
+fi
+
+if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+	echo -e "${RED}✗ Invalid domain: $MAIL_DOMAIN${NC}"
+	exit 1
+fi
+
+echo -e "${GREEN}✓ Domain name is valid: $MAIL_DOMAIN${NC}"
+
+# -------------------------------
+# Step 1: Check services and maximum user limit
 # -------------------------------
 check_services
 
@@ -192,33 +214,36 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
+# Ensure the domain exists in the database
+echo -e "${YELLOW}Ensuring domain ${MAIL_DOMAIN} exists in database...${NC}"
+DOMAIN_CHECK=$(docker exec "$SMTP_CONTAINER" bash -c "
+    sqlite3 /app/data/mails.db \"SELECT COUNT(*) FROM domains WHERE domain='${MAIL_DOMAIN}';\"
+" 2>/dev/null | tr -d '\n\r')
+
+if [ "$DOMAIN_CHECK" = "0" ]; then
+	echo -e "${YELLOW}Domain ${MAIL_DOMAIN} not found. Adding to database...${NC}"
+	docker exec "$SMTP_CONTAINER" bash -c "
+        sqlite3 /app/data/mails.db \"INSERT INTO domains (domain, enabled, created_at) VALUES ('${MAIL_DOMAIN}', 1, datetime('now'));\"
+    "
+
+	if [ $? -eq 0 ]; then
+		echo -e "${GREEN}✓ Domain ${MAIL_DOMAIN} added to database${NC}"
+	else
+		echo -e "${RED}✗ Failed to add domain to database${NC}"
+		exit 1
+	fi
+else
+	echo -e "${GREEN}✓ Domain ${MAIL_DOMAIN} already exists in database${NC}"
+fi
+
 # Get current user count
 CURRENT_USER_COUNT=$(get_container_user_count "$SMTP_CONTAINER")
 CURRENT_USER_COUNT=${CURRENT_USER_COUNT:-0}
 echo -e "${CYAN}Current users: ${GREEN}$CURRENT_USER_COUNT${NC}. Maximum allowed: $MAX_USERS${NC}"
 
 # -------------------------------
-# Step 1: Read domain from YAML
+# Step 2: Set Thunder host
 # -------------------------------
-if [ ! -f "$CONFIG_FILE" ]; then
-	echo -e "${RED}✗ Configuration file not found: $CONFIG_FILE${NC}"
-	exit 1
-fi
-
-MAIL_DOMAIN=$(grep -m 1 '^domain:' "$CONFIG_FILE" | sed 's/domain: //' | xargs)
-
-if [ -z "$MAIL_DOMAIN" ]; then
-	echo -e "${RED}✗ Domain not defined in $CONFIG_FILE${NC}"
-	exit 1
-fi
-
-if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-	echo -e "${RED}✗ Invalid domain: $MAIL_DOMAIN${NC}"
-	exit 1
-fi
-
-echo -e "${GREEN}✓ Domain name is valid: $MAIL_DOMAIN${NC}"
-
 THUNDER_HOST=${MAIL_DOMAIN}
 THUNDER_PORT="8090"
 echo -e "${GREEN}✓ Thunder host set to: $THUNDER_HOST:$THUNDER_PORT${NC}"
