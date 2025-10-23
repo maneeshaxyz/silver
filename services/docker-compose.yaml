@@ -58,7 +58,7 @@ services:
       - ./silver-config/raven/delivery.yaml:/etc/raven/delivery.yaml:ro
       - raven-sockets:/var/run/raven # Shared socket directory
     environment:
-      - DB_FILE=/app/mails.db
+      - DB_FILE=/app/data/mails.db
     networks:
       - mail-network
     restart: unless-stopped
