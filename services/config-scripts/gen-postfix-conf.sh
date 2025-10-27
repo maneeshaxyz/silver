@@ -81,6 +81,7 @@ mydomain = ${MAIL_DOMAIN}
 maillog_file = /dev/stdout
 smtpd_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
 smtpd_use_tls = yes
+# SASL authentication provided by Raven server via Unix socket
 smtpd_sasl_type = dovecot
 smtpd_sasl_path = private/auth
 smtpd_sasl_auth_enable = yes

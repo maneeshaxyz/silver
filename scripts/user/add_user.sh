@@ -347,17 +347,6 @@ if [ "$ADDED_COUNT" -gt 0 ]; then
 	echo "Active users (last 5):"
 	docker exec "$SMTP_CONTAINER" sqlite3 /app/data/mails.db "SELECT u.username || '@' || d.domain as email FROM users u INNER JOIN domains d ON u.domain_id = d.id WHERE u.enabled=1 ORDER BY u.id DESC LIMIT 5;"
 
-	# Reload Dovecot if available
-	DOVECOT_CONTAINER=$(cd "${SERVICES_DIR}" && docker compose ps -q dovecot-server 2>/dev/null)
-	if [ -n "$DOVECOT_CONTAINER" ]; then
-		echo -e "${YELLOW}Reloading Dovecot configuration...${NC}"
-		if docker exec "$DOVECOT_CONTAINER" dovecot reload 2>/dev/null; then
-			echo -e "${GREEN}✓ Dovecot configuration reloaded${NC}"
-		else
-			echo -e "${YELLOW}⚠ Dovecot reload failed or not needed${NC}"
-		fi
-	fi
-
 	echo -e "${GREEN}✓ All configuration changes applied successfully${NC}"
 else
 	echo -e "${YELLOW}No new users added, skipping configuration reload.${NC}"

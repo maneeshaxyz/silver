@@ -12,13 +12,6 @@ services:
       dockerfile: ./smtp/Dockerfile
     image: silver-smtp:local
 
-  # Uncomment if you're also developing the IMAP server
-  # dovecot-server:
-  #   build:
-  #     context: ./imap
-  #     dockerfile: ./Dockerfile
-  #   image: silver-imap:local
-
   # Uncomment if you're also developing the DKIM server
   # opendkim-server:
   #   build:

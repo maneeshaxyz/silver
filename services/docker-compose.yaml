@@ -20,24 +20,9 @@ services:
       - mail-network
     depends_on:
       - opendkim-server
-      - dovecot-server
       - rspamd-server
       - certbot-server
-
-  dovecot-server:
-    image: ghcr.io/lsflk/silver-imap:main
-    container_name: dovecot-server
-    # No ports exposed - only used for SASL authentication via Unix socket
-    # All IMAP/POP3 services are provided by raven-server
-    volumes:
-      - ./silver-config/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
-      - ./silver-config/dovecot/auth_api.lua:/etc/dovecot/auth_api.lua:ro
-      - postfix-sasl:/var/spool/postfix/private
-      - ./silver-config/certbot/keys/etc:/etc/letsencrypt:ro
-    networks:
-      - mail-network
-    depends_on:
-      - certbot-server
+      - raven-server
 
   raven-server:
     image: ghcr.io/lsflk/raven:latest
@@ -52,6 +37,7 @@ services:
       - ./silver-config/raven/certs:/certs:ro
       - ./silver-config/raven/delivery.yaml:/etc/raven/delivery.yaml:ro
       - raven-sockets:/var/run/raven # Shared socket directory
+      - postfix-sasl:/var/spool/postfix/private
     environment:
       - DB_FILE=/app/data/mails.db
     networks:
