@@ -92,11 +92,9 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: 512M
+          memory: 2.8G
         reservations:
-          cpus: "0.25"
-          memory: 256M
+          memory: 1G
 
   thunder-server:
     image: ghcr.io/asgardeo/thunder:latest
