@@ -76,12 +76,14 @@ fi
 # ================================
 
 # We can add this to the silver.yaml file later if needed
-REPO_NAME="silver-config"
-GIT_URL="https://github.com/maneeshaxyz/silver-config/archive/refs/heads/main.tar.gz"
-TEMP_DIR_NAME="${REPO_NAME}-main"
+# ================================
+# Step 2: Config Generation
+# ================================
 
-wget -qO- "${GIT_URL}" | tar -xz -C "${SERVICES_DIR}"
+GIT_URL="https://github.com/maneeshaxyz/silver-config"
 
-mv "${SERVICES_DIR}/${TEMP_DIR_NAME}" "${SERVICES_DIR}/${REPO_NAME}"
+mkdir -p "${SERVICES_DIR}/silver-config/"
 
-bash ${SERVICES_DIR}/config-scripts/gen-configs.sh
+wget -qO- "${GIT_URL}/archive/refs/heads/main.tar.gz" | tar -xz --strip-components=1 -C "${SERVICES_DIR}/silver-config/"
+
+bash "${SERVICES_DIR}/config-scripts/gen-configs.sh"
