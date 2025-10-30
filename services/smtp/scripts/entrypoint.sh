@@ -17,7 +17,7 @@ echo "$MAIL_DOMAIN" > /etc/mailname
 # -------------------------------
 # Check SQLite database
 # -------------------------------
-DB_PATH="/app/data/mails.db"
+DB_PATH="/app/data/databases/shared.db"
 
 echo "=== Checking SQLite database ==="
 if [ -f "$DB_PATH" ]; then

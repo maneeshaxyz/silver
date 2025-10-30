@@ -13,7 +13,7 @@ GEN_DIR="${ROOT_DIR}/silver-config/raven" # Base path
 
 CONFIG_FILE="${ROOT_DIR}/../conf/silver.yaml"
 OUTPUT_FILE="${GEN_DIR}/conf/raven.yaml"
-MAILS_DB_PATH="${GEN_DIR}/data/mails.db"
+MAILS_DB_PATH="${GEN_DIR}/data/databases/shared.db"
 
 # --- Extract domain from silver.yaml ---
 MAIL_DOMAIN=$(grep -m 1 '^domain:' "$CONFIG_FILE" | awk '{print $2}' | xargs)
@@ -34,12 +34,12 @@ EOF
 
 echo "✅ Generated: $OUTPUT_FILE (domain: ${MAIL_DOMAIN})"
 
-# --- Create mails.db if not exists ---
+# --- Create shared.db if not exists ---
 if [ ! -f "$MAILS_DB_PATH" ]; then
 	touch "$MAILS_DB_PATH"
-	echo "✅ Created: empty mails.db at $MAILS_DB_PATH"
+	echo "✅ Created: empty shared.db at $MAILS_DB_PATH"
 else
-	echo "ℹ️ mails.db already exists at $MAILS_DB_PATH (not overwritten)"
+	echo "ℹ️ shared.db already exists at $MAILS_DB_PATH (not overwritten)"
 fi
 
 # --- Copy certificates ---

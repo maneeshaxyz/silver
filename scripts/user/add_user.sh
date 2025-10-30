@@ -101,7 +101,7 @@ update_container_virtual_users() {
 	echo -e "${YELLOW}Adding $user_email to SQLite database...${NC}"
 
 	docker exec "$smtp_container" bash -c "
-        DB_PATH='/app/data/mails.db'
+        DB_PATH='/app/data/databases/shared.db'
 
         # Get domain_id
         domain_id=\$(sqlite3 \"\$DB_PATH\" \"SELECT id FROM domains WHERE domain='${mail_domain}' AND enabled=1;\")
@@ -126,7 +126,7 @@ update_container_virtual_users() {
 # Check user count in container (from SQLite database)
 get_container_user_count() {
 	local smtp_container="$1"
-	local count=$(docker exec "$smtp_container" bash -c "sqlite3 /app/data/mails.db 'SELECT COUNT(*) FROM users WHERE enabled=1;' 2>/dev/null || echo '0'" | tr -d '\n\r' | head -c 10)
+	local count=$(docker exec "$smtp_container" bash -c "sqlite3 /app/data/databases/shared.db 'SELECT COUNT(*) FROM users WHERE enabled=1;' 2>/dev/null || echo '0'" | tr -d '\n\r' | head -c 10)
 	echo ${count:-0}
 }
 
@@ -171,8 +171,8 @@ fi
 
 # Ensure SQLite database exists in container
 docker exec "$SMTP_CONTAINER" bash -c "
-    if [ ! -f /app/data/mails.db ]; then
-        echo 'Error: Database does not exist at /app/data/mails.db'
+    if [ ! -f /app/data/databases/shared.db ]; then
+        echo 'Error: Database does not exist at /app/data/databases/shared.db'
         echo 'Please ensure raven-server is running and has created the database'
         exit 1
     fi
@@ -186,13 +186,13 @@ fi
 # Ensure the domain exists in the database
 echo -e "${YELLOW}Ensuring domain ${MAIL_DOMAIN} exists in database...${NC}"
 DOMAIN_CHECK=$(docker exec "$SMTP_CONTAINER" bash -c "
-    sqlite3 /app/data/mails.db \"SELECT COUNT(*) FROM domains WHERE domain='${MAIL_DOMAIN}';\"
+    sqlite3 /app/data/databases/shared.db \"SELECT COUNT(*) FROM domains WHERE domain='${MAIL_DOMAIN}';\"
 " 2>/dev/null | tr -d '\n\r')
 
 if [ "$DOMAIN_CHECK" = "0" ]; then
 	echo -e "${YELLOW}Domain ${MAIL_DOMAIN} not found. Adding to database...${NC}"
 	docker exec "$SMTP_CONTAINER" bash -c "
-        sqlite3 /app/data/mails.db \"INSERT INTO domains (domain, enabled, created_at) VALUES ('${MAIL_DOMAIN}', 1, datetime('now'));\"
+        sqlite3 /app/data/databases/shared.db \"INSERT INTO domains (domain, enabled, created_at) VALUES ('${MAIL_DOMAIN}', 1, datetime('now'));\"
     "
 
 	if [ $? -eq 0 ]; then
@@ -261,7 +261,7 @@ while IFS= read -r line; do
 			fi
 
 			# Check if user already exists in database
-			USER_EXISTS=$(docker exec "$SMTP_CONTAINER" bash -c "sqlite3 /app/data/mails.db \"SELECT COUNT(*) FROM users u INNER JOIN domains d ON u.domain_id = d.id WHERE u.username='${USER_USERNAME}' AND d.domain='${MAIL_DOMAIN}' AND u.enabled=1;\"" 2>/dev/null || echo "0")
+			USER_EXISTS=$(docker exec "$SMTP_CONTAINER" bash -c "sqlite3 /app/data/databases/shared.db \"SELECT COUNT(*) FROM users u INNER JOIN domains d ON u.domain_id = d.id WHERE u.username='${USER_USERNAME}' AND d.domain='${MAIL_DOMAIN}' AND u.enabled=1;\"" 2>/dev/null || echo "0")
 			if [ "$USER_EXISTS" != "0" ]; then
 				echo -e "${YELLOW}⚠ User ${USER_EMAIL} already exists. Skipping.${NC}"
 				USER_USERNAME=""
@@ -343,9 +343,9 @@ if [ "$ADDED_COUNT" -gt 0 ]; then
 	# Verify the changes from SQLite database
 	echo -e "${YELLOW}Verifying SQLite database contents...${NC}"
 	echo "Active domains:"
-	docker exec "$SMTP_CONTAINER" sqlite3 /app/data/mails.db "SELECT domain FROM domains WHERE enabled=1;"
+	docker exec "$SMTP_CONTAINER" sqlite3 /app/data/databases/shared.db "SELECT domain FROM domains WHERE enabled=1;"
 	echo "Active users (last 5):"
-	docker exec "$SMTP_CONTAINER" sqlite3 /app/data/mails.db "SELECT u.username || '@' || d.domain as email FROM users u INNER JOIN domains d ON u.domain_id = d.id WHERE u.enabled=1 ORDER BY u.id DESC LIMIT 5;"
+	docker exec "$SMTP_CONTAINER" sqlite3 /app/data/databases/shared.db "SELECT u.username || '@' || d.domain as email FROM users u INNER JOIN domains d ON u.domain_id = d.id WHERE u.enabled=1 ORDER BY u.id DESC LIMIT 5;"
 
 	echo -e "${GREEN}✓ All configuration changes applied successfully${NC}"
 else
