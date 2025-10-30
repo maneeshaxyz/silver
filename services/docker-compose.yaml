@@ -39,7 +39,7 @@ services:
       - raven-sockets:/var/run/raven # Shared socket directory
       - postfix-sasl:/var/spool/postfix/private
     environment:
-      - DB_FILE=/app/data/mails.db
+      - DB_FILE=/app/data/databases/shared.db
     networks:
       - mail-network
     restart: unless-stopped

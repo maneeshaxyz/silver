@@ -25,7 +25,7 @@ mkdir -p ${CONFIGS_PATH}
 # SQLite configuration files are in silver-config/postfix/sqlite-*.cf
 
 echo -e "SMTP configuration will use SQLite database"
-echo " - Database: /app/data/mails.db"
+echo " - Database: /app/data/databses/shared.db"
 echo " - SQLite configs: $CONFIGS_PATH/sqlite-*.cf"
 
 # --- Generate main.cf content ---
