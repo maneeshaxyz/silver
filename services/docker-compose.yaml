@@ -9,7 +9,6 @@ services:
       - ./silver-config/gen/postfix/main.cf:/etc/postfix/main.cf:ro
       - ./silver-config/static/postfix/master.cf:/etc/postfix/master.cf:ro
       - ../conf/silver.yaml:/etc/postfix/silver.yaml
-      - maildata:/var/mail/vmail
       - postfix-sasl:/var/spool/postfix/private
       - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
       - ./silver-config/gen/postfix/virtual-domains:/etc/postfix/virtual-domains:rw
@@ -21,28 +20,27 @@ services:
       - mail-network
     depends_on:
       - opendkim-server
-      - dovecot-server
       - rspamd-server
       - certbot-server
+      - raven-server
 
-  dovecot-server:
-    image: ghcr.io/lsflk/silver-imap:main
-    container_name: dovecot-server
-    ports:
-      - "1143:143"
-      - "1142:993"
-      - "110:110"
-      - "995:995"
-    volumes:
-      - ./silver-config/static/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
-      - ./silver-config/static/dovecot/auth_api.lua:/etc/dovecot/auth_api.lua:ro
-      - maildata:/var/mail/vmail
-      - postfix-sasl:/var/spool/postfix/private
-      - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
-    networks:
-      - mail-network
-    depends_on:
-      - certbot-server
+  # dovecot-server:
+  #   image: ghcr.io/lsflk/silver-imap:main
+  #   container_name: dovecot-server
+  #   ports:
+  #     - "1143:143"
+  #     - "1142:993"
+  #     - "110:110"
+  #     - "995:995"
+  #   volumes:
+  #     - ./silver-config/static/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
+  #     - ./silver-config/static/dovecot/auth_api.lua:/etc/dovecot/auth_api.lua:ro
+  #     - maildata:/var/mail/vmail
+  #     - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
+  #   networks:
+  #     - mail-network
+  #   depends_on:
+  #     - certbot-server
   
   raven-server:
     image: ghcr.io/lsflk/raven:latest
@@ -57,6 +55,7 @@ services:
       - ./silver-config/data/raven/certs:/certs:ro
       - ./silver-config/static/raven/delivery.yaml:/etc/raven/delivery.yaml:ro
       - raven-sockets:/var/run/raven  # Shared socket directory
+      - postfix-sasl:/var/spool/postfix/private
     environment:
       - DB_FILE=/app/data/mails.db
     networks:
@@ -144,7 +143,6 @@ services:
       - mail-network
 
 volumes:
-  maildata:
   postfix-sasl:
   dkim-keys:
   rspamd_data:
