@@ -9,7 +9,7 @@ set -euo pipefail
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ROOT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 readonly SILVER_YAML_FILE="${ROOT_DIR}/conf/silver.yaml"
-readonly CONFIGS_PATH="${ROOT_DIR}/services/silver-config/postfix"
+readonly CONFIGS_PATH="${ROOT_DIR}/services/silver-config/gen/postfix"
 readonly DKIM_SELECTOR=mail
 
 # --- Main Logic ---
@@ -18,15 +18,19 @@ readonly MAIL_DOMAIN=$(grep -m 1 '^domain:' "${SILVER_YAML_FILE}" | sed 's/domai
 
 # --- Derived variables ---
 MAIL_HOSTNAME=${MAIL_HOSTNAME:-mail.$MAIL_DOMAIN}
+VMAIL_DIR="/var/mail/vmail"
 
 mkdir -p ${CONFIGS_PATH}
 
-# Note: Using SQLite database instead of virtual files
-# SQLite configuration files are in silver-config/postfix/sqlite-*.cf
+# Create required files
+echo "${MAIL_DOMAIN} OK" >"$CONFIGS_PATH/virtual-domains"
+: >"$CONFIGS_PATH/virtual-aliases"
+: >"$CONFIGS_PATH/virtual-users"
 
-echo -e "SMTP configuration will use SQLite database"
-echo " - Database: /app/data/databses/shared.db"
-echo " - SQLite configs: $CONFIGS_PATH/sqlite-*.cf"
+echo -e "SMTP configuration files prepared"
+echo " - $CONFIGS_PATH/virtual-domains (with '${MAIL_DOMAIN} OK')"
+echo " - $CONFIGS_PATH/virtual-aliases (empty)"
+echo " - $CONFIGS_PATH/virtual-users (empty)"
 
 # --- Generate main.cf content ---
 cat >"${CONFIGS_PATH}/main.cf" <<EOF
@@ -81,16 +85,19 @@ mydomain = ${MAIL_DOMAIN}
 maillog_file = /dev/stdout
 smtpd_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
 smtpd_use_tls = yes
-# SASL authentication provided by Raven server via Unix socket
 smtpd_sasl_type = dovecot
 smtpd_sasl_path = private/auth
 smtpd_sasl_auth_enable = yes
 smtpd_sasl_security_options = noanonymous
 broken_sasl_auth_clients = yes
-virtual_mailbox_domains = sqlite:/etc/postfix/sqlite-virtual-domains.cf
-virtual_mailbox_maps = sqlite:/etc/postfix/sqlite-virtual-users.cf
-virtual_alias_maps = sqlite:/etc/postfix/sqlite-virtual-aliases.cf
+virtual_mailbox_domains = hash:/etc/postfix/virtual-domains
+virtual_mailbox_maps = hash:/etc/postfix/virtual-users
+virtual_alias_maps = hash:/etc/postfix/virtual-aliases
+virtual_mailbox_base = "${VMAIL_DIR}"
 virtual_transport = lmtp:raven:24
+virtual_minimum_uid = 5000
+virtual_uid_maps = static:5000
+virtual_gid_maps = static:8
 milter_protocol = 6
 milter_default_action = accept
 smtpd_milters = inet:rspamd-server:11332,inet:opendkim-server:8891
