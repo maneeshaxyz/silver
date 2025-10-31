@@ -35,7 +35,5 @@ scripts/decrypt/user_passwords.txt
 services/raven/
 
 # generated configs and artifacts
-services/silver-config
-
-# Ignore docker-compose override files
-services/docker-compose.override.yml
+services/silver-config/gen/
+services/silver-config/data/

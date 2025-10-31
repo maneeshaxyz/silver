@@ -91,49 +91,91 @@ check_services() {
 	fi
 }
 
-# Add user to SQLite database
+# Safe file updates without locking issues
 update_container_virtual_users() {
 	local smtp_container="$1"
 	local user_email="$2"
 	local username="$3"
 	local mail_domain="$4"
 
-	echo -e "${YELLOW}Adding $user_email to SQLite database...${NC}"
+	echo -e "${YELLOW}Adding $user_email to container virtual-users file...${NC}"
 
 	docker exec "$smtp_container" bash -c "
-        DB_PATH='/app/data/databases/shared.db'
-
-        # Get domain_id
-        domain_id=\$(sqlite3 \"\$DB_PATH\" \"SELECT id FROM domains WHERE domain='${mail_domain}' AND enabled=1;\")
-
-        if [ -z \"\$domain_id\" ]; then
-            echo 'Error: Domain ${mail_domain} not found in database'
-            exit 1
-        fi
-
-        # Insert user into database
-        sqlite3 \"\$DB_PATH\" \"INSERT OR REPLACE INTO users (username, domain_id, enabled) VALUES ('${username}', \$domain_id, 1);\"
-
-        if [ \$? -eq 0 ]; then
-            echo 'User added to database successfully'
-        else
-            echo 'Failed to add user to database'
-            exit 1
-        fi
+        # Append user line (domain/username/ path format) and domain line (with OK)
+        echo -e '${user_email}\t${mail_domain}/${username}/' >> '${CONTAINER_VIRTUAL_USERS_FILE}'
+        
+        echo 'Files updated successfully'
     "
 }
 
-# Check user count in container (from SQLite database)
+# Check user count in container
 get_container_user_count() {
 	local smtp_container="$1"
-	local count=$(docker exec "$smtp_container" bash -c "sqlite3 /app/data/databases/shared.db 'SELECT COUNT(*) FROM users WHERE enabled=1;' 2>/dev/null || echo '0'" | tr -d '\n\r' | head -c 10)
+	local count=$(docker exec "$smtp_container" bash -c "grep -c '@' '${CONTAINER_VIRTUAL_USERS_FILE}' 2>/dev/null || echo '0'" | tr -d '\n\r' | head -c 10)
 	echo ${count:-0}
 }
 
-# Maildir creation removed - using Raven IMAP server for mail storage
+# Create proper maildir structure
+create_user_maildir() {
+	local smtp_container="$1"
+	local user_email="$2"
+	local username="$3"
+	local mail_domain="$4"
+
+	echo -e "${YELLOW}Creating maildir for $user_email...${NC}"
+
+	docker exec "$smtp_container" bash -c "
+        VMAIL_DIR='/var/mail/vmail'
+        user_dir=\"\$VMAIL_DIR/${username}\"
+        
+        if [ ! -d \"\$user_dir\" ]; then
+            echo \"Creating maildir: \$user_dir\"
+            mkdir -p \"\$user_dir\"/{new,cur,tmp}
+            chown -R vmail:mail \"\$user_dir\"
+            chmod -R 750 \"\$user_dir\"
+            echo '✓ Maildir created successfully for ${user_email}'
+        else
+            echo 'Maildir already exists for ${user_email}'
+        fi
+    "
+
+	if [ $? -eq 0 ]; then
+		echo -e "${GREEN}✓ Maildir created for $user_email${NC}"
+		return 0
+	else
+		echo -e "${RED}✗ Failed to create maildir for $user_email${NC}"
+		return 1
+	fi
+}
 
 # -------------------------------
-# Step 0: Read domain from YAML first
+# Step 0: Check services and maximum user limit
+# -------------------------------
+check_services
+
+MAX_USERS=100
+
+# Find the smtp container
+SMTP_CONTAINER=$(cd "${SERVICES_DIR}" && docker compose ps -q smtp-server 2>/dev/null)
+if [ -z "$SMTP_CONTAINER" ]; then
+	echo -e "${RED}✗ SMTP container not found. Is Docker Compose running?${NC}"
+	echo -e "${YELLOW}Try running: docker compose up -d${NC}"
+	exit 1
+fi
+
+# Ensure virtual files exist in container
+docker exec "$SMTP_CONTAINER" bash -c "
+    touch '${CONTAINER_VIRTUAL_USERS_FILE}'
+    touch '${CONTAINER_VIRTUAL_DOMAINS_FILE}'
+"
+
+# Get current user count
+CURRENT_USER_COUNT=$(get_container_user_count "$SMTP_CONTAINER")
+CURRENT_USER_COUNT=${CURRENT_USER_COUNT:-0}
+echo -e "${CYAN}Current users: ${GREEN}$CURRENT_USER_COUNT${NC}. Maximum allowed: $MAX_USERS${NC}"
+
+# -------------------------------
+# Step 1: Read domain from YAML
 # -------------------------------
 if [ ! -f "$CONFIG_FILE" ]; then
 	echo -e "${RED}✗ Configuration file not found: $CONFIG_FILE${NC}"
@@ -154,65 +196,6 @@ fi
 
 echo -e "${GREEN}✓ Domain name is valid: $MAIL_DOMAIN${NC}"
 
-# -------------------------------
-# Step 1: Check services and maximum user limit
-# -------------------------------
-check_services
-
-MAX_USERS=100
-
-# Find the smtp container
-SMTP_CONTAINER=$(cd "${SERVICES_DIR}" && docker compose ps -q smtp-server 2>/dev/null)
-if [ -z "$SMTP_CONTAINER" ]; then
-	echo -e "${RED}✗ SMTP container not found. Is Docker Compose running?${NC}"
-	echo -e "${YELLOW}Try running: docker compose up -d${NC}"
-	exit 1
-fi
-
-# Ensure SQLite database exists in container
-docker exec "$SMTP_CONTAINER" bash -c "
-    if [ ! -f /app/data/databases/shared.db ]; then
-        echo 'Error: Database does not exist at /app/data/databases/shared.db'
-        echo 'Please ensure raven-server is running and has created the database'
-        exit 1
-    fi
-"
-
-if [ $? -ne 0 ]; then
-	echo -e "${RED}✗ SQLite database not found. Please start raven-server first.${NC}"
-	exit 1
-fi
-
-# Ensure the domain exists in the database
-echo -e "${YELLOW}Ensuring domain ${MAIL_DOMAIN} exists in database...${NC}"
-DOMAIN_CHECK=$(docker exec "$SMTP_CONTAINER" bash -c "
-    sqlite3 /app/data/databases/shared.db \"SELECT COUNT(*) FROM domains WHERE domain='${MAIL_DOMAIN}';\"
-" 2>/dev/null | tr -d '\n\r')
-
-if [ "$DOMAIN_CHECK" = "0" ]; then
-	echo -e "${YELLOW}Domain ${MAIL_DOMAIN} not found. Adding to database...${NC}"
-	docker exec "$SMTP_CONTAINER" bash -c "
-        sqlite3 /app/data/databases/shared.db \"INSERT INTO domains (domain, enabled, created_at) VALUES ('${MAIL_DOMAIN}', 1, datetime('now'));\"
-    "
-
-	if [ $? -eq 0 ]; then
-		echo -e "${GREEN}✓ Domain ${MAIL_DOMAIN} added to database${NC}"
-	else
-		echo -e "${RED}✗ Failed to add domain to database${NC}"
-		exit 1
-	fi
-else
-	echo -e "${GREEN}✓ Domain ${MAIL_DOMAIN} already exists in database${NC}"
-fi
-
-# Get current user count
-CURRENT_USER_COUNT=$(get_container_user_count "$SMTP_CONTAINER")
-CURRENT_USER_COUNT=${CURRENT_USER_COUNT:-0}
-echo -e "${CYAN}Current users: ${GREEN}$CURRENT_USER_COUNT${NC}. Maximum allowed: $MAX_USERS${NC}"
-
-# -------------------------------
-# Step 2: Set Thunder host
-# -------------------------------
 THUNDER_HOST=${MAIL_DOMAIN}
 THUNDER_PORT="8090"
 echo -e "${GREEN}✓ Thunder host set to: $THUNDER_HOST:$THUNDER_PORT${NC}"
@@ -260,9 +243,8 @@ while IFS= read -r line; do
 				continue
 			fi
 
-			# Check if user already exists in database
-			USER_EXISTS=$(docker exec "$SMTP_CONTAINER" bash -c "sqlite3 /app/data/databases/shared.db \"SELECT COUNT(*) FROM users u INNER JOIN domains d ON u.domain_id = d.id WHERE u.username='${USER_USERNAME}' AND d.domain='${MAIL_DOMAIN}' AND u.enabled=1;\"" 2>/dev/null || echo "0")
-			if [ "$USER_EXISTS" != "0" ]; then
+			# Check if user already exists
+			if docker exec "$SMTP_CONTAINER" bash -c "grep -q '^${USER_EMAIL}' '${CONTAINER_VIRTUAL_USERS_FILE}' 2>/dev/null"; then
 				echo -e "${YELLOW}⚠ User ${USER_EMAIL} already exists. Skipping.${NC}"
 				USER_USERNAME=""
 				continue
@@ -296,7 +278,21 @@ while IFS= read -r line; do
 				# Update virtual configuration
 				if update_container_virtual_users "$SMTP_CONTAINER" "$USER_EMAIL" "$USER_USERNAME" "$MAIL_DOMAIN"; then
 
-					echo -e "${GREEN}✓ User $USER_EMAIL added to SQLite database (no hash rebuild needed)${NC}"
+					# Create maildir with correct structure
+					create_user_maildir "$SMTP_CONTAINER" "$USER_EMAIL" "$USER_USERNAME" "$MAIL_DOMAIN"
+
+					# CRITICAL: Rebuild hash databases immediately
+					echo -e "${YELLOW}Rebuilding hash databases for $USER_EMAIL...${NC}"
+					docker exec "$SMTP_CONTAINER" bash -c "
+                        postmap '${CONTAINER_VIRTUAL_USERS_FILE}' &&
+                        postmap '${CONTAINER_VIRTUAL_DOMAINS_FILE}'
+                    "
+
+					if [ $? -eq 0 ]; then
+						echo -e "${GREEN}✓ Hash databases updated for $USER_EMAIL${NC}"
+					else
+						echo -e "${RED}✗ Failed to rebuild hash databases${NC}"
+					fi
 
 					# Store encrypted password
 					ENCRYPTED_PASSWORD=$(encrypt_password "$USER_PASSWORD")
@@ -331,7 +327,22 @@ done <"$USERS_FILE"
 if [ "$ADDED_COUNT" -gt 0 ]; then
 	echo -e "\n${YELLOW}Applying final Postfix configuration changes...${NC}"
 
-	# Hot reload postfix configuration (SQLite queries are dynamic, no rebuild needed)
+	# Final rebuild of all hash databases
+	echo -e "${YELLOW}Final rebuild of all hash databases...${NC}"
+	docker exec "$SMTP_CONTAINER" bash -c "
+        postmap '${CONTAINER_VIRTUAL_USERS_FILE}' &&
+        postmap '${CONTAINER_VIRTUAL_DOMAINS_FILE}' &&
+        echo 'Hash databases rebuilt successfully'
+    "
+
+	if [ $? -eq 0 ]; then
+		echo -e "${GREEN}✓ All hash databases rebuilt successfully${NC}"
+	else
+		echo -e "${RED}✗ Failed to rebuild hash databases${NC}"
+		exit 1
+	fi
+
+	# Hot reload postfix configuration
 	echo -e "${YELLOW}Reloading Postfix configuration...${NC}"
 	if docker exec "$SMTP_CONTAINER" postfix reload; then
 		echo -e "${GREEN}✓ Postfix configuration reloaded successfully${NC}"
@@ -340,12 +351,23 @@ if [ "$ADDED_COUNT" -gt 0 ]; then
 		exit 1
 	fi
 
-	# Verify the changes from SQLite database
-	echo -e "${YELLOW}Verifying SQLite database contents...${NC}"
-	echo "Active domains:"
-	docker exec "$SMTP_CONTAINER" sqlite3 /app/data/databases/shared.db "SELECT domain FROM domains WHERE enabled=1;"
-	echo "Active users (last 5):"
-	docker exec "$SMTP_CONTAINER" sqlite3 /app/data/databases/shared.db "SELECT u.username || '@' || d.domain as email FROM users u INNER JOIN domains d ON u.domain_id = d.id WHERE u.enabled=1 ORDER BY u.id DESC LIMIT 5;"
+	# Verify the changes
+	echo -e "${YELLOW}Verifying virtual configuration...${NC}"
+	echo "Virtual domains:"
+	docker exec "$SMTP_CONTAINER" postmap -s "${CONTAINER_VIRTUAL_DOMAINS_FILE}"
+	echo "Virtual users (last 5):"
+	docker exec "$SMTP_CONTAINER" postmap -s "${CONTAINER_VIRTUAL_USERS_FILE}" | tail -5
+
+	# Reload Dovecot if available
+	DOVECOT_CONTAINER=$(cd "${SERVICES_DIR}" && docker compose ps -q dovecot-server 2>/dev/null)
+	if [ -n "$DOVECOT_CONTAINER" ]; then
+		echo -e "${YELLOW}Reloading Dovecot configuration...${NC}"
+		if docker exec "$DOVECOT_CONTAINER" dovecot reload 2>/dev/null; then
+			echo -e "${GREEN}✓ Dovecot configuration reloaded${NC}"
+		else
+			echo -e "${YELLOW}⚠ Dovecot reload failed or not needed${NC}"
+		fi
+	fi
 
 	echo -e "${GREEN}✓ All configuration changes applied successfully${NC}"
 else

@@ -71,19 +71,5 @@ if ! [[ "${MAIL_DOMAIN}" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
 	exit 1
 fi
 
-# ================================
-# Step 2: Config Generation
-# ================================
-
-# We can add this to the silver.yaml file later if needed
-# ================================
-# Step 2: Config Generation
-# ================================
-
-GIT_URL="https://github.com/maneeshaxyz/silver-config"
-
-mkdir -p "${SERVICES_DIR}/silver-config/"
-
-wget -qO- "${GIT_URL}/archive/refs/heads/main.tar.gz" | tar -xz --strip-components=1 -C "${SERVICES_DIR}/silver-config/"
-
-bash "${SERVICES_DIR}/config-scripts/gen-configs.sh"
+# Run config generation
+bash ${SERVICES_DIR}/config-scripts/gen-configs.sh

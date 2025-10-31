@@ -10,8 +10,8 @@ set -euo pipefail
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 readonly SILVER_YAML_FILE="${ROOT_DIR}/../conf/silver.yaml"
-readonly CONFIGS_PATH="${ROOT_DIR}/silver-config/certbot"
-readonly LETSENCRYPT_PATH="${ROOT_DIR}/silver-config/certbot/keys"
+readonly CONFIGS_PATH="${ROOT_DIR}/silver-config/gen/certbot"
+readonly LETSENCRYPT_PATH="${ROOT_DIR}/silver-config/data/certbot/keys"
 readonly DKIM_KEY_SIZE=2048
 
 # --- Main Logic ---
