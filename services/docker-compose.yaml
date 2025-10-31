@@ -23,24 +23,6 @@ services:
       - rspamd-server
       - certbot-server
       - raven-server
-
-  # dovecot-server:
-  #   image: ghcr.io/lsflk/silver-imap:main
-  #   container_name: dovecot-server
-  #   ports:
-  #     - "1143:143"
-  #     - "1142:993"
-  #     - "110:110"
-  #     - "995:995"
-  #   volumes:
-  #     - ./silver-config/static/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
-  #     - ./silver-config/static/dovecot/auth_api.lua:/etc/dovecot/auth_api.lua:ro
-  #     - maildata:/var/mail/vmail
-  #     - ./silver-config/data/certbot/keys/etc:/etc/letsencrypt:ro
-  #   networks:
-  #     - mail-network
-  #   depends_on:
-  #     - certbot-server
   
   raven-server:
     image: ghcr.io/lsflk/raven:latest
