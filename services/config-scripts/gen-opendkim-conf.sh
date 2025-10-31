@@ -10,9 +10,9 @@ set -euo pipefail
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 readonly SILVER_YAML_FILE="${ROOT_DIR}/../conf/silver.yaml"
-readonly CONFIGS_PATH="${ROOT_DIR}/silver-config/gen/opendkim"
+readonly CONFIGS_PATH="${ROOT_DIR}/silver-config/opendkim"
 readonly DKIM_SELECTOR=mail
-readonly DKIM_KEYS_PATH="${ROOT_DIR}/silver-config/data/opendkim/keys"
+readonly DKIM_KEYS_PATH="${ROOT_DIR}/silver-config/opendkim/keys"
 readonly DKIM_KEY_SIZE=2048
 
 # --- Main Logic ---
