@@ -3,12 +3,13 @@ set -e
 
 CONFIG_FILE="/etc/postfix/silver.yaml"
 
-# Extract primary (first) domain from the domains list using grep/sed
-MAIL_DOMAIN=$(grep -m 1 '^\s*-\s*domain:' "$CONFIG_FILE" | sed 's/.*domain:\s*//' | xargs)
+# Extract primary (first) domain from the domains list using awk
+MAIL_DOMAIN=$(awk '/^[[:space:]]*-[[:space:]]*domain:/ {sub(/^[[:space:]]*-[[:space:]]*domain:[[:space:]]*/, ""); print; exit}' "$CONFIG_FILE")
 
 # Fallback if extraction failed
-if [ -z "$MAIL_DOMAIN" ]; then
+if [ -z "$MAIL_DOMAIN" ] || [ "$MAIL_DOMAIN" = "null" ]; then
     echo "⚠️  Warning: Could not extract domain from $CONFIG_FILE"
+    echo "⚠️  Please ensure silver.yaml has domains configured"
     MAIL_DOMAIN="example.org"
 fi
 
