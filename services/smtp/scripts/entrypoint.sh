@@ -3,7 +3,8 @@ set -e
 
 CONFIG_FILE="/etc/postfix/silver.yaml"
 
-export MAIL_DOMAIN=$(yq -e '.domain' "$CONFIG_FILE")
+# Extract primary (first) domain from the domains list
+export MAIL_DOMAIN=$(yq -e '.domains[0].domain' "$CONFIG_FILE")
 
 # -------------------------------
 # Environment variables

@@ -3,8 +3,8 @@ set -e
 
 CONFIG_FILE="/etc/opendkim/silver.yaml"
 
-# Extract variables from YAML
-export MAIL_DOMAIN=$(yq -e '.domain' "$CONFIG_FILE")
+# Extract primary (first) domain from the domains list
+export MAIL_DOMAIN=$(yq -e '.domains[0].domain' "$CONFIG_FILE")
 MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
 DKIM_SELECTOR=${DKIM_SELECTOR:-mail}
 DKIM_KEY_SIZE=${DKIM_KEY_SIZE:-2048}
