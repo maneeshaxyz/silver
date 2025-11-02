@@ -3,16 +3,23 @@ set -e
 
 CONFIG_FILE="/etc/postfix/silver.yaml"
 
-# Extract primary (first) domain from the domains list
-export MAIL_DOMAIN=$(yq -e '.domains[0].domain' "$CONFIG_FILE")
+# Extract primary (first) domain from the domains list using grep/sed
+MAIL_DOMAIN=$(grep -m 1 '^\s*-\s*domain:' "$CONFIG_FILE" | sed 's/.*domain:\s*//' | xargs)
+
+# Fallback if extraction failed
+if [ -z "$MAIL_DOMAIN" ]; then
+    echo "⚠️  Warning: Could not extract domain from $CONFIG_FILE"
+    MAIL_DOMAIN="example.org"
+fi
 
 # -------------------------------
 # Environment variables
 # -------------------------------
-MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
+export MAIL_DOMAIN
 MAIL_HOSTNAME=${MAIL_HOSTNAME:-mail.$MAIL_DOMAIN}
 RELAYHOST=${RELAYHOST:-}
 
+echo "Using domain: $MAIL_DOMAIN"
 echo "$MAIL_DOMAIN" > /etc/mailname
 
 # -------------------------------

@@ -8,11 +8,14 @@ echo "  Multi-Domain Certificate Request"
 echo "========================================="
 echo ""
 
-# Extract ALL domains from the domains list in silver.yaml
-DOMAINS=$(yq -e '.domains[].domain' "$CONFIG_FILE" 2>/dev/null | tr '\n' ' ')
+# Extract ALL domains from the domains list in silver.yaml using grep/sed
+DOMAINS=$(grep '^\s*-\s*domain:' "$CONFIG_FILE" | sed 's/.*domain:\s*//' | xargs)
 
 if [ -z "$DOMAINS" ]; then
     echo "❌ Error: No domains found in $CONFIG_FILE"
+    echo "Please check that $CONFIG_FILE contains domains in the correct format:"
+    echo "domains:"
+    echo "  - domain: example.com"
     exit 1
 fi
 

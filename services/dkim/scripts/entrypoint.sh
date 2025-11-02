@@ -3,11 +3,21 @@ set -e
 
 CONFIG_FILE="/etc/opendkim/silver.yaml"
 
-# Extract primary (first) domain from the domains list
-export MAIL_DOMAIN=$(yq -e '.domains[0].domain' "$CONFIG_FILE")
-MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
+# Extract primary (first) domain from the domains list using grep/sed
+MAIL_DOMAIN=$(grep -m 1 '^\s*-\s*domain:' "$CONFIG_FILE" | sed 's/.*domain:\s*//' | xargs)
+
+# Fallback if extraction failed
+if [ -z "$MAIL_DOMAIN" ]; then
+    echo "⚠️  Warning: Could not extract domain from $CONFIG_FILE"
+    MAIL_DOMAIN="example.org"
+fi
+
+# Extract variables from YAML
+export MAIL_DOMAIN
 DKIM_SELECTOR=${DKIM_SELECTOR:-mail}
 DKIM_KEY_SIZE=${DKIM_KEY_SIZE:-2048}
+
+echo "Using domain: $MAIL_DOMAIN"
 
 # Try to create the domain directory
 echo "Attempting to create domain directory for: $MAIL_DOMAIN"
