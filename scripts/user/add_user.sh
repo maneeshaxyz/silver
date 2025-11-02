@@ -133,26 +133,19 @@ get_container_user_count() {
 # Maildir creation removed - using Raven IMAP server for mail storage
 
 # -------------------------------
-# Step 0: Read domain from YAML first
+# Step 0: Validate config files exist
 # -------------------------------
 if [ ! -f "$CONFIG_FILE" ]; then
 	echo -e "${RED}✗ Configuration file not found: $CONFIG_FILE${NC}"
 	exit 1
 fi
 
-MAIL_DOMAIN=$(grep -m 1 '^domain:' "$CONFIG_FILE" | sed 's/domain: //' | xargs)
-
-if [ -z "$MAIL_DOMAIN" ]; then
-	echo -e "${RED}✗ Domain not defined in $CONFIG_FILE${NC}"
+if [ ! -f "$USERS_FILE" ]; then
+	echo -e "${RED}✗ Users file not found: $USERS_FILE${NC}"
 	exit 1
 fi
 
-if ! [[ "$MAIL_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-	echo -e "${RED}✗ Invalid domain: $MAIL_DOMAIN${NC}"
-	exit 1
-fi
-
-echo -e "${GREEN}✓ Domain name is valid: $MAIL_DOMAIN${NC}"
+echo -e "${GREEN}✓ Configuration files found${NC}"
 
 # -------------------------------
 # Step 1: Check services and maximum user limit
@@ -183,27 +176,32 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-# Ensure the domain exists in the database
-echo -e "${YELLOW}Ensuring domain ${MAIL_DOMAIN} exists in database...${NC}"
-DOMAIN_CHECK=$(docker exec "$SMTP_CONTAINER" bash -c "
-    sqlite3 /app/data/databases/shared.db \"SELECT COUNT(*) FROM domains WHERE domain='${MAIL_DOMAIN}';\"
-" 2>/dev/null | tr -d '\n\r')
+# Helper function to ensure domain exists in database
+ensure_domain_exists() {
+	local domain="$1"
+	echo -e "${YELLOW}Ensuring domain ${domain} exists in database...${NC}"
 
-if [ "$DOMAIN_CHECK" = "0" ]; then
-	echo -e "${YELLOW}Domain ${MAIL_DOMAIN} not found. Adding to database...${NC}"
-	docker exec "$SMTP_CONTAINER" bash -c "
-        sqlite3 /app/data/databases/shared.db \"INSERT INTO domains (domain, enabled, created_at) VALUES ('${MAIL_DOMAIN}', 1, datetime('now'));\"
-    "
+	DOMAIN_CHECK=$(docker exec "$SMTP_CONTAINER" bash -c "
+        sqlite3 /app/data/databases/shared.db \"SELECT COUNT(*) FROM domains WHERE domain='${domain}';\"
+    " 2>/dev/null | tr -d '\n\r')
 
-	if [ $? -eq 0 ]; then
-		echo -e "${GREEN}✓ Domain ${MAIL_DOMAIN} added to database${NC}"
+	if [ "$DOMAIN_CHECK" = "0" ]; then
+		echo -e "${YELLOW}Domain ${domain} not found. Adding to database...${NC}"
+		docker exec "$SMTP_CONTAINER" bash -c "
+            sqlite3 /app/data/databases/shared.db \"INSERT INTO domains (domain, enabled, created_at) VALUES ('${domain}', 1, datetime('now'));\"
+        "
+
+		if [ $? -eq 0 ]; then
+			echo -e "${GREEN}✓ Domain ${domain} added to database${NC}"
+		else
+			echo -e "${RED}✗ Failed to add domain to database${NC}"
+			return 1
+		fi
 	else
-		echo -e "${RED}✗ Failed to add domain to database${NC}"
-		exit 1
+		echo -e "${GREEN}✓ Domain ${domain} already exists in database${NC}"
 	fi
-else
-	echo -e "${GREEN}✓ Domain ${MAIL_DOMAIN} already exists in database${NC}"
-fi
+	return 0
+}
 
 # Get current user count
 CURRENT_USER_COUNT=$(get_container_user_count "$SMTP_CONTAINER")
@@ -211,20 +209,23 @@ CURRENT_USER_COUNT=${CURRENT_USER_COUNT:-0}
 echo -e "${CYAN}Current users: ${GREEN}$CURRENT_USER_COUNT${NC}. Maximum allowed: $MAX_USERS${NC}"
 
 # -------------------------------
-# Step 2: Set Thunder host
+# Step 2: Extract primary domain for Thunder
 # -------------------------------
-THUNDER_HOST=${MAIL_DOMAIN}
-THUNDER_PORT="8090"
-echo -e "${GREEN}✓ Thunder host set to: $THUNDER_HOST:$THUNDER_PORT${NC}"
+# Get the first domain from users.yaml as primary domain for Thunder
+PRIMARY_DOMAIN=$(grep -m 1 '^\s*-\s*domain:' "$USERS_FILE" | sed 's/.*domain:\s*//' | xargs)
 
-# -------------------------------
-# Step 2: Validate users.yaml
-# -------------------------------
-if [ ! -f "$USERS_FILE" ]; then
-	echo -e "${RED}✗ Users file not found: $USERS_FILE${NC}"
+if [ -z "$PRIMARY_DOMAIN" ]; then
+	echo -e "${RED}✗ No domains found in $USERS_FILE${NC}"
 	exit 1
 fi
 
+THUNDER_HOST=${PRIMARY_DOMAIN}
+THUNDER_PORT="8090"
+echo -e "${GREEN}✓ Thunder host set to: $THUNDER_HOST:$THUNDER_PORT (primary domain)${NC}"
+
+# -------------------------------
+# Step 3: Validate users.yaml
+# -------------------------------
 YAML_USER_COUNT=$(grep -c "username:" "$USERS_FILE" 2>/dev/null || echo "0")
 if [ "$YAML_USER_COUNT" -eq 0 ]; then
 	echo -e "${RED}✗ No users defined in $USERS_FILE${NC}"
@@ -238,19 +239,56 @@ echo "# Passwords are encrypted. Use decrypt_password.sh to view them." >>"$PASS
 echo "" >>"$PASSWORDS_FILE"
 
 # -------------------------------
-# Step 3: Process each user
+# Step 4: Process domains and users
 # -------------------------------
 ADDED_COUNT=0
+CURRENT_DOMAIN=""
 USER_USERNAME=""
+IN_USERS_SECTION=false
 
 while IFS= read -r line; do
 	trimmed_line=$(echo "$line" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
 
-	if [[ $trimmed_line =~ ^-\ username:\ (.+)$ ]] || [[ $trimmed_line =~ ^username:\ (.+)$ ]]; then
+	# Match domain line: "- domain: example.com" or "  - domain: example.com"
+	if [[ $line =~ ^[[:space:]]*-[[:space:]]+domain:[[:space:]]+(.+)$ ]]; then
+		CURRENT_DOMAIN="${BASH_REMATCH[1]}"
+		CURRENT_DOMAIN=$(echo "$CURRENT_DOMAIN" | xargs)
+		IN_USERS_SECTION=false
+
+		if [ -n "$CURRENT_DOMAIN" ]; then
+			echo -e "\n${CYAN}========================================${NC}"
+			echo -e "${CYAN}Processing domain: ${GREEN}${CURRENT_DOMAIN}${NC}"
+			echo -e "${CYAN}========================================${NC}"
+
+			# Validate domain format
+			if ! [[ "$CURRENT_DOMAIN" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+				echo -e "${RED}✗ Invalid domain: $CURRENT_DOMAIN${NC}"
+				CURRENT_DOMAIN=""
+				continue
+			fi
+
+			# Ensure domain exists in database
+			if ! ensure_domain_exists "$CURRENT_DOMAIN"; then
+				echo -e "${RED}✗ Failed to set up domain $CURRENT_DOMAIN. Skipping.${NC}"
+				CURRENT_DOMAIN=""
+				continue
+			fi
+		fi
+	fi
+
+	# Match "users:" section marker
+	if [[ $trimmed_line =~ ^users:[[:space:]]*$ ]] && [ -n "$CURRENT_DOMAIN" ]; then
+		IN_USERS_SECTION=true
+		continue
+	fi
+
+	# Match username line: "- username: alice" or "  - username: alice"
+	if [[ $line =~ ^[[:space:]]+-[[:space:]]+username:[[:space:]]+(.+)$ ]] && [ "$IN_USERS_SECTION" = true ] && [ -n "$CURRENT_DOMAIN" ]; then
 		USER_USERNAME="${BASH_REMATCH[1]}"
+		USER_USERNAME=$(echo "$USER_USERNAME" | xargs)
 
 		if [ -n "$USER_USERNAME" ]; then
-			USER_EMAIL="${USER_USERNAME}@${MAIL_DOMAIN}"
+			USER_EMAIL="${USER_USERNAME}@${CURRENT_DOMAIN}"
 
 			# Check user limit
 			CURRENT_USER_COUNT=$(get_container_user_count "$SMTP_CONTAINER")
@@ -261,7 +299,7 @@ while IFS= read -r line; do
 			fi
 
 			# Check if user already exists in database
-			USER_EXISTS=$(docker exec "$SMTP_CONTAINER" bash -c "sqlite3 /app/data/databases/shared.db \"SELECT COUNT(*) FROM users u INNER JOIN domains d ON u.domain_id = d.id WHERE u.username='${USER_USERNAME}' AND d.domain='${MAIL_DOMAIN}' AND u.enabled=1;\"" 2>/dev/null || echo "0")
+			USER_EXISTS=$(docker exec "$SMTP_CONTAINER" bash -c "sqlite3 /app/data/databases/shared.db \"SELECT COUNT(*) FROM users u INNER JOIN domains d ON u.domain_id = d.id WHERE u.username='${USER_USERNAME}' AND d.domain='${CURRENT_DOMAIN}' AND u.enabled=1;\"" 2>/dev/null || echo "0")
 			if [ "$USER_EXISTS" != "0" ]; then
 				echo -e "${YELLOW}⚠ User ${USER_EMAIL} already exists. Skipping.${NC}"
 				USER_USERNAME=""
@@ -294,7 +332,7 @@ while IFS= read -r line; do
 				echo -e "${GREEN}✓ User $USER_EMAIL created successfully in Thunder (HTTP $USER_STATUS)${NC}"
 
 				# Update virtual configuration
-				if update_container_virtual_users "$SMTP_CONTAINER" "$USER_EMAIL" "$USER_USERNAME" "$MAIL_DOMAIN"; then
+				if update_container_virtual_users "$SMTP_CONTAINER" "$USER_EMAIL" "$USER_USERNAME" "$CURRENT_DOMAIN"; then
 
 					echo -e "${GREEN}✓ User $USER_EMAIL added to SQLite database (no hash rebuild needed)${NC}"
 
@@ -356,18 +394,23 @@ fi
 # Final Summary
 # -------------------------------
 TOTAL_USERS=$(get_container_user_count "$SMTP_CONTAINER")
+DOMAIN_COUNT=$(docker exec "$SMTP_CONTAINER" sqlite3 /app/data/databases/shared.db "SELECT COUNT(*) FROM domains WHERE enabled=1;" 2>/dev/null | tr -d '\n\r')
+
 echo -e "\n${CYAN}==============================================${NC}"
 echo -e " 🎉 ${GREEN}User Setup Complete!${NC}"
 echo " Total new users added: $ADDED_COUNT"
-echo " Domain: $MAIL_DOMAIN"
+echo " Total domains configured: $DOMAIN_COUNT"
 echo " Total users now: $TOTAL_USERS"
+echo ""
+echo -e "${CYAN}Active Domains:${NC}"
+docker exec "$SMTP_CONTAINER" sqlite3 /app/data/databases/shared.db "SELECT '  • ' || domain FROM domains WHERE enabled=1;"
 echo ""
 echo -e "${BLUE}🔐 Security Information:${NC}"
 echo -e " Encrypted passwords: ${YELLOW}$PASSWORDS_FILE${NC}"
 echo -e " Admin decryption tool: ${YELLOW}./decrypt_password.sh${NC}"
 echo ""
 echo -e "${CYAN}Admin Usage Examples:${NC}"
-echo -e " View specific user password: ${YELLOW}./decrypt_password.sh alice@$MAIL_DOMAIN${NC}"
+echo -e " View specific user password: ${YELLOW}./decrypt_password.sh user@domain.com${NC}"
 echo -e " View all passwords: ${YELLOW}./decrypt_password.sh all${NC}"
 echo -e " Decrypt hex string: ${YELLOW}./decrypt_password.sh '1a2b3c4d...'${NC}"
 echo ""

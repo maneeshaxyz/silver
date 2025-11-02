@@ -11,7 +11,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONF_DIR="$(cd "${SCRIPT_DIR}/../../conf" && pwd)"
 CONFIG_FILE="${CONF_DIR}/silver.yaml"
 
-DOMAIN=$(grep -m 1 '^domain:' "$CONFIG_FILE" | sed 's/domain: //' | xargs)
+# Extract primary (first) domain from the domains list in silver.yaml
+DOMAIN=$(grep -m 1 '^\s*-\s*domain:' "$CONFIG_FILE" | sed 's/.*domain:\s*//' | xargs)
 
 # Validate if DOMAIN is empty
 if [ -z "$DOMAIN" ]; then
