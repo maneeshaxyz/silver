@@ -16,7 +16,8 @@ readonly DKIM_KEYS_PATH="${ROOT_DIR}/silver-config/opendkim/keys"
 readonly DKIM_KEY_SIZE=2048
 
 # --- Main Logic ---
-readonly MAIL_DOMAIN=$(grep -m 1 '^domain:' "${SILVER_YAML_FILE}" | sed 's/domain: //' | xargs)
+# Extract primary (first) domain from the domains list in silver.yaml
+readonly MAIL_DOMAIN=$(grep -m 1 '^\s*-\s*domain:' "${SILVER_YAML_FILE}" | sed 's/.*domain:\s*//' | xargs)
 
 # --- generate all files needed for OpenDkim ---
 # Generate the TrustedHosts file.

@@ -15,8 +15,9 @@ CONFIG_FILE="${ROOT_DIR}/../conf/silver.yaml"
 OUTPUT_FILE="${GEN_DIR}/conf/raven.yaml"
 MAILS_DB_PATH="${GEN_DIR}/data/databases/shared.db"
 
-# --- Extract domain from silver.yaml ---
-MAIL_DOMAIN=$(grep -m 1 '^domain:' "$CONFIG_FILE" | awk '{print $2}' | xargs)
+# --- Extract primary (first) domain from silver.yaml ---
+# Look for the first domain entry under the domains list
+MAIL_DOMAIN=$(grep -m 1 '^\s*-\s*domain:' "$CONFIG_FILE" | sed 's/.*domain:\s*//' | xargs)
 MAIL_DOMAIN=${MAIL_DOMAIN:-example.local}
 
 # --- Certificate paths ---
