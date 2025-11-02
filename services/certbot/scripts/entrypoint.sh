@@ -3,16 +3,39 @@ set -e
 
 CONFIG_FILE="/etc/certbot/silver.yaml"
 
-export MAIL_DOMAIN=$(yq -e '.domain' "$CONFIG_FILE")
+echo "========================================="
+echo "  Multi-Domain Certificate Request"
+echo "========================================="
+echo ""
 
-MAIL_DOMAIN=${MAIL_DOMAIN:-example.org}
+# Extract ALL domains from the domains list in silver.yaml
+DOMAINS=$(yq -e '.domains[].domain' "$CONFIG_FILE" 2>/dev/null | tr '\n' ' ')
 
-echo "Requesting certificate for ${MAIL_DOMAIN} and mail.${MAIL_DOMAIN}..."
+if [ -z "$DOMAINS" ]; then
+    echo "❌ Error: No domains found in $CONFIG_FILE"
+    exit 1
+fi
 
-# Execute the main certbot command passed from the Dockerfile's CMD
-exec certbot certonly --standalone --non-interactive --key-type rsa --agree-tos \
-    --email "admin@${MAIL_DOMAIN}" \
-    -d "${MAIL_DOMAIN}" \
-    -d "mail.${MAIL_DOMAIN}"
+# Get primary domain for email
+PRIMARY_DOMAIN=$(echo "$DOMAINS" | awk '{print $1}')
 
-echo "Certbot process completed."
+echo "Domains to be covered by this certificate:"
+
+# Build the certbot command with all domains
+CERTBOT_CMD="certbot certonly --standalone --non-interactive --agree-tos --email admin@${PRIMARY_DOMAIN} --key-type rsa --keep-until-expiring --expand"
+
+for domain in $DOMAINS; do
+    echo "  • $domain"
+    CERTBOT_CMD="$CERTBOT_CMD -d $domain"
+done
+
+echo ""
+echo "Using HTTP-01 challenge (port 80 required)"
+echo "Starting certificate request..."
+echo "========================================="
+echo ""
+
+# Execute the certbot command
+exec $CERTBOT_CMD
+
+echo "✅ Certificate successfully requested for all domains"
