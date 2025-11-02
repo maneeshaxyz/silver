@@ -55,8 +55,8 @@ MAIL_DOMAIN=""
 # ================================
 echo -e "\n${YELLOW}Step 1/8: Configure domain name${NC}"
 
-# Read domain from the configuration file
-readonly MAIL_DOMAIN=$(grep -m 1 '^domain:' "${CONFIG_FILE}" | sed 's/domain: //' | xargs)
+# Extract primary (first) domain from the domains list in silver.yaml
+readonly MAIL_DOMAIN=$(grep -m 1 '^\s*-\s*domain:' "${CONFIG_FILE}" | sed 's/.*domain:\s*//' | xargs)
 
 # Validate if MAIL_DOMAIN is empty
 if [[ -z "${MAIL_DOMAIN}" ]]; then
