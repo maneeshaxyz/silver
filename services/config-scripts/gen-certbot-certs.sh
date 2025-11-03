@@ -31,6 +31,7 @@ echo "  Multi-Domain Certificate Setup"
 echo "========================================="
 echo ""
 echo "Domains to be covered by this certificate:"
+echo "  • mail.$PRIMARY_DOMAIN"
 
 for domain in $DOMAINS; do
     echo "  • $domain"
@@ -67,7 +68,7 @@ echo ""
 read -p "Press Enter to continue with certificate request..."
 
 # Build the certbot command with all domains
-DOMAIN_ARGS=""
+DOMAIN_ARGS="-d mail.$PRIMARY_DOMAIN"
 for domain in $DOMAINS; do
     DOMAIN_ARGS="$DOMAIN_ARGS -d $domain"
 done
