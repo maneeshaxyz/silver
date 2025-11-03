@@ -31,11 +31,11 @@ echo "  Multi-Domain Certificate Setup"
 echo "========================================="
 echo ""
 echo "Domains to be covered by this certificate:"
-echo "  • mail.$PRIMARY_DOMAIN"
 
 for domain in $DOMAINS; do
     echo "  • $domain"
 done
+echo "  • mail.$PRIMARY_DOMAIN"
 
 echo ""
 echo "Using HTTP-01 challenge (port 80 required)"
@@ -68,10 +68,12 @@ echo ""
 read -p "Press Enter to continue with certificate request..."
 
 # Build the certbot command with all domains
-DOMAIN_ARGS="-d mail.$PRIMARY_DOMAIN"
+DOMAIN_ARGS=""
 for domain in $DOMAINS; do
     DOMAIN_ARGS="$DOMAIN_ARGS -d $domain"
 done
+# Add mail subdomain at the end
+DOMAIN_ARGS="$DOMAIN_ARGS -d mail.$PRIMARY_DOMAIN"
 
 # Request certificate using HTTP-01 challenge for all domains
 docker run --rm \
