@@ -13,7 +13,8 @@ readonly CONFIGS_PATH="${ROOT_DIR}/services/silver-config/postfix"
 readonly DKIM_SELECTOR=mail
 
 # --- Main Logic ---
-readonly MAIL_DOMAIN=$(grep -m 1 '^domain:' "${SILVER_YAML_FILE}" | sed 's/domain: //' | xargs)
+# Extract primary (first) domain from the domains list in silver.yaml
+readonly MAIL_DOMAIN=$(grep -m 1 '^\s*-\s*domain:' "${SILVER_YAML_FILE}" | sed 's/.*domain:\s*//' | xargs)
 #export RELAYHOST=$(yq -e '.relayhost' "$SILVER_YAML_FILE" || echo "")
 
 # --- Derived variables ---

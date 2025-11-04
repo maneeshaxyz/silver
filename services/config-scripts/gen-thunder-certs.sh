@@ -6,7 +6,9 @@ set -euo pipefail
 # Define constant paths
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ROOT_DIR="$(dirname "$SCRIPT_DIR")"
-readonly LETSENCRYPT_PATH="${ROOT_DIR}/silver-config/certbot/keys/etc/live/$(grep -m 1 '^domain:' "${ROOT_DIR}/../conf/silver.yaml" | sed 's/domain: //' | xargs)"
+# Extract primary (first) domain from the domains list in silver.yaml
+readonly MAIL_DOMAIN=$(grep -m 1 '^\s*-\s*domain:' "${ROOT_DIR}/../conf/silver.yaml" | sed 's/.*domain:\s*//' | xargs)
+readonly LETSENCRYPT_PATH="${ROOT_DIR}/silver-config/certbot/keys/etc/live/${MAIL_DOMAIN}"
 readonly THUNDER_CERTS_PATH="${ROOT_DIR}/silver-config/thunder/certs"
 
 mkdir -p "${THUNDER_CERTS_PATH}"
