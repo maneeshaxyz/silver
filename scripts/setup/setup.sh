@@ -57,6 +57,8 @@ echo -e "\n${YELLOW}Step 1/8: Configure domain name${NC}"
 
 # Read domain from the configuration file
 readonly MAIL_DOMAIN=$(grep -m 1 '^domain:' "${CONFIG_FILE}" | sed 's/domain: //' | xargs)
+# Read silver-config from the configuration file
+readonly SILVER_CONFIG=$(grep -m 1 '^config-url:' "${CONFIG_FILE}" | sed 's/config-url: //' | xargs)
 
 # Validate if MAIL_DOMAIN is empty
 if [[ -z "${MAIL_DOMAIN}" ]]; then
@@ -75,15 +77,10 @@ fi
 # Step 2: Config Generation
 # ================================
 
-# We can add this to the silver.yaml file later if needed
+git clone ${SILVER_CONFIG} "${SERVICES_DIR}/silver-config"
+
 # ================================
-# Step 2: Config Generation
+# Step 3: Generate Service Configurations
 # ================================
 
-GIT_URL="https://github.com/maneeshaxyz/silver-config"
-
-mkdir -p "${SERVICES_DIR}/silver-config/"
-
-wget -qO- "${GIT_URL}/archive/refs/heads/main.tar.gz" | tar -xz --strip-components=1 -C "${SERVICES_DIR}/silver-config/"
-
-bash "${SERVICES_DIR}/config-scripts/gen-configs.sh"
+bash ${SERVICES_DIR}/config-scripts/gen-configs.sh
