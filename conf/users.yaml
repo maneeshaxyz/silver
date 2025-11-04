@@ -1,4 +1,31 @@
-users:
-  - username: 
-  - username: 
-  - username: 
+# ===============================================================
+#          Silver Mail Users Configuration (`users.yaml`)
+# ===============================================================
+#
+# This file defines users for each domain.
+# Users are grouped by their domain.
+#
+# Example configuration:
+# domains:
+#   - domain: example.com
+#     users:
+#       - username: alice
+#       - username: bob
+#       - username: charlie
+#
+#   - domain: another-domain.com
+#     users:
+#       - username: john
+#       - username: jane
+#
+#   - domain: subdomain.example.com
+#     users:
+#       - username: admin
+#       - username: support
+
+domains:
+  - domain:
+    users:
+      - username:
+      - username:
+      - username:
