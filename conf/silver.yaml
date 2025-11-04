@@ -17,6 +17,9 @@
 
 domain: 
 
+# Git URL that containing all the config files needed to run silver. Make sure to use your own fork if you have made any changes.
+config-url: "https://github.com/maneeshaxyz/silver-config"
+
 # DKIM 
 dkim-selector: 
 dkim-key-size:
