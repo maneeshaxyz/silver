@@ -75,15 +75,10 @@ fi
 # Step 2: Config Generation
 # ================================
 
-# We can add this to the silver.yaml file later if needed
+git clone ${SILVER_CONFIG} "${SERVICES_DIR}/silver-config"
+
 # ================================
-# Step 2: Config Generation
+# Step 3: Generate Service Configurations
 # ================================
 
-GIT_URL="https://github.com/maneeshaxyz/silver-config"
-
-mkdir -p "${SERVICES_DIR}/silver-config/"
-
-wget -qO- "${GIT_URL}/archive/refs/heads/main.tar.gz" | tar -xz --strip-components=1 -C "${SERVICES_DIR}/silver-config/"
-
-bash "${SERVICES_DIR}/config-scripts/gen-configs.sh"
+bash ${SERVICES_DIR}/config-scripts/gen-configs.sh
