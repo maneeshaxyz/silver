@@ -143,6 +143,27 @@ services:
     ports:
       - "3000:3000"
 
+  loki:
+    image: grafana/loki:3.5.8
+    container_name: loki
+    user: "0:0"
+    volumes:
+      - ./silver-config/loki-config.yaml:/mnt/config/loki-config.yaml
+      - ./loki-data:/loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/mnt/config/loki-config.yaml
+
+  promtail:
+    image: grafana/promtail:3.5.8
+    container_name: promtail
+    volumes:
+      - ./silver-config/promtail-config.yaml:/mnt/config/promtail-config.yaml
+      - /var/log:/var/log:ro
+    depends_on:
+      - loki
+    command: -config.file=/mnt/config/promtail-config.yaml
+
 volumes:
   postfix-sasl:
   dkim-keys:
@@ -151,6 +172,8 @@ volumes:
   clamav_db:
   go-imap-data:
   raven-sockets:
+  grafana-data:
+  loki-data:
 
 
 networks:
