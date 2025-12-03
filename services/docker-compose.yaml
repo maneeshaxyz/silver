@@ -76,7 +76,7 @@ services:
       - clamsock:/var/run/clamav # shared socket volume
     networks:
       - mail-network
-
+  
   redis:
     image: redis:alpine
     container_name: rspamd-redis
@@ -154,6 +154,8 @@ services:
         target: /etc/prometheus/prometheus.yml
     ports:
       - 9090:9090
+    networks:
+      - mail-network
     extra_hosts:
       - host.docker.internal=host-gateway
   grafana:
@@ -163,8 +165,13 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./silver-config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./silver-config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./silver-config/grafana/dashboards:/etc/grafana/dashboards:ro
     ports:
       - "3000:3000"
+    networks:
+      - mail-network
 
   loki:
     image: grafana/loki:3.5.8
