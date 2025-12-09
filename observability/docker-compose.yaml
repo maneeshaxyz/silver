@@ -2,6 +2,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus-local
+    env_file: ".env"
     ports:
       - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
@@ -21,6 +22,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana-local
+    env_file: ".env"
     ports:
       - "${GRAFANA_PORT:-3000}:3000"
     volumes:
