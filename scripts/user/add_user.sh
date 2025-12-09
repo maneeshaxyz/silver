@@ -321,6 +321,22 @@ THUNDER_PORT="8090"
 echo -e "${GREEN}✓ Thunder host set to: $THUNDER_HOST:$THUNDER_PORT (primary domain)${NC}"
 
 # -------------------------------
+# Step 2.1: Authenticate with Thunder and get organization unit
+# -------------------------------
+# Source Thunder authentication utility
+source "${SCRIPT_DIR}/../utils/thunder-auth.sh"
+
+# Authenticate with Thunder
+if ! thunder_authenticate "$THUNDER_HOST" "$THUNDER_PORT"; then
+	exit 1
+fi
+
+# Get organization unit ID for "silver"
+if ! thunder_get_org_unit "$THUNDER_HOST" "$THUNDER_PORT" "$BEARER_TOKEN" "silver"; then
+	exit 1
+fi
+
+# -------------------------------
 # Step 3: Validate users.yaml
 # -------------------------------
 YAML_USER_COUNT=$(grep -c "username:" "$USERS_FILE" 2>/dev/null || echo "0")
@@ -473,9 +489,10 @@ while IFS= read -r line; do
 			USER_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
 				-H "Content-Type: application/json" \
 				-H "Accept: application/json" \
-				https://$THUNDER_HOST:$THUNDER_PORT/users \
+				-H "Authorization: Bearer ${BEARER_TOKEN}" \
+				https://${THUNDER_HOST}:${THUNDER_PORT}/users \
 				-d "{
-                \"organizationUnit\": \"456e8400-e29b-41d4-a716-446655440001\",
+                \"organizationUnit\": \"${ORG_UNIT_ID}\",
                 \"type\": \"emailuser\",
                 \"attributes\": {
                   \"username\": \"$USER_USERNAME\",
