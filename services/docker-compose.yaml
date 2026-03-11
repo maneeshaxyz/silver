@@ -66,11 +66,16 @@ services:
     environment:
       - SOCKETMAP_HOST=0.0.0.0
       - SOCKETMAP_PORT=9100
-      # THUNDER_SAMPLE_APP_ID not required - auto-extracted from thunder-setup logs
+      # THUNDER_DEVELOP_APP_ID not required - auto-extracted from thunder-setup logs
       - THUNDER_HOST=thunder-server
       - THUNDER_PORT=8090
       - CACHE_TTL_SECONDS=300
       - TOKEN_REFRESH_SECONDS=3300
+    depends_on:
+      thunder-setup:
+        condition: service_completed_successfully
+      thunder:
+        condition: service_started
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "9100"]
       interval: 10s
@@ -175,7 +180,7 @@ services:
 
   # Initialize database from the image
   thunder-db-init:
-    image: ghcr.io/asgardeo/thunder:0.22.0
+    image: ghcr.io/asgardeo/thunder:0.24.0
     container_name: thunder-db-init
     command: sh -c "cp -r /opt/thunder/repository/database/* /data/"
     volumes:
@@ -184,12 +189,17 @@ services:
 
   # Run setup once with the shared database
   thunder-setup:
-    image: ghcr.io/asgardeo/thunder:0.22.0
+    image: ghcr.io/asgardeo/thunder:0.24.0
     container_name: thunder-setup
     command: ./setup.sh
     volumes:
       - thunder-db:/opt/thunder/repository/database
       - ./silver-config/thunder/deployment.yaml:/opt/thunder/repository/conf/deployment.yaml:ro
+      - ./../scripts/thunder/01-default-resources.sh:/opt/thunder/bootstrap/01-default-resources.sh
+      - ./../scripts/thunder/02-sample-resources.sh:/opt/thunder/bootstrap/02-sample-resources.sh
+    environment:
+      - THUNDER_ADMIN_USERNAME=${THUNDER_ADMIN_USERNAME:-admin}
+      - THUNDER_ADMIN_PASSWORD=${THUNDER_ADMIN_PASSWORD:-admin}
     depends_on:
       thunder-db-init:
         condition: service_completed_successfully
@@ -197,7 +207,7 @@ services:
 
   # Run Thunder server with the shared database
   thunder:
-    image: ghcr.io/asgardeo/thunder:0.22.0
+    image: ghcr.io/asgardeo/thunder:0.24.0
     container_name: thunder-server
     depends_on:
       thunder-setup:
