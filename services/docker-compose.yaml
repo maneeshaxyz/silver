@@ -19,10 +19,16 @@ services:
     networks:
       - mail-network
     depends_on:
-      - opendkim-server
-      - rspamd-server
-      - certbot-server
-      - raven-server
+      opendkim-server:
+        condition: service_started
+      rspamd-server:
+        condition: service_started
+      certbot-server:
+        condition: service_started
+      raven-server:
+        condition: service_started
+      socketmap-server:
+        condition: service_healthy
 
   raven-server:
     image: ghcr.io/lsflk/raven:latest
@@ -42,6 +48,41 @@ services:
       - mail-network
     restart: unless-stopped
     user: "0:0"
+
+  socketmap-server:
+    build:
+      context: ./socketmap
+      dockerfile: Dockerfile
+    container_name: socketmap-server
+    expose:
+      - "9100"
+    volumes:
+      # Mount Docker socket to allow reading thunder-setup logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - mail-network
+    restart: unless-stopped
+    user: "0:0"
+    environment:
+      - SOCKETMAP_HOST=0.0.0.0
+      - SOCKETMAP_PORT=9100
+      # THUNDER_SAMPLE_APP_ID not required - auto-extracted from thunder-setup logs
+      - THUNDER_HOST=thunder-server
+      - THUNDER_PORT=8090
+      - CACHE_TTL_SECONDS=300
+      - TOKEN_REFRESH_SECONDS=3300
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9100"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
 
   opendkim-server:
     image: ghcr.io/lsflk/silver-dkim:main
